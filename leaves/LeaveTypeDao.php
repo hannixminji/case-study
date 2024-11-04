@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/Helper.php'            ;
 require_once __DIR__ . '/../includes/enums/ActionResult.php';
 require_once __DIR__ . '/../includes/enums/ErrorCode.php'   ;
 
-class DepartmentDao
+class LeaveTypeDao
 {
     private readonly PDO $pdo;
 
@@ -13,23 +13,25 @@ class DepartmentDao
         $this->pdo = $pdo;
     }
 
-    public function create(Department $department, int $userId): ActionResult
+    public function create(LeaveType $leaveType, int $userId): ActionResult
     {
         $query = '
-            INSERT INTO departments (
-                name              ,
-                department_head_id,
-                description       ,
-                status            ,
-                created_by        ,
+            INSERT INTO leave_types (
+                name                  ,
+                maximum_number_of_days,
+                is_paid               ,
+                description           ,
+                status                ,
+                created_by            ,
                 updated_by
             )
             VALUES (
-                :name              ,
-                :department_head_id,
-                :description       ,
-                :status            ,
-                :created_by        ,
+                :name                  ,
+                :maximum_number_of_days,
+                :is_paid               ,
+                :description           ,
+                :status                ,
+                :created_by            ,
                 :updated_by
             )
         ';
@@ -39,12 +41,13 @@ class DepartmentDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
-            $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
-            $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
-            $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
-            $statement->bindValue(':created_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
-            $statement->bindValue(':updated_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
+            $statement->bindValue(':name'                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
+            $statement->bindValue(':maximum_number_of_days', $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
+            $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
+            $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
+            $statement->bindValue(':created_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
+            $statement->bindValue(':updated_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
 
             $statement->execute();
 
@@ -55,7 +58,7 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the department. ' .
+            error_log('Database Error: An error occurred while creating the leave type. ' .
                       'Exception: ' . $exception->getMessage());
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
@@ -74,20 +77,18 @@ class DepartmentDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                          => "department.id               AS id"                         ,
-            "name"                        => "department.name             AS name"                       ,
-            "department_head_id"          => "department_head.id          AS department_head_id"         ,
-            "department_head_first_name"  => "department_head.first_name  AS department_head_first_name" ,
-            "department_head_middle_name" => "department_head.middle_name AS department_head_middle_name",
-            "department_head_last_name"   => "department_head.last_name   AS department_head_last_name"  ,
-            "description"                 => "department.description      AS description"                ,
-            "status"                      => "department.status           AS status"                     ,
-            "created_at"                  => "department.created_at       AS created_at"                 ,
-            "created_by"                  => "created_by_admin.username   AS created_by"                 ,
-            "updated_at"                  => "department.updated_at       AS updated_at"                 ,
-            "updated_by"                  => "updated_by_admin.username   AS updated_by"                 ,
-            "deleted_at"                  => "department.deleted_at       AS deleted_at"                 ,
-            "deleted_by"                  => "deleted_by_admin.username   AS deleted_by"
+            "id"                     => "leave_type.id                     AS id"                    ,
+            "name"                   => "leave_type.name                   AS name"                  ,
+            "maximum_number_of_days" => "leave_type.maximum_number_of_days AS maximum_number_of_days",
+            "is_paid"                => "leave_type.is_paid                AS is_paid"               ,
+            "description"            => "leave_type.description            AS description"           ,
+            "status"                 => "leave_type.status                 AS status"                ,
+            "created_at"             => "leave_type.created_at             AS created_at"            ,
+            "created_by"             => "created_by_admin.username         AS created_by"            ,
+            "updated_at"             => "leave_type.updated_at             AS updated_at"            ,
+            "updated_by"             => "updated_by_admin.username         AS updated_by"            ,
+            "deleted_at"             => "leave_type.deleted_at             AS deleted_at"            ,
+            "deleted_by"             => "deleted_by_admin.username         AS deleted_by"
         ];
 
         $selectedColumns =
@@ -100,24 +101,12 @@ class DepartmentDao
 
         $joinClauses = "";
 
-        if (array_key_exists("department_head_id"         , $selectedColumns) ||
-            array_key_exists("department_head_first_name" , $selectedColumns) ||
-            array_key_exists("department_head_middle_name", $selectedColumns) ||
-            array_key_exists("department_head_last_name"  , $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS department_head
-                ON
-                    department.department_head_id = department_head.id
-            ";
-        }
-
         if (array_key_exists("created_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     admins AS created_by_admin
                 ON
-                    department.created_by = created_by_admin.id
+                    leave_type.created_by = created_by_admin.id
             ";
         }
 
@@ -126,7 +115,7 @@ class DepartmentDao
                 LEFT JOIN
                     admins AS updated_by_admin
                 ON
-                    department.updated_by = updated_by_admin.id
+                    leave_type.updated_by = updated_by_admin.id
             ";
         }
 
@@ -135,23 +124,22 @@ class DepartmentDao
                 LEFT JOIN
                     admins AS deleted_by_admin
                 ON
-                    department.deleted_by = deleted_by_admin.id
+                    leave_type.deleted_by = deleted_by_admin.id
             ";
         }
 
         $queryParameters = [];
-
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "department.status <> 'Archived'";
+            $whereClauses[] = "leave_type.status <> 'Archived'";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
+                $column   = $filterCriterion["column"];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "="   :
+                    case "=":
                     case "LIKE":
                         $whereClauses[] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
@@ -171,7 +159,7 @@ class DepartmentDao
 
         $orderByClauses = [];
 
-        if ( ! empty($sortCriteria)) {
+        if (!empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -201,10 +189,10 @@ class DepartmentDao
             SELECT
                 " . implode(", ", $selectedColumns) . "
             FROM
-                departments AS department
+                leave_types AS leave_type
             {$joinClauses}
             WHERE
-            " . implode(" AND ", $whereClauses) . "
+                " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -235,25 +223,26 @@ class DepartmentDao
             return $resultSet;
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the departments. " .
+            error_log("Database Error: An error occurred while fetching the leave types. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function update(Department $department, int $userId): ActionResult
+    public function update(LeaveType $leaveType, int $userId): ActionResult
     {
         $query = '
-            UPDATE departments
+            UPDATE leave_types
             SET
-                name               = :name              ,
-                department_head_id = :department_head_id,
-                description        = :description       ,
-                status             = :status            ,
-                updated_by         = :updated_by
+                name                   = :name                  ,
+                maximum_number_of_days = :maximum_number_of_days,
+                is_paid                = :is_paid               ,
+                description            = :description           ,
+                status                 = :status                ,
+                updated_by             = :updated_by
             WHERE
-                id = :department_id
+                id = :leave_type_id
         ';
 
         try {
@@ -261,12 +250,13 @@ class DepartmentDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
-            $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
-            $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
-            $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
-            $statement->bindValue(':updated_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
-            $statement->bindValue(':department_id'     , $department->getId()              , Helper::getPdoParameterType($department->getId()              ));
+            $statement->bindValue(':name'                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
+            $statement->bindValue(':maximum_number_of_days', $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
+            $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
+            $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
+            $statement->bindValue(':updated_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
+            $statement->bindValue(':leave_type_id'         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));
 
             $statement->execute();
 
@@ -277,8 +267,8 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the department. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log('Database Error: An error occurred while updating the leave type. ' .
+                    'Exception: ' . $exception->getMessage());
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -288,21 +278,21 @@ class DepartmentDao
         }
     }
 
-    public function delete(int $departmentId, int $userId): ActionResult
+    public function delete(int $leaveTypeId, int $userId): ActionResult
     {
-        return $this->softDelete($departmentId, $userId);
+        return $this->softDelete($leaveTypeId, $userId);
     }
 
-    private function softDelete(int $departmentId, int $userId): ActionResult
+    private function softDelete(int $leaveTypeId, int $userId): ActionResult
     {
         $query = '
-            UPDATE departments
+            UPDATE leave_types
             SET
                 status     = "Archived"       ,
                 deleted_at = CURRENT_TIMESTAMP,
                 deleted_by = :deleted_by
             WHERE
-                id = :department_id
+                id = :leave_type_id
         ';
 
         try {
@@ -310,8 +300,8 @@ class DepartmentDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':deleted_by'   , $userId      , Helper::getPdoParameterType($userId      ));
-            $statement->bindValue(':department_id', $departmentId, Helper::getPdoParameterType($departmentId));
+            $statement->bindValue(':deleted_by'   , $userId     , Helper::getPdoParameterType($userId     ));
+            $statement->bindValue(':leave_type_id', $leaveTypeId, Helper::getPdoParameterType($leaveTypeId));
 
             $statement->execute();
 
@@ -322,7 +312,7 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the department. ' .
+            error_log('Database Error: An error occurred while deleting the leave type. ' .
                       'Exception: ' . $exception->getMessage());
 
             return ActionResult::FAILURE;
