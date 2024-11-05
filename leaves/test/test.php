@@ -12,10 +12,10 @@ try {
 
     $newLeaveType = new LeaveType(
         id: null,
-        name: "Annual Leave",
-        maximumNumberOfDays: 30,
+        name: "Vacation Leave",
+        maximumNumberOfDays: 50,
         isPaid: true,
-        description: "Leave taken for vacation or personal time off.",
+        description: "Sick Leave",
         status: "Active"
     );
     $createResult = $leaveTypeDao->create($newLeaveType, $userId);

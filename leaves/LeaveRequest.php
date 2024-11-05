@@ -3,16 +3,13 @@
 class LeaveRequest
 {
     public function __construct(
-        private readonly ?int      $id                ,
-        private readonly int       $employeeId        ,
-        private readonly int       $leaveTypeId       ,
-        private readonly DateTime  $startDate         ,
-        private readonly DateTime  $endDate           ,
-        private readonly string    $reason            ,
-        private readonly string    $status            ,
-        private readonly ?DateTime $approvedAt        ,
-        private readonly ?int      $approvedByAdmin   ,
-        private readonly ?int      $approvedByEmployee
+        private readonly ?int   $id         ,
+        private readonly int    $employeeId ,
+        private readonly int    $leaveTypeId,
+        private readonly string $startDate  ,
+        private readonly string $endDate    ,
+        private readonly string $reason     ,
+        private readonly string $status
     ) {
     }
 
@@ -31,12 +28,12 @@ class LeaveRequest
         return $this->leaveTypeId;
     }
 
-    public function getStartDate(): DateTime
+    public function getStartDate(): string
     {
         return $this->startDate;
     }
 
-    public function getEndDate(): DateTime
+    public function getEndDate(): string
     {
         return $this->endDate;
     }
@@ -49,20 +46,5 @@ class LeaveRequest
     public function getStatus(): string
     {
         return $this->status;
-    }
-
-    public function getApprovedAt(): ?DateTime
-    {
-        return $this->approvedAt;
-    }
-
-    public function getApprovedByAdmin(): ?int
-    {
-        return $this->approvedByAdmin;
-    }
-
-    public function getApprovedByEmployee(): ?int
-    {
-        return $this->approvedByEmployee;
     }
 }

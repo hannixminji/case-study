@@ -153,12 +153,12 @@ class DepartmentDao
                 switch ($operator) {
                     case "="   :
                     case "LIKE":
-                        $whereClauses[] = "{$column} {$operator} ?";
+                        $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
                         break;
 
                     case "BETWEEN":
-                        $whereClauses[] = "{$column} {$operator} ? AND ?";
+                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
                         break;
