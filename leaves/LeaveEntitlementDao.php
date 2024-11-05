@@ -176,7 +176,7 @@ class LeaveEntitlementDao
 
         $offsetClause = "";
         if ($offset !== null) {
-            $limitClause = " OFFSET ?";
+            $offsetClause = " OFFSET ?";
             $queryParameters[] = $offset;
         }
 

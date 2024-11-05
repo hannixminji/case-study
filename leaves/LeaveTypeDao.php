@@ -190,7 +190,7 @@ class LeaveTypeDao
 
         $offsetClause = "";
         if ($offset !== null) {
-            $limitClause = " OFFSET ?";
+            $offsetClause = " OFFSET ?";
             $queryParameters[] = $offset;
         }
 
