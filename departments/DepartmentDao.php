@@ -194,8 +194,17 @@ class DepartmentDao
             }
         }
 
-        $limitClause  = ($limit  !== null) ? " LIMIT :limit"   : "";
-        $offsetClause = ($offset !== null) ? " OFFSET :offset" : "";
+        $limitClause = "";
+        if ($limit !== null) {
+            $limitClause = " LIMIT ?";
+            $queryParameters[] = $limit;
+        }
+
+        $offsetClause = "";
+        if ($offset !== null) {
+            $limitClause = " OFFSET ?";
+            $queryParameters[] = $offset;
+        }
 
         $query = "
             SELECT SQL_CALC_FOUND_ROWS
@@ -215,14 +224,6 @@ class DepartmentDao
 
             foreach ($queryParameters as $index => $parameter) {
                 $statement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
-            }
-
-            if ($limit !== null) {
-                $statement->bindValue(":limit", $limit, Helper::getPdoParameterType($limit));
-            }
-
-            if ($offset !== null) {
-                $statement->bindValue(":offset", $offset, Helper::getPdoParameterType($offset));
             }
 
             $statement->execute();

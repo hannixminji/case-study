@@ -19,7 +19,7 @@ try {
     $offset = ($page - 1) * $limit;
 
     if ($action === 'fetchAll') {
-        $data = $departmentDao->fetchAll([], [], [["column" => "department.created_at", "direction" => "DESC"]], $limit, $offset);
+        $data = $departmentDao->fetchAll([], [["column" => "status", "operator" => "=", "value" => "Active"]], [["column" => "department.created_at", "direction" => "DESC"]], $limit, $offset);
         $departments = $data["result_set"];
         $totalDepartments = $data["total_row_count"];
         $totalPages = ceil($totalDepartments / $limit);

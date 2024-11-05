@@ -81,6 +81,9 @@ class LeaveRequestDao
             "employee_first_name"              => "employee.first_name                AS employee_first_name"             ,
             "employee_middle_name"             => "employee.middle_name               AS employee_middle_name"            ,
             "employee_last_name"               => "employee.last_name                 AS employee_last_name"              ,
+            "employee_department_id"           => "employee.department_id             AS employee_department_id"          ,
+            "employee_supervisor_id"           => "employee.supervisor_id             AS employee_supervisor_id"          ,
+            "employee_manager_id"              => "employee.manager_id                AS employee_manager_id"             ,
             "leave_type_id"                    => "leave_request.leave_type_id        AS leave_type_id"                   ,
             "leave_type_name"                  => "leave_type.name                    AS leave_type_name"                 ,
             "start_date"                       => "leave_request.start_date           AS start_date"                      ,
@@ -226,6 +229,7 @@ class LeaveRequestDao
         }
 
         $queryParameters = [];
+
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
@@ -279,8 +283,17 @@ class LeaveRequestDao
             }
         }
 
-        $limitClause  = ($limit  !== null) ? " LIMIT :limit"   : "";
-        $offsetClause = ($offset !== null) ? " OFFSET :offset" : "";
+        $limitClause = "";
+        if ($limit !== null) {
+            $limitClause = " LIMIT ?";
+            $queryParameters[] = $limit;
+        }
+
+        $offsetClause = "";
+        if ($offset !== null) {
+            $limitClause = " OFFSET ?";
+            $queryParameters[] = $offset;
+        }
 
         $query = "
             SELECT SQL_CALC_FOUND_ROWS
@@ -300,14 +313,6 @@ class LeaveRequestDao
 
             foreach ($queryParameters as $index => $parameter) {
                 $statement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
-            }
-
-            if ($limit !== null) {
-                $statement->bindValue(":limit", $limit, Helper::getPdoParameterType($limit));
-            }
-
-            if ($offset !== null) {
-                $statement->bindValue(":offset", $offset, Helper::getPdoParameterType($offset));
             }
 
             $statement->execute();
