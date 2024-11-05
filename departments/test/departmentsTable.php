@@ -21,5 +21,13 @@
                 <?php endforeach; ?>
             </tbody>
         </table>
+
+        <div class="pagination" style="margin-top: 20px;">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <a href="#" class="page-link" data-page="<?= $i ?>" style="margin: 0 5px; padding: 8px 16px; background-color: #007bff; color: white; text-decoration: none;">
+                    <?= $i ?>
+                </a>
+            <?php endfor; ?>
+        </div>
     <?php endif; ?>
 </div>

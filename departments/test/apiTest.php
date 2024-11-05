@@ -11,13 +11,18 @@ require_once __DIR__ . '/../../includes/enums/ErrorCode.php';
 require_once __DIR__ . '/../../database/database.php';
 
 try {
-    $departmentDao = new DepartmentDao($pdo);
     $userId = 1;
-
+    $departmentDao = new DepartmentDao($pdo);
     $action = $_POST['action'] ?? '';
+    $page = isset($_POST['page']) ? (int)$_POST['page'] : 1;
+    $limit = 5;
+    $offset = ($page - 1) * $limit;
 
     if ($action === 'fetchAll') {
-        $departments = $departmentDao->fetchAll([], [], [["column" => "department.created_at", "direction" => "DESC"]]);
+        $data = $departmentDao->fetchAll([], [], [["column" => "department.created_at", "direction" => "DESC"]], $limit, $offset);
+        $departments = $data["result_set"];
+        $totalDepartments = $data["total_row_count"];
+        $totalPages = ceil($totalDepartments / $limit);
         include __DIR__ . '/departmentsTable.php';
     } elseif ($action === 'create') {
         $departmentData = $_POST['department'] ?? null;

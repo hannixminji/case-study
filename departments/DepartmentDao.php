@@ -198,7 +198,7 @@ class DepartmentDao
         $offsetClause = ($offset !== null) ? " OFFSET :offset" : "";
 
         $query = "
-            SELECT
+            SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
                 departments AS department
@@ -232,7 +232,13 @@ class DepartmentDao
                 $resultSet[] = $row;
             }
 
-            return $resultSet;
+            $countStatement = $this->pdo->query("SELECT FOUND_ROWS()");
+            $totalRowCount = $countStatement->fetchColumn();
+
+            return [
+                "result_set"      => $resultSet    ,
+                "total_row_count" => $totalRowCount
+            ];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the departments. " .
