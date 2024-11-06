@@ -89,7 +89,19 @@ class LeaveRequestDao
             "start_date"                       => "leave_request.start_date           AS start_date"                      ,
             "end_date"                         => "leave_request.end_date             AS end_date"                        ,
             "reason"                           => "leave_request.reason               AS reason"                          ,
-            "status"                           => "leave_request.status               AS status"                          ,
+
+            "status" => "
+                CASE
+                    WHEN leave_request.status = 'Canceled' THEN 'Canceled'
+                    WHEN leave_request.status = 'Rejected' THEN 'Rejected'
+                    WHEN CURDATE() >= leave_request.start_date AND leave_request.status = 'Pending' THEN 'Expired'
+                    WHEN leave_request.status = 'Approved' AND CURDATE() BETWEEN leave_request.start_date AND leave_request.end_date THEN 'In Progress'
+                    WHEN leave_request.status = 'Approved' AND CURDATE() > leave_request.end_date THEN 'Completed'
+                    WHEN leave_request.status = 'Approved' AND CURDATE() < leave_request.start_date THEN 'Approved'
+                    ELSE 'Pending'
+                END AS status
+            ",
+
             "approved_at"                      => "leave_request.approved_at          AS approved_at"                     ,
             "approved_by_admin_id"             => "leave_request.approved_by_admin    AS approved_by_admin_id"            ,
             "approved_by_admin_username"       => "approved_by_admin.username         AS approved_by_admin_username"      ,
@@ -430,6 +442,37 @@ class LeaveRequestDao
             $this->pdo->rollBack();
 
             error_log('Database Error: An error occurred while updating the status of the leave request. ' .
+                      'Exception: ' . $exception->getMessage());
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function isEmployeeOnLeave(int $employeeId): ActionResult|bool
+    {
+        $query = '
+            SELECT
+                COUNT(*)
+            FROM
+                leave_requests
+            WHERE
+                employee_id = :employee_id
+            AND
+                status = \'In Progress\'
+            LIMIT 1
+        ';
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(':employee_id', $employeeId, Helper::getPdoParameterType($employeeId));
+
+            $statement->execute();
+
+            return $statement->fetchColumn() > 0;
+
+        } catch (PDOException $exception) {
+            error_log('Database Error: An error occurred while checking if the employee is on leave. ' .
                       'Exception: ' . $exception->getMessage());
 
             return ActionResult::FAILURE;

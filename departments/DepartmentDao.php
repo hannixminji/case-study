@@ -244,7 +244,7 @@ class DepartmentDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the departments. " .
                       "Exception: {$exception->getMessage()}");
-echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }
@@ -290,6 +290,38 @@ echo $exception->getMessage();
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
             }
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function isDepartmentHead(int $employeeId): ActionResult|bool
+    {
+        $query = '
+            SELECT
+                COUNT(*) AS count
+            FROM
+                departments
+            WHERE
+                department_head_id = :employee_id
+            AND
+                status <> "Archived"
+        ';
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
+
+            $statement->execute();
+
+            $result = $statement->fetch(PDO::FETCH_ASSOC);
+
+            return $result['count'] > 0;
+
+        } catch (PDOException $exception) {
+            error_log('Database Error: An error occurred while checking if the employee is a department head. ' .
+                      'Exception: ' . $exception->getMessage());
 
             return ActionResult::FAILURE;
         }
