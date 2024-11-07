@@ -9,6 +9,7 @@
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">ID</th>
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Name</th>
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Department Head ID</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -17,6 +18,7 @@
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['id'] ?? '') ?></td>
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['name'] ?? '') ?></td>
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['department_head_id'] ?? '') ?></td>
+                        <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['status'] ?? '') ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

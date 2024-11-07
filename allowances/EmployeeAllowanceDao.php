@@ -53,27 +53,116 @@ class EmployeeAllowanceDao
         }
     }
 
-    public function fetchAllowancesByEmployee(int $employeeId): ActionResult|array
-    {
-        $query = "
-            SELECT
-                allowance.id              AS allowance_id  ,
-                allowance.name            AS allowance_name,
-                employee_allowance.amount AS amount
-            FROM
-                employee_allowances AS employee_allowance
-            JOIN
+    public function fetchAll(
+        ?array $columns        = null,
+        ?array $filterCriteria = null,
+        ?array $sortCriteria   = null,
+        ?int   $limit          = null,
+        ?int   $offset         = null
+    ): ActionResult|array {
+        $tableColumns = [
+            "id"                       => "employee_allowance.id           AS id"                      ,
+            "employee_id"              => "employee_allowance.employee_id  AS employee_id"             ,
+
+            "allowance_id"             => "employee_allowance.allowance_id AS allowance_id"            ,
+            "allowance_name"           => "allowance.name                  AS allowance_name"          ,
+            "allowance_is_taxable"     => "allowance.is_taxable            AS allowance_is_taxable"    ,
+            "allowance_frequency"      => "allowance.frequency             AS allowance_frequency"     ,
+            "allowance_status"         => "allowance.status                AS allowance_status"        ,
+            "allowance_effective_date" => "allowance.effective_date        AS allowance_effective_date",
+            "allowance_end_date"       => "allowance.end_date              AS allowance_end_date"      ,
+
+            "amount"                   => "employee_allowance.amount       AS amount"                  ,
+            "created_at"               => "employee_allowance.created_at   AS created_at"              ,
+            "deleted_at"               => "employee_allowance.deleted_at   AS employee_deleted_at"
+        ];
+
+        $selectedColumns =
+            empty($columns)
+                ? $tableColumns
+                : array_intersect_key(
+                    $tableColumns,
+                    array_flip($columns)
+                );
+
+        $joinClauses = "
+            LEFT JOIN
                 allowances AS allowance
             ON
                 employee_allowance.allowance_id = allowance.id
+        ";
+
+        $queryParameters = [];
+
+        $whereClauses = [];
+
+        if (empty($filterCriteria)) {
+            $whereClauses[] = "employee_allowance.deleted_at IS NULL";
+        } else {
+            foreach ($filterCriteria as $filterCriterion) {
+                $column   = $filterCriterion["column"  ];
+                $operator = $filterCriterion["operator"];
+
+                switch ($operator) {
+                    case "="   :
+                    case "LIKE":
+                        $whereClauses   [] = "{$column} {$operator} ?";
+                        $queryParameters[] = $filterCriterion["value"];
+                        break;
+
+                    case "BETWEEN":
+                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
+                        $queryParameters[] = $filterCriterion["lower_bound"];
+                        $queryParameters[] = $filterCriterion["upper_bound"];
+                        break;
+
+                    default:
+                        // Do nothing
+                }
+            }
+        }
+
+        $orderByClauses = [];
+
+        if ( ! empty($sortCriteria)) {
+            foreach ($sortCriteria as $sortCriterion) {
+                $column = $sortCriterion["column"];
+                $direction = $sortCriterion["direction"];
+                $orderByClauses[] = "{$column} {$direction}";
+            }
+        }
+
+        $limitClause = "";
+        if ($limit !== null) {
+            $limitClause = " LIMIT ?";
+            $queryParameters[] = $limit;
+        }
+
+        $offsetClause = "";
+        if ($offset !== null) {
+            $offsetClause = " OFFSET ?";
+            $queryParameters[] = $offset;
+        }
+
+        $query = "
+            SELECT SQL_CALC_FOUND_ROWS
+                " . implode(", ", $selectedColumns) . "
+            FROM
+                employee_allowances AS employee_allowance
+            {$joinClauses}
             WHERE
-                employee_allowance.employee_id = :employee_id
+                " . implode(" AND ", $whereClauses) . "
+            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            {$limitClause}
+            {$offsetClause}
         ";
 
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
+            foreach ($queryParameters as $index => $parameter) {
+                $statement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
+            }
 
             $statement->execute();
 
@@ -82,7 +171,13 @@ class EmployeeAllowanceDao
                 $resultSet[] = $row;
             }
 
-            return $resultSet;
+            $countStatement = $this->pdo->query("SELECT FOUND_ROWS()");
+            $totalRowCount = $countStatement->fetchColumn();
+
+            return [
+                "result_set"      => $resultSet,
+                "total_row_count" => $totalRowCount
+            ];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching employee allowances. " .
