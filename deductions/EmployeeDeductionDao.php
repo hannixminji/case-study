@@ -4,7 +4,7 @@ require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
-class EmployeeAllowanceDao
+class EmployeeDeductionDao
 {
     private readonly PDO $pdo;
 
@@ -13,17 +13,19 @@ class EmployeeAllowanceDao
         $this->pdo = $pdo;
     }
 
-    public function assignAllowanceToEmployee(EmployeeAllowance $employeeAllowance): ActionResult
+    public function assignDeductionToEmployee(EmployeeDeduction $employeeDeduction): ActionResult
     {
         $query = "
-            INSERT INTO employee_allowances (
+            INSERT INTO employee_deductions (
                 employee_id ,
-                allowance_id,
+                deduction_id,
+                amount_type ,
                 amount
             )
             VALUES (
                 :employee_id ,
-                :allowance_id,
+                :deduction_id,
+                :amount_type ,
                 :amount
             )
         ";
@@ -33,9 +35,10 @@ class EmployeeAllowanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id" , $employeeAllowance->getEmployeeId() , Helper::getPdoParameterType($employeeAllowance->getEmployeeId() ));
-            $statement->bindValue(":allowance_id", $employeeAllowance->getAllowanceId(), Helper::getPdoParameterType($employeeAllowance->getAllowanceId()));
-            $statement->bindValue(":amount"      , $employeeAllowance->getAmount()     , Helper::getPdoParameterType($employeeAllowance->getAmount()     ));
+            $statement->bindValue(":employee_id" , $employeeDeduction->getEmployeeId() , Helper::getPdoParameterType($employeeDeduction->getEmployeeId() ));
+            $statement->bindValue(":deduction_id", $employeeDeduction->getDeductionId(), Helper::getPdoParameterType($employeeDeduction->getDeductionId()));
+            $statement->bindValue(":amount_type" , $employeeDeduction->getAmountType() , Helper::getPdoParameterType($employeeDeduction->getAmountType() ));
+            $statement->bindValue(":amount"      , $employeeDeduction->getAmount()     , Helper::getPdoParameterType($employeeDeduction->getAmount()     ));
 
             $statement->execute();
 
@@ -46,7 +49,7 @@ class EmployeeAllowanceDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while assigning the allowance to employee. " .
+            error_log("Database Error: An error occurred while assigning the deduction to employee. " .
                       "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
@@ -65,20 +68,21 @@ class EmployeeAllowanceDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "employee_allowance.id           AS id"                      ,
-            "employee_id"              => "employee_allowance.employee_id  AS employee_id"             ,
+            "id"                       => "employee_deduction.id           AS id"                      ,
+            "employee_id"              => "employee_deduction.employee_id  AS employee_id"             ,
 
-            "allowance_id"             => "employee_allowance.allowance_id AS allowance_id"            ,
-            "allowance_name"           => "allowance.name                  AS allowance_name"          ,
-            "allowance_is_taxable"     => "allowance.is_taxable            AS allowance_is_taxable"    ,
-            "allowance_frequency"      => "allowance.frequency             AS allowance_frequency"     ,
-            "allowance_status"         => "allowance.status                AS allowance_status"        ,
-            "allowance_effective_date" => "allowance.effective_date        AS allowance_effective_date",
-            "allowance_end_date"       => "allowance.end_date              AS allowance_end_date"      ,
+            "deduction_id"             => "employee_deduction.deduction_id AS deduction_id"            ,
+            "deduction_name"           => "deduction.name                  AS deduction_name"          ,
+            "deduction_is_pre_tax"     => "deduction.is_pre_tax            AS deduction_is_pre_tax"    ,
+            "deduction_frequency"      => "deduction.frequency             AS deduction_frequency"     ,
+            "deduction_status"         => "deduction.status                AS deduction_status"        ,
+            "deduction_effective_date" => "deduction.effective_date        AS deduction_effective_date",
+            "deduction_end_date"       => "deduction.end_date              AS deduction_end_date"      ,
 
-            "amount"                   => "employee_allowance.amount       AS amount"                  ,
-            "created_at"               => "employee_allowance.created_at   AS created_at"              ,
-            "deleted_at"               => "employee_allowance.deleted_at   AS employee_deleted_at"
+            "amount_type"              => "employee_deduction.amount_type  AS amount_type"             ,
+            "amount"                   => "employee_deduction.amount       AS amount"                  ,
+            "created_at"               => "employee_deduction.created_at   AS created_at"              ,
+            "deleted_at"               => "employee_deduction.deleted_at   AS deleted_at"
         ];
 
         $selectedColumns =
@@ -91,9 +95,9 @@ class EmployeeAllowanceDao
 
         $joinClauses = "
             LEFT JOIN
-                allowances AS allowance
+                deductions AS deduction
             ON
-                employee_allowance.allowance_id = allowance.id
+                employee_deduction.deduction_id = deduction.id
         ";
 
         $queryParameters = [];
@@ -101,14 +105,14 @@ class EmployeeAllowanceDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "employee_allowance.deleted_at IS NULL";
+            $whereClauses[] = "employee_deduction.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "="   :
+                    case "=":
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
@@ -128,7 +132,7 @@ class EmployeeAllowanceDao
 
         $orderByClauses = [];
 
-        if ( ! empty($sortCriteria)) {
+        if (!empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
                 $direction = $sortCriterion["direction"];
@@ -152,7 +156,7 @@ class EmployeeAllowanceDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                employee_allowances AS employee_allowance
+                employee_deductions AS employee_deduction
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
@@ -184,34 +188,34 @@ class EmployeeAllowanceDao
             ];
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching employee allowances. " .
+            error_log("Database Error: An error occurred while fetching employee deductions. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $employeeAllowanceId): ActionResult
+    public function delete(int $employeeDeductionId): ActionResult
     {
-        return $this->softDelete($employeeAllowanceId);
+        return $this->softDelete($employeeDeductionId);
     }
 
-    private function softDelete(int $employeeAllowanceId): ActionResult
+    private function softDelete(int $employeeDeductionId): ActionResult
     {
-        $query = '
-            UPDATE employee_allowances
+        $query = "
+            UPDATE employee_deductions
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :employee_allowance_id
-        ';
+                id = :employee_deduction_id
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_allowance_id', $employeeAllowanceId, PDO::PARAM_INT);
+            $statement->bindValue(":employee_deduction_id", $employeeDeductionId, Helper::getPdoParameterType($employeeDeductionId));
 
             $statement->execute();
 
@@ -222,8 +226,8 @@ class EmployeeAllowanceDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the employee allowance. ' .
-                    'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while deleting the employee deduction. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
