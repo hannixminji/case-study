@@ -93,12 +93,19 @@ class EmployeeDeductionDao
                     array_flip($columns)
                 );
 
-        $joinClauses = "
-            LEFT JOIN
-                deductions AS deduction
-            ON
-                employee_deduction.deduction_id = deduction.id
-        ";
+        if (array_key_exists("deduction_name"          , $selectedColumns) ||
+            array_key_exists("deduction_is_pre_tax"    , $selectedColumns) ||
+            array_key_exists("deduction_frequency"     , $selectedColumns) ||
+            array_key_exists("deduction_status"        , $selectedColumns) ||
+            array_key_exists("deduction_effective_date", $selectedColumns) ||
+            array_key_exists("deduction_end_date"      , $selectedColumns)) {
+            $joinClauses = "
+                LEFT JOIN
+                    deductions AS deduction
+                ON
+                    employee_deduction.deduction_id = deduction.id
+            ";
+        }
 
         $queryParameters = [];
 

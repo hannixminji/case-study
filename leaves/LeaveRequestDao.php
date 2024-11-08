@@ -140,8 +140,7 @@ class LeaveRequestDao
 
         $joinClauses = "";
 
-        if (array_key_exists("employee_id"         , $selectedColumns) ||
-            array_key_exists("employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("employee_first_name" , $selectedColumns) ||
             array_key_exists("employee_middle_name", $selectedColumns) ||
             array_key_exists("employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "
@@ -152,8 +151,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("leave_type_id"  , $selectedColumns) ||
-            array_key_exists("leave_type_name", $selectedColumns)) {
+        if (array_key_exists("leave_type_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type
@@ -162,8 +160,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("approved_by_admin_id"      , $selectedColumns) ||
-            array_key_exists("approved_by_admin_username", $selectedColumns)) {
+        if (array_key_exists("approved_by_admin_username", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     admins AS approved_by_admin
@@ -172,8 +169,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("approved_by_employee_id"         , $selectedColumns) ||
-            array_key_exists("approved_by_employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("approved_by_employee_first_name" , $selectedColumns) ||
             array_key_exists("approved_by_employee_middle_name", $selectedColumns) ||
             array_key_exists("approved_by_employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "
@@ -184,8 +180,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("created_by_employee_id"         , $selectedColumns) ||
-            array_key_exists("created_by_employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("created_by_employee_first_name" , $selectedColumns) ||
             array_key_exists("created_by_employee_middle_name", $selectedColumns) ||
             array_key_exists("created_by_employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "
@@ -196,8 +191,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("updated_by_admin_id"      , $selectedColumns) ||
-            array_key_exists("updated_by_admin_username", $selectedColumns)) {
+        if (array_key_exists("updated_by_admin_username", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     admins AS updated_by_admin
@@ -206,8 +200,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("updated_by_employee_id"         , $selectedColumns) ||
-            array_key_exists("updated_by_employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("updated_by_employee_first_name" , $selectedColumns) ||
             array_key_exists("updated_by_employee_middle_name", $selectedColumns) ||
             array_key_exists("updated_by_employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "
@@ -218,8 +211,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("deleted_by_admin_id"      , $selectedColumns) ||
-            array_key_exists("deleted_by_admin_username", $selectedColumns)) {
+        if (array_key_exists("deleted_by_admin_username", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     admins AS deleted_by_admin
@@ -228,8 +220,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("deleted_by_employee_id"         , $selectedColumns) ||
-            array_key_exists("deleted_by_employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("deleted_by_employee_first_name" , $selectedColumns) ||
             array_key_exists("deleted_by_employee_middle_name", $selectedColumns) ||
             array_key_exists("deleted_by_employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "

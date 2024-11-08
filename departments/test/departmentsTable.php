@@ -10,6 +10,7 @@
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Name</th>
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Department Head ID</th>
                     <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Status</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #dddddd;">Job Title</th> <!-- New Column -->
                 </tr>
             </thead>
             <tbody>
@@ -19,6 +20,16 @@
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['name'] ?? '') ?></td>
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['department_head_id'] ?? '') ?></td>
                         <td style="padding: 12px; border: 1px solid #dddddd;"><?= htmlspecialchars($department['status'] ?? '') ?></td>
+                        <td style="padding: 12px; border: 1px solid #dddddd;">
+                            <!-- Dropdown for job titles -->
+                            <select style="width: 100%; padding: 5px;">
+                                <?php foreach ($jobTitles as $jobTitle): ?>
+                                    <option value="<?= htmlspecialchars($jobTitle['id'] ?? '') ?>">
+                                        <?= htmlspecialchars($jobTitle['title'] ?? '') ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td> <!-- End Dropdown Column -->
                     </tr>
                 <?php endforeach; ?>
             </tbody>

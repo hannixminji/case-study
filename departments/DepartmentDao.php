@@ -100,8 +100,7 @@ class DepartmentDao
 
         $joinClauses = "";
 
-        if (array_key_exists("department_head_id"         , $selectedColumns) ||
-            array_key_exists("department_head_first_name" , $selectedColumns) ||
+        if (array_key_exists("department_head_first_name" , $selectedColumns) ||
             array_key_exists("department_head_middle_name", $selectedColumns) ||
             array_key_exists("department_head_last_name"  , $selectedColumns)) {
             $joinClauses .= "

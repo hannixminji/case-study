@@ -89,12 +89,19 @@ class EmployeeAllowanceDao
                     array_flip($columns)
                 );
 
-        $joinClauses = "
-            LEFT JOIN
-                allowances AS allowance
-            ON
-                employee_allowance.allowance_id = allowance.id
-        ";
+        if (array_key_exists("allowance_name"          , $selectedColumns) ||
+            array_key_exists("allowance_is_taxable"    , $selectedColumns) ||
+            array_key_exists("allowance_frequency"     , $selectedColumns) ||
+            array_key_exists("allowance_status"        , $selectedColumns) ||
+            array_key_exists("allowance_effective_date", $selectedColumns) ||
+            array_key_exists("allowance_end_date"      , $selectedColumns)) {
+            $joinClauses = "
+                LEFT JOIN
+                    allowances AS allowance
+                ON
+                    employee_allowance.allowance_id = allowance.id
+            ";
+        }
 
         $queryParameters = [];
 

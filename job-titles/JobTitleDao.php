@@ -76,7 +76,7 @@ class JobTitleDao
         $tableColumns = [
             "id"              => "job_title.id              AS id"             ,
             "title"           => "job_title.title           AS title"          ,
-            "department_id"   => "department.id             AS department_id"  ,
+            "department_id"   => "job_title.department_id   AS department_id"  ,
             "department_name" => "department.name           AS department_name",
             "description"     => "job_title.description     AS description"    ,
             "status"          => "job_title.status          AS status"         ,
@@ -98,7 +98,7 @@ class JobTitleDao
 
         $joinClauses = "";
 
-        if (array_key_exists("department_id", $selectedColumns)) {
+        if (array_key_exists("department_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     departments AS department

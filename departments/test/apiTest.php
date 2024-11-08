@@ -10,6 +10,9 @@ require_once __DIR__ . '/../../includes/Helper.php';
 require_once __DIR__ . '/../../includes/enums/ErrorCode.php';
 require_once __DIR__ . '/../../database/database.php';
 
+require_once __DIR__ . '/../../job-titles/JobTitle.php';
+require_once __DIR__ . '/../../job-titles/JobTitleDao.php';
+
 try {
     $userId = 1;
     $departmentDao = new DepartmentDao($pdo);
@@ -23,6 +26,18 @@ try {
         $departments = $data["result_set"];
         $totalDepartments = $data["total_row_count"];
         $totalPages = ceil($totalDepartments / $limit);
+
+        $jobTitleDao = new JobTitleDao($pdo);
+        $filterCriteria = [
+            [
+                "column" => "job_title.status",
+                "operator" => "=",
+                "value" => "Active"
+            ]
+        ];
+        $data2 = $jobTitleDao->fetchAll(["id", "title"], $filterCriteria);
+        $jobTitles = $data2["result_set"];
+        print_r($jobTitles);
         include __DIR__ . '/departmentsTable.php';
     } elseif ($action === 'create') {
         $departmentData = $_POST['department'] ?? null;

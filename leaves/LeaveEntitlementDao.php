@@ -91,8 +91,7 @@ class LeaveEntitlementDao
 
         $joinClauses = "";
 
-        if (array_key_exists("employee_id"         , $selectedColumns) ||
-            array_key_exists("employee_first_name" , $selectedColumns) ||
+        if (array_key_exists("employee_first_name" , $selectedColumns) ||
             array_key_exists("employee_middle_name", $selectedColumns) ||
             array_key_exists("employee_last_name"  , $selectedColumns)) {
             $joinClauses .= "
@@ -103,8 +102,7 @@ class LeaveEntitlementDao
             ";
         }
 
-        if (array_key_exists("leave_type_id"  , $selectedColumns) ||
-            array_key_exists("leave_type_name", $selectedColumns)) {
+        if (array_key_exists("leave_type_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type
