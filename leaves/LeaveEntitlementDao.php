@@ -13,7 +13,7 @@ class LeaveEntitlementDao
         $this->pdo = $pdo;
     }
 
-    public function create(LeaveEntitlement $leaveEntitlement): ActionResult
+    public function createOrUpdate(LeaveEntitlement $leaveEntitlement): ActionResult
     {
         $query = '
             INSERT INTO leave_entitlements (
@@ -22,14 +22,18 @@ class LeaveEntitlementDao
                 number_of_entitled_days,
                 number_of_days_taken   ,
                 remaining_days
-            )
-            VALUES (
+            ) VALUES (
                 :employee_id            ,
                 :leave_type_id          ,
                 :number_of_entitled_days,
                 :number_of_days_taken   ,
                 :remaining_days
             )
+            ON DUPLICATE KEY UPDATE
+                number_of_entitled_days = VALUES(number_of_entitled_days),
+                number_of_days_taken    = VALUES(number_of_days_taken)   ,
+                remaining_days          = VALUES(remaining_days)         ,
+                updated_at              = CURRENT_TIMESTAMP
         ';
 
         try {
@@ -52,7 +56,7 @@ class LeaveEntitlementDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the leave entitlement. ' .
+            error_log('Database Error: An error occurred while creating or updating the leave entitlement. ' .
                       'Exception: ' . $exception->getMessage());
 
             return ActionResult::FAILURE;
