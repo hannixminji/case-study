@@ -93,6 +93,8 @@ class EmployeeDeductionDao
                     array_flip($columns)
                 );
 
+        $joinClauses = "";
+
         if (array_key_exists("deduction_name"          , $selectedColumns) ||
             array_key_exists("deduction_is_pre_tax"    , $selectedColumns) ||
             array_key_exists("deduction_frequency"     , $selectedColumns) ||
