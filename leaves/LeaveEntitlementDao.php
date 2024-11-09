@@ -186,7 +186,7 @@ class LeaveEntitlementDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                leave_entitlements
+                leave_entitlements AS leave_entitlement
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
