@@ -13,7 +13,7 @@ class LeaveEntitlementDao
         $this->pdo = $pdo;
     }
 
-    public function createOrUpdate(LeaveEntitlement $leaveEntitlement): ActionResult
+    public function create(LeaveEntitlement $leaveEntitlement): ActionResult
     {
         $query = '
             INSERT INTO leave_entitlements (
