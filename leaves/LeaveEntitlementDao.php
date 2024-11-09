@@ -31,8 +31,8 @@ class LeaveEntitlementDao
             )
             ON DUPLICATE KEY UPDATE
                 number_of_entitled_days = VALUES(number_of_entitled_days),
-                number_of_days_taken    = VALUES(number_of_days_taken)   ,
-                remaining_days          = VALUES(remaining_days)         ,
+                number_of_days_taken    = VALUES(number_of_days_taken   ),
+                remaining_days          = VALUES(remaining_days         ),
                 updated_at              = CURRENT_TIMESTAMP
         ';
 
