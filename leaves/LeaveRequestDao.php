@@ -22,9 +22,7 @@ class LeaveRequestDao
                 start_date   ,
                 end_date     ,
                 reason       ,
-                status       ,
-                created_by   ,
-                updated_by
+                status
             )
             VALUES (
                 :employee_id  ,
@@ -32,9 +30,7 @@ class LeaveRequestDao
                 :start_date   ,
                 :end_date     ,
                 :reason       ,
-                :status       ,
-                :created_by   ,
-                :updated_by
+                :status
             )
         ';
 
@@ -49,8 +45,6 @@ class LeaveRequestDao
             $statement->bindValue(':end_date'     , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
             $statement->bindValue(':reason'       , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
             $statement->bindValue(':status'       , $leaveRequest->getStatus()     , Helper::getPdoParameterType($leaveRequest->getStatus()     ));
-            $statement->bindValue(':created_by'   , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
-            $statement->bindValue(':updated_by'   , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
 
             $statement->execute();
 
@@ -106,11 +100,8 @@ class LeaveRequestDao
             "approved_at"              => "leave_request.approved_at      AS approved_at",
             "approved_by"              => "approved_by_employee.full_name AS approved_by",
             "created_at"               => "leave_request.created_at       AS created_at" ,
-            "created_by"               => "created_by_employee.full_name  AS created_by" ,
             "updated_at"               => "leave_request.updated_at       AS updated_at" ,
-            "updated_by"               => "updated_by_employee.full_name  AS updated_by" ,
-            "deleted_at"               => "leave_request.deleted_at       AS deleted_at" ,
-            "deleted_by"               => "deleted_by_employee.full_name  AS deleted_by"
+            "deleted_at"               => "leave_request.deleted_at       AS deleted_at"
         ];
 
         $selectedColumns =
@@ -165,33 +156,6 @@ class LeaveRequestDao
                     admins AS approved_by
                 ON
                     leave_request.approved_by = approved_by.id
-            ";
-        }
-
-        if (array_key_exists("created_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS created_by_employee
-                ON
-                    leave_request.created_by = created_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("updated_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS updated_by_employee
-                ON
-                    leave_request.updated_by = updated_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("deleted_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS deleted_by_employee
-                ON
-                    leave_request.deleted_by = deleted_by_employee.id
             ";
         }
 
@@ -304,7 +268,7 @@ class LeaveRequestDao
         }
     }
 
-    public function update(LeaveRequest $leaveRequest, int $userId): ActionResult
+    public function update(LeaveRequest $leaveRequest): ActionResult
     {
         $query = '
             UPDATE leave_requests
@@ -313,8 +277,7 @@ class LeaveRequestDao
                 leave_type_id = :leave_type_id,
                 start_date    = :start_date   ,
                 end_date      = :end_date     ,
-                reason        = :reason       ,
-                updated_by    = :updated_by   ,
+                reason        = :reason
             WHERE
                 id = :leave_request_id
         ';
@@ -329,7 +292,6 @@ class LeaveRequestDao
             $statement->bindValue(':start_date'      , $leaveRequest->getStartDate()  , Helper::getPdoParameterType($leaveRequest->getStartDate()  ));
             $statement->bindValue(':end_date'        , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
             $statement->bindValue(':reason'          , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
-            $statement->bindValue(':updated_by'      , $userId                        , Helper::getPdoParameterType($userId                        ));
             $statement->bindValue(':leave_request_id', $leaveRequest->getId()         , Helper::getPdoParameterType($leaveRequest->getId()         ));
 
             $statement->execute();
@@ -348,13 +310,12 @@ class LeaveRequestDao
         }
     }
 
-    public function updateStatus(int $leaveRequestId, string $status, int $userId): ActionResult
+    public function updateStatus(int $leaveRequestId, string $status): ActionResult
     {
         $query = '
             UPDATE leave_requests
             SET
-                status     = :status    ,
-                updated_by = :updated_by
+                status     = :status
             WHERE
                 id = :leave_request_id
         ';
@@ -365,7 +326,6 @@ class LeaveRequestDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(':status'          , $status        , Helper::getPdoParameterType($status        ));
-            $statement->bindValue(':updated_by'      , $userId        , Helper::getPdoParameterType($userId        ));
             $statement->bindValue(':leave_request_id', $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
 
             $statement->execute();
@@ -415,18 +375,17 @@ class LeaveRequestDao
         }
     }
 
-    public function delete(int $leaveRequestId, int $userId): ActionResult
+    public function delete(int $leaveRequestId): ActionResult
     {
-        return $this->softDelete($leaveRequestId, $userId);
+        return $this->softDelete($leaveRequestId);
     }
 
-    private function softDelete(int $leaveRequestId, int $userId): ActionResult
+    private function softDelete(int $leaveRequestId): ActionResult
     {
         $query = '
             UPDATE leave_requests
             SET
-                deleted_at = CURRENT_TIMESTAMP,
-                deleted_by = :deleted_by
+                deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :leave_request_id
         ';
@@ -436,7 +395,6 @@ class LeaveRequestDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':deleted_by'      , $userId        , Helper::getPdoParameterType($userId        ));
             $statement->bindValue(':leave_request_id', $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
 
             $statement->execute();

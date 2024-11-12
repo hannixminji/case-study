@@ -13,24 +13,20 @@ class DepartmentDao
         $this->pdo = $pdo;
     }
 
-    public function create(Department $department, int $userId): ActionResult
+    public function create(Department $department): ActionResult
     {
         $query = '
             INSERT INTO departments (
                 name              ,
                 department_head_id,
                 description       ,
-                status            ,
-                created_by        ,
-                updated_by
+                status
             )
             VALUES (
                 :name              ,
                 :department_head_id,
                 :description       ,
-                :status            ,
-                :created_by        ,
-                :updated_by
+                :status
             )
         ';
 
@@ -43,8 +39,6 @@ class DepartmentDao
             $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
             $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
             $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
-            $statement->bindValue(':created_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
-            $statement->bindValue(':updated_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
 
             $statement->execute();
 
@@ -80,11 +74,8 @@ class DepartmentDao
             "department_head_full_name" => "department_head.full_name     AS department_head_full_name"  ,
             "status"                    => "department.status             AS status"                     ,
             "created_at"                => "department.created_at         AS created_at"                 ,
-            "created_by"                => "created_by_employee.full_name AS created_by"                 ,
             "updated_at"                => "department.updated_at         AS updated_at"                 ,
-            "updated_by"                => "updated_by_employee.full_name AS updated_by"                 ,
-            "deleted_at"                => "department.deleted_at         AS deleted_at"                 ,
-            "deleted_by"                => "deleted_by_employee.full_name AS deleted_by"
+            "deleted_at"                => "department.deleted_at         AS deleted_at"
         ];
 
         $selectedColumns =
@@ -103,33 +94,6 @@ class DepartmentDao
                     employees AS department_head
                 ON
                     department.department_head_id = department_head.id
-            ";
-        }
-
-        if (array_key_exists("created_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS created_by_employee
-                ON
-                    department.created_by = created_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("updated_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS updated_by_employee
-                ON
-                    department.updated_by = updated_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("deleted_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS deleted_by_employee
-                ON
-                    department.deleted_by = deleted_by_employee.id
             ";
         }
 
@@ -243,7 +207,7 @@ class DepartmentDao
         }
     }
 
-    public function update(Department $department, int $userId): ActionResult
+    public function update(Department $department): ActionResult
     {
         $query = '
             UPDATE departments
@@ -251,8 +215,7 @@ class DepartmentDao
                 name               = :name              ,
                 department_head_id = :department_head_id,
                 description        = :description       ,
-                status             = :status            ,
-                updated_by         = :updated_by
+                status             = :status
             WHERE
                 id = :department_id
         ';
@@ -266,7 +229,6 @@ class DepartmentDao
             $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
             $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
             $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
-            $statement->bindValue(':updated_by'        , $userId                           , Helper::getPdoParameterType($userId                           ));
             $statement->bindValue(':department_id'     , $department->getId()              , Helper::getPdoParameterType($department->getId()              ));
 
             $statement->execute();
@@ -321,19 +283,18 @@ class DepartmentDao
         }
     }
 
-    public function delete(int $departmentId, int $userId): ActionResult
+    public function delete(int $departmentId): ActionResult
     {
-        return $this->softDelete($departmentId, $userId);
+        return $this->softDelete($departmentId);
     }
 
-    private function softDelete(int $departmentId, int $userId): ActionResult
+    private function softDelete(int $departmentId): ActionResult
     {
         $query = '
             UPDATE departments
             SET
                 status     = "Archived"       ,
-                deleted_at = CURRENT_TIMESTAMP,
-                deleted_by = :deleted_by
+                deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :department_id
         ';
@@ -343,7 +304,6 @@ class DepartmentDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':deleted_by'   , $userId      , Helper::getPdoParameterType($userId      ));
             $statement->bindValue(':department_id', $departmentId, Helper::getPdoParameterType($departmentId));
 
             $statement->execute();

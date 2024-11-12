@@ -13,25 +13,20 @@ class JobTitleDao
         $this->pdo = $pdo;
     }
 
-    public function create(JobTitle $jobTitle, int $userId): ActionResult
+    public function create(JobTitle $jobTitle): ActionResult
     {
         $query = '
             INSERT INTO job_titles (
                 title        ,
                 department_id,
                 description  ,
-                status       ,
-                created_by   ,
-                updated_by
+                status
             )
             VALUES (
                 :title        ,
                 :department_id,
                 :description  ,
-                :status       ,
-                :created_by   ,
-                :updated_by
-            )
+                :status
         ';
 
         try {
@@ -43,8 +38,6 @@ class JobTitleDao
             $statement->bindValue(':department_id', $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
             $statement->bindValue(':description'  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
             $statement->bindValue(':status'       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
-            $statement->bindValue(':created_by'   , $userId                     , Helper::getPdoParameterType($userId                     ));
-            $statement->bindValue(':updated_by'   , $userId                     , Helper::getPdoParameterType($userId                     ));
 
             $statement->execute();
 
@@ -81,11 +74,8 @@ class JobTitleDao
             "description"     => "job_title.description         AS description"    ,
             "status"          => "job_title.status              AS status"         ,
             "created_at"      => "job_title.created_at          AS created_at"     ,
-            "created_by"      => "created_by_employee.full_name AS created_by"     ,
             "updated_at"      => "job_title.updated_at          AS updated_at"     ,
-            "updated_by"      => "updated_by_employee.full_name AS updated_by"     ,
-            "deleted_at"      => "job_title.deleted_at          AS deleted_at"     ,
-            "deleted_by"      => "deleted_by_employee.full_name AS deleted_by"
+            "deleted_at"      => "job_title.deleted_at          AS deleted_at"
         ];
 
         $selectedColumns =
@@ -104,33 +94,6 @@ class JobTitleDao
                     departments AS department
                 ON
                     job_title.department_id = department.id
-            ";
-        }
-
-        if (array_key_exists("created_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS created_by_employee
-                ON
-                    job_title.created_by = created_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("updated_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS updated_by_employee
-                ON
-                    job_title.updated_by = updated_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("deleted_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS deleted_by_employee
-                ON
-                    job_title.deleted_by = deleted_by_employee.id
             ";
         }
 
@@ -243,7 +206,7 @@ class JobTitleDao
         }
     }
 
-    public function update(JobTitle $jobTitle, int $userId): ActionResult
+    public function update(JobTitle $jobTitle): ActionResult
     {
         $query = '
             UPDATE job_titles
@@ -251,8 +214,7 @@ class JobTitleDao
                 title         = :title        ,
                 department_id = :department_id,
                 description   = :description  ,
-                status        = :status       ,
-                updated_by    = :updated_by
+                status        = :status
             WHERE
                 id = :job_title_id
         ';
@@ -266,7 +228,6 @@ class JobTitleDao
             $statement->bindValue(':department_id', $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
             $statement->bindValue(':description'  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
             $statement->bindValue(':status'       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
-            $statement->bindValue(':updated_by'   , $userId                     , Helper::getPdoParameterType($userId                     ));
             $statement->bindValue(':job_title_id' , $jobTitle->getId()          , Helper::getPdoParameterType($jobTitle->getId()          ));
 
             $statement->execute();
@@ -289,19 +250,18 @@ class JobTitleDao
         }
     }
 
-    public function delete(int $departmentId, int $userId): ActionResult
+    public function delete(int $departmentId): ActionResult
     {
-        return $this->softDelete($departmentId, $userId);
+        return $this->softDelete($departmentId);
     }
 
-    private function softDelete(int $jobTitleId, int $userId): ActionResult
+    private function softDelete(int $jobTitleId): ActionResult
     {
         $query = '
             UPDATE job_titles
             SET
                 status     = "Archived"       ,
-                deleted_at = CURRENT_TIMESTAMP,
-                deleted_by = :deleted_by
+                deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :job_title_id
         ';
@@ -311,7 +271,6 @@ class JobTitleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':deleted_by'  , $userId    , Helper::getPdoParameterType($userId    ));
             $statement->bindValue(':job_title_id', $jobTitleId, Helper::getPdoParameterType($jobTitleId));
 
             $statement->execute();

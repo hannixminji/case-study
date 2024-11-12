@@ -13,7 +13,7 @@ class LeaveTypeDao
         $this->pdo = $pdo;
     }
 
-    public function create(LeaveType $leaveType, int $userId): ActionResult
+    public function create(LeaveType $leaveType): ActionResult
     {
         $query = '
             INSERT INTO leave_types (
@@ -21,18 +21,14 @@ class LeaveTypeDao
                 maximum_number_of_days,
                 is_paid               ,
                 description           ,
-                status                ,
-                created_by            ,
-                updated_by
+                status
             )
             VALUES (
                 :name                  ,
                 :maximum_number_of_days,
                 :is_paid               ,
                 :description           ,
-                :status                ,
-                :created_by            ,
-                :updated_by
+                :status
             )
         ';
 
@@ -46,8 +42,6 @@ class LeaveTypeDao
             $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
             $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
             $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
-            $statement->bindValue(':created_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
-            $statement->bindValue(':updated_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
 
             $statement->execute();
 
@@ -84,11 +78,8 @@ class LeaveTypeDao
             "description"            => "leave_type.description            AS description"           ,
             "status"                 => "leave_type.status                 AS status"                ,
             "created_at"             => "leave_type.created_at             AS created_at"            ,
-            "created_by"             => "created_by_employee.full_name     AS created_by"            ,
             "updated_at"             => "leave_type.updated_at             AS updated_at"            ,
-            "updated_by"             => "updated_by_employee.full_name     AS updated_by"            ,
             "deleted_at"             => "leave_type.deleted_at             AS deleted_at"            ,
-            "deleted_by"             => "deleted_by_employee.full_name     AS deleted_by"            ,
         ];
 
         $selectedColumns =
@@ -101,34 +92,8 @@ class LeaveTypeDao
 
         $joinClauses = "";
 
-        if (array_key_exists("created_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS created_by_employee
-                ON
-                    leave_type.created_by = created_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("updated_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS updated_by_employee
-                ON
-                    leave_type.updated_by = updated_by_employee.id
-            ";
-        }
-
-        if (array_key_exists("deleted_by", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS deleted_by_employee
-                ON
-                    leave_type.deleted_by = deleted_by_employee.id
-            ";
-        }
-
         $queryParameters = [];
+
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
@@ -237,7 +202,7 @@ class LeaveTypeDao
         }
     }
 
-    public function update(LeaveType $leaveType, int $userId): ActionResult
+    public function update(LeaveType $leaveType): ActionResult
     {
         $query = '
             UPDATE leave_types
@@ -246,8 +211,7 @@ class LeaveTypeDao
                 maximum_number_of_days = :maximum_number_of_days,
                 is_paid                = :is_paid               ,
                 description            = :description           ,
-                status                 = :status                ,
-                updated_by             = :updated_by
+                status                 = :status
             WHERE
                 id = :leave_type_id
         ';
@@ -262,7 +226,6 @@ class LeaveTypeDao
             $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
             $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
             $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
-            $statement->bindValue(':updated_by'            , $userId                             , Helper::getPdoParameterType($userId                             ));
             $statement->bindValue(':leave_type_id'         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));
 
             $statement->execute();
@@ -285,12 +248,12 @@ class LeaveTypeDao
         }
     }
 
-    public function delete(int $leaveTypeId, int $userId): ActionResult
+    public function delete(int $leaveTypeId): ActionResult
     {
-        return $this->softDelete($leaveTypeId, $userId);
+        return $this->softDelete($leaveTypeId);
     }
 
-    private function softDelete(int $leaveTypeId, int $userId): ActionResult
+    private function softDelete(int $leaveTypeId): ActionResult
     {
         $query = '
             UPDATE leave_types
@@ -307,7 +270,6 @@ class LeaveTypeDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':deleted_by'   , $userId     , Helper::getPdoParameterType($userId     ));
             $statement->bindValue(':leave_type_id', $leaveTypeId, Helper::getPdoParameterType($leaveTypeId));
 
             $statement->execute();
