@@ -74,18 +74,18 @@ class JobTitleDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"              => "job_title.id              AS id"             ,
-            "title"           => "job_title.title           AS title"          ,
-            "department_id"   => "job_title.department_id   AS department_id"  ,
-            "department_name" => "department.name           AS department_name",
-            "description"     => "job_title.description     AS description"    ,
-            "status"          => "job_title.status          AS status"         ,
-            "created_at"      => "job_title.created_at      AS created_at"     ,
-            "created_by"      => "created_by_admin.username AS created_by"     ,
-            "updated_at"      => "job_title.updated_at      AS updated_at"     ,
-            "updated_by"      => "updated_by_admin.username AS updated_by"     ,
-            "deleted_at"      => "job_title.deleted_at      AS deleted_at"     ,
-            "deleted_by"      => "deleted_by_admin.username AS deleted_by"
+            "id"              => "job_title.id                  AS id"             ,
+            "title"           => "job_title.title               AS title"          ,
+            "department_id"   => "job_title.department_id       AS department_id"  ,
+            "department_name" => "department.name               AS department_name",
+            "description"     => "job_title.description         AS description"    ,
+            "status"          => "job_title.status              AS status"         ,
+            "created_at"      => "job_title.created_at          AS created_at"     ,
+            "created_by"      => "created_by_employee.full_name AS created_by"     ,
+            "updated_at"      => "job_title.updated_at          AS updated_at"     ,
+            "updated_by"      => "updated_by_employee.full_name AS updated_by"     ,
+            "deleted_at"      => "job_title.deleted_at          AS deleted_at"     ,
+            "deleted_by"      => "deleted_by_employee.full_name AS deleted_by"
         ];
 
         $selectedColumns =
@@ -110,38 +110,39 @@ class JobTitleDao
         if (array_key_exists("created_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS created_by_admin
+                    employees AS created_by_employee
                 ON
-                    job_title.created_by = created_by_admin.id
+                    job_title.created_by = created_by_employee.id
             ";
         }
 
         if (array_key_exists("updated_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS updated_by_admin
+                    employees AS updated_by_employee
                 ON
-                    job_title.updated_by = updated_by_admin.id
+                    job_title.updated_by = updated_by_employee.id
             ";
         }
 
         if (array_key_exists("deleted_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS deleted_by_admin
+                    employees AS deleted_by_employee
                 ON
-                    job_title.deleted_by = deleted_by_admin.id
+                    job_title.deleted_by = deleted_by_employee.id
             ";
         }
 
         $queryParameters = [];
+
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "job_title.status <> 'Archived'";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
@@ -158,14 +159,13 @@ class JobTitleDao
                         break;
 
                     default:
-                        // Do nothing
                 }
             }
         }
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -238,6 +238,7 @@ class JobTitleDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the job titles. " .
                       "Exception: {$exception->getMessage()}");
+
             return ActionResult::FAILURE;
         }
     }

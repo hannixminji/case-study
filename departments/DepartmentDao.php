@@ -74,20 +74,17 @@ class DepartmentDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                          => "department.id               AS id"                         ,
-            "name"                        => "department.name             AS name"                       ,
-            "department_head_id"          => "department_head.id          AS department_head_id"         ,
-            "department_head_first_name"  => "department_head.first_name  AS department_head_first_name" ,
-            "department_head_middle_name" => "department_head.middle_name AS department_head_middle_name",
-            "department_head_last_name"   => "department_head.last_name   AS department_head_last_name"  ,
-            "description"                 => "department.description      AS description"                ,
-            "status"                      => "department.status           AS status"                     ,
-            "created_at"                  => "department.created_at       AS created_at"                 ,
-            "created_by"                  => "created_by_admin.username   AS created_by"                 ,
-            "updated_at"                  => "department.updated_at       AS updated_at"                 ,
-            "updated_by"                  => "updated_by_admin.username   AS updated_by"                 ,
-            "deleted_at"                  => "department.deleted_at       AS deleted_at"                 ,
-            "deleted_by"                  => "deleted_by_admin.username   AS deleted_by"
+            "id"                        => "department.id                 AS id"                         ,
+            "name"                      => "department.name               AS name"                       ,
+            "department_head_id"        => "department.department_head_id AS department_head_id"         ,
+            "department_head_full_name" => "department_head.full_name     AS department_head_full_name"  ,
+            "status"                    => "department.status             AS status"                     ,
+            "created_at"                => "department.created_at         AS created_at"                 ,
+            "created_by"                => "created_by_employee.full_name AS created_by"                 ,
+            "updated_at"                => "department.updated_at         AS updated_at"                 ,
+            "updated_by"                => "updated_by_employee.full_name AS updated_by"                 ,
+            "deleted_at"                => "department.deleted_at         AS deleted_at"                 ,
+            "deleted_by"                => "deleted_by_employee.full_name AS deleted_by"
         ];
 
         $selectedColumns =
@@ -100,9 +97,7 @@ class DepartmentDao
 
         $joinClauses = "";
 
-        if (array_key_exists("department_head_first_name" , $selectedColumns) ||
-            array_key_exists("department_head_middle_name", $selectedColumns) ||
-            array_key_exists("department_head_last_name"  , $selectedColumns)) {
+        if (array_key_exists("department_head_full_name" , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     employees AS department_head
@@ -114,27 +109,27 @@ class DepartmentDao
         if (array_key_exists("created_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS created_by_admin
+                    employees AS created_by_employee
                 ON
-                    department.created_by = created_by_admin.id
+                    department.created_by = created_by_employee.id
             ";
         }
 
         if (array_key_exists("updated_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS updated_by_admin
+                    employees AS updated_by_employee
                 ON
-                    department.updated_by = updated_by_admin.id
+                    department.updated_by = updated_by_employee.id
             ";
         }
 
         if (array_key_exists("deleted_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS deleted_by_admin
+                    employees AS deleted_by_employee
                 ON
-                    department.deleted_by = deleted_by_admin.id
+                    department.deleted_by = deleted_by_employee.id
             ";
         }
 

@@ -84,11 +84,11 @@ class LeaveTypeDao
             "description"            => "leave_type.description            AS description"           ,
             "status"                 => "leave_type.status                 AS status"                ,
             "created_at"             => "leave_type.created_at             AS created_at"            ,
-            "created_by"             => "created_by_admin.username         AS created_by"            ,
+            "created_by"             => "created_by_employee.full_name     AS created_by"            ,
             "updated_at"             => "leave_type.updated_at             AS updated_at"            ,
-            "updated_by"             => "updated_by_admin.username         AS updated_by"            ,
+            "updated_by"             => "updated_by_employee.full_name     AS updated_by"            ,
             "deleted_at"             => "leave_type.deleted_at             AS deleted_at"            ,
-            "deleted_by"             => "deleted_by_admin.username         AS deleted_by"
+            "deleted_by"             => "deleted_by_employee.full_name     AS deleted_by"            ,
         ];
 
         $selectedColumns =
@@ -104,27 +104,27 @@ class LeaveTypeDao
         if (array_key_exists("created_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS created_by_admin
+                    employees AS created_by_employee
                 ON
-                    leave_type.created_by = created_by_admin.id
+                    leave_type.created_by = created_by_employee.id
             ";
         }
 
         if (array_key_exists("updated_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS updated_by_admin
+                    employees AS updated_by_employee
                 ON
-                    leave_type.updated_by = updated_by_admin.id
+                    leave_type.updated_by = updated_by_employee.id
             ";
         }
 
         if (array_key_exists("deleted_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS deleted_by_admin
+                    employees AS deleted_by_employee
                 ON
-                    leave_type.deleted_by = deleted_by_admin.id
+                    leave_type.deleted_by = deleted_by_employee.id
             ";
         }
 
@@ -135,13 +135,13 @@ class LeaveTypeDao
             $whereClauses[] = "leave_type.status <> 'Archived'";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
                     case "=":
                     case "LIKE":
-                        $whereClauses   [] = "{$column} {$operator} ?";
+                        $whereClauses  [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
                         break;
 
