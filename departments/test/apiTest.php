@@ -54,7 +54,7 @@ try {
                 status: "Active"
             );
 
-            $result = $departmentDao->create($newDepartment, 1);
+            $result = $departmentDao->create($newDepartment);
 
             if ($result) {
                 echo "Department created successfully!";
