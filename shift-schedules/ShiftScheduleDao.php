@@ -1,8 +1,12 @@
 <?php
 
+require_once __DIR__ . "/vendor/autoload.php"               ;
+
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
+
+use RRule\RRule;
 
 class ShiftScheduleDao
 {
@@ -28,7 +32,7 @@ class ShiftScheduleDao
                 core_hours_end_time  ,
                 total_hours_per_week ,
                 start_date           ,
-                recurrence_pattern   ,
+                recurrence_rule      ,
                 note
             )
             VALUES (
@@ -43,7 +47,7 @@ class ShiftScheduleDao
                 :core_hours_end_time  ,
                 :total_hours_per_week ,
                 :start_date           ,
-                :recurrence_pattern   ,
+                :recurrence_rule      ,
                 :note
             )
         ";
@@ -64,7 +68,7 @@ class ShiftScheduleDao
             $statement->bindValue(":core_hours_end_time"  , $shiftSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($shiftSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $shiftSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($shiftSchedule->getTotalHoursPerWeek() ));
             $statement->bindValue(":start_date"           , $shiftSchedule->getStartDate()         , Helper::getPdoParameterType($shiftSchedule->getStartDate()         ));
-            $statement->bindValue(":recurrence_pattern"   , $shiftSchedule->getRecurrencePattern() , Helper::getPdoParameterType($shiftSchedule->getRecurrencePattern() ));
+            $statement->bindValue(":recurrence_rule"      , $shiftSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($shiftSchedule->getRecurrenceRule() )   );
             $statement->bindValue(":note"                 , $shiftSchedule->getNote()              , Helper::getPdoParameterType($shiftSchedule->getNote()              ));
 
             $statement->execute();
@@ -111,7 +115,7 @@ class ShiftScheduleDao
             "core_hours_end_time"      => "shift_schedule.core_hours_end_time   AS core_hours_end_time"     ,
             "total_hours_per_week"     => "shift_schedule.total_hours_per_week  AS total_hours_per_week"    ,
             "start_date"               => "shift_schedule.start_date            AS start_date"              ,
-            "recurrence_pattern"       => "shift_schedule.recurrence_pattern    AS recurrence_pattern"      ,
+            "recurrence_rule"          => "shift_schedule.recurrence_rule       AS recurrence_rule"          ,
             "note"                     => "shift_schedule.note                  AS note"                    ,
         ];
 
@@ -183,7 +187,8 @@ class ShiftScheduleDao
         }
 
         $orderByClauses = [];
-        if (!empty($sortCriteria)) {
+
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -273,6 +278,42 @@ class ShiftScheduleDao
         }
     }
 
+    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
+    {
+        $parsedRecurrenceRule = $this->parseRecurrenceRule($recurrenceRule);
+
+        $recurrence = new RRule($parsedRecurrenceRule);
+
+        $dates = [];
+
+        foreach ($recurrence as $occurence) {
+            $date = $occurence->format("Y-m-d");
+
+            if ($date > $endDate) {
+                return $dates;
+            }
+
+            $dates[] = $date;
+        }
+
+        return $dates;
+    }
+
+    private function parseRecurrenceRule(string $rule): array
+    {
+        $parts = explode(";", $rule);
+
+        $parsedRule = [];
+
+        foreach ($parts as $part) {
+            [$key, $value] = explode("=", $part, 2);
+
+            $parsedRule[$key] = $value;
+        }
+
+        return $parsedRule;
+    }
+
     public function update(ShiftSchedule $shiftSchedule): ActionResult
     {
         $query = "
@@ -289,7 +330,7 @@ class ShiftScheduleDao
                 core_hours_end_time   = :core_hours_end_time  ,
                 total_hours_per_week  = :total_hours_per_week ,
                 start_date            = :start_date           ,
-                recurrence_pattern    = :recurrence_pattern   ,
+                recurrence_rule       = :recurrence_rule      ,
                 note                  = :note
             WHERE
                 id = :shift_schedule_id
@@ -311,7 +352,7 @@ class ShiftScheduleDao
             $statement->bindValue(":core_hours_end_time"  , $shiftSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($shiftSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $shiftSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($shiftSchedule->getTotalHoursPerWeek() ));
             $statement->bindValue(":start_date"           , $shiftSchedule->getStartDate()         , Helper::getPdoParameterType($shiftSchedule->getStartDate()         ));
-            $statement->bindValue(":recurrence_pattern"   , $shiftSchedule->getRecurrencePattern() , Helper::getPdoParameterType($shiftSchedule->getRecurrencePattern() ));
+            $statement->bindValue(":recurrence_rule"      , $shiftSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($shiftSchedule->getRecurrenceRule() )   );
             $statement->bindValue(":note"                 , $shiftSchedule->getNote()              , Helper::getPdoParameterType($shiftSchedule->getNote()              ));
             $statement->bindValue(":shift_schedule_id"    , $shiftSchedule->getId()                , Helper::getPdoParameterType($shiftSchedule->getId()                ));
 

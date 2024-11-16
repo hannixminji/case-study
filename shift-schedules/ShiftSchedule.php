@@ -13,9 +13,9 @@ class ShiftSchedule
         private readonly ?string $flexibleEndTime   ,
         private readonly ?string $coreHoursStartTime,
         private readonly ?string $coreHoursEndTime  ,
-        private readonly int     $totalHoursPerWeek ,
+        private readonly ?int    $totalHoursPerWeek ,
         private readonly string  $startDate         ,
-        private readonly ?string $recurrencePattern ,
+        private readonly string  $recurrenceRule    ,
         private readonly ?string $note
     ) {
     }
@@ -70,7 +70,7 @@ class ShiftSchedule
         return $this->coreHoursEndTime;
     }
 
-    public function getTotalHoursPerWeek(): int
+    public function getTotalHoursPerWeek(): ?int
     {
         return $this->totalHoursPerWeek;
     }
@@ -80,9 +80,9 @@ class ShiftSchedule
         return $this->startDate;
     }
 
-    public function getRecurrencePattern(): ?string
+    public function getRecurrenceRule(): string
     {
-        return $this->recurrencePattern;
+        return $this->recurrenceRule;
     }
 
     public function getNote(): ?string
