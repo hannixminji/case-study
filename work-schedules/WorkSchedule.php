@@ -1,11 +1,11 @@
 <?php
 
-class ShiftSchedule
+class WorkSchedule
 {
     public function __construct(
         private readonly ?int    $id                ,
         private readonly int     $employeeId        ,
-        private readonly string  $shiftTitle        ,
+        private readonly string  $title             ,
         private readonly string  $startTime         ,
         private readonly string  $endTime           ,
         private readonly bool    $isFlexible        ,
@@ -30,9 +30,9 @@ class ShiftSchedule
         return $this->employeeId;
     }
 
-    public function getShiftTitle(): string
+    public function getTitle(): string
     {
-        return $this->shiftTitle;
+        return $this->title;
     }
 
     public function getStartTime(): string

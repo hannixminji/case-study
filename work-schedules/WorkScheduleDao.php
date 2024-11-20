@@ -17,12 +17,12 @@ class ShiftScheduleDao
         $this->pdo = $pdo;
     }
 
-    public function create(ShiftSchedule $shiftSchedule): ActionResult
+    public function create(WorkSchedule $workSchedule): ActionResult
     {
         $query = "
-            INSERT INTO shift_schedules (
+            INSERT INTO work_schedules (
                 employee_id          ,
-                shift_title          ,
+                title                ,
                 start_time           ,
                 end_time             ,
                 is_flexible          ,
@@ -37,7 +37,7 @@ class ShiftScheduleDao
             )
             VALUES (
                 :employee_id          ,
-                :shift_title          ,
+                :title                ,
                 :start_time           ,
                 :end_time             ,
                 :is_flexible          ,
@@ -57,19 +57,19 @@ class ShiftScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"          , $shiftSchedule->getEmployeeId()        , Helper::getPdoParameterType($shiftSchedule->getEmployeeId()        ));
-            $statement->bindValue(":shift_title"          , $shiftSchedule->getShiftTitle()        , Helper::getPdoParameterType($shiftSchedule->getShiftTitle()        ));
-            $statement->bindValue(":start_time"           , $shiftSchedule->getStartTime()         , Helper::getPdoParameterType($shiftSchedule->getStartTime()         ));
-            $statement->bindValue(":end_time"             , $shiftSchedule->getEndTime()           , Helper::getPdoParameterType($shiftSchedule->getEndTime()           ));
-            $statement->bindValue(":is_flexible"          , $shiftSchedule->isFlexible()           , Helper::getPdoParameterType($shiftSchedule->isFlexible()           ));
-            $statement->bindValue(":flexible_start_time"  , $shiftSchedule->getFlexibleStartTime() , Helper::getPdoParameterType($shiftSchedule->getFlexibleStartTime() ));
-            $statement->bindValue(":flexible_end_time"    , $shiftSchedule->getFlexibleEndTime()   , Helper::getPdoParameterType($shiftSchedule->getFlexibleEndTime()   ));
-            $statement->bindValue(":core_hours_start_time", $shiftSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($shiftSchedule->getCoreHoursStartTime()));
-            $statement->bindValue(":core_hours_end_time"  , $shiftSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($shiftSchedule->getCoreHoursEndTime()  ));
-            $statement->bindValue(":total_hours_per_week" , $shiftSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($shiftSchedule->getTotalHoursPerWeek() ));
-            $statement->bindValue(":start_date"           , $shiftSchedule->getStartDate()         , Helper::getPdoParameterType($shiftSchedule->getStartDate()         ));
-            $statement->bindValue(":recurrence_rule"      , $shiftSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($shiftSchedule->getRecurrenceRule() )   );
-            $statement->bindValue(":note"                 , $shiftSchedule->getNote()              , Helper::getPdoParameterType($shiftSchedule->getNote()              ));
+            $statement->bindValue(":employee_id"          , $workSchedule->getEmployeeId()        , Helper::getPdoParameterType($workSchedule->getEmployeeId()        ));
+            $statement->bindValue(":title"                , $workSchedule->getTitle()             , Helper::getPdoParameterType($workSchedule->getTitle()             ));
+            $statement->bindValue(":start_time"           , $workSchedule->getStartTime()         , Helper::getPdoParameterType($workSchedule->getStartTime()         ));
+            $statement->bindValue(":end_time"             , $workSchedule->getEndTime()           , Helper::getPdoParameterType($workSchedule->getEndTime()           ));
+            $statement->bindValue(":is_flexible"          , $workSchedule->isFlexible()           , Helper::getPdoParameterType($workSchedule->isFlexible()           ));
+            $statement->bindValue(":flexible_start_time"  , $workSchedule->getFlexibleStartTime() , Helper::getPdoParameterType($workSchedule->getFlexibleStartTime() ));
+            $statement->bindValue(":flexible_end_time"    , $workSchedule->getFlexibleEndTime()   , Helper::getPdoParameterType($workSchedule->getFlexibleEndTime()   ));
+            $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
+            $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
+            $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));
+            $statement->bindValue(":start_date"           , $workSchedule->getStartDate()         , Helper::getPdoParameterType($workSchedule->getStartDate()         ));
+            $statement->bindValue(":recurrence_rule"      , $workSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($workSchedule->getRecurrenceRule() )   );
+            $statement->bindValue(":note"                 , $workSchedule->getNote()              , Helper::getPdoParameterType($workSchedule->getNote()              ));
 
             $statement->execute();
 
@@ -80,7 +80,7 @@ class ShiftScheduleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while creating the shift schedule. " .
+            error_log("Database Error: An error occurred while creating the work schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -95,28 +95,28 @@ class ShiftScheduleDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "shift_schedule.id                    AS id"                      ,
+            "id"                       => "work_schedule.id                    AS id"                      ,
 
-            "employee_id"              => "shift_schedule.employee_id           AS employee_id"             ,
-            "employee_full_name"       => "employee.full_name                   AS employee_full_name"      ,
-            "employee_job_title_id"    => "employee.job_title_id                AS employee_job_title_id"   ,
-            "employee_job_title"       => "job_title.title                      AS employee_job_title"      ,
-            "employee_department_id"   => "employee.department_id               AS employee_department_id"  ,
-            "employee_department_name" => "department.name                      AS employee_department_name",
-            "employee_profile_picture" => "employee.profile_picture             AS employee_profile_picture",
+            "employee_id"              => "work_schedule.employee_id           AS employee_id"             ,
+            "employee_full_name"       => "employee.full_name                 AS employee_full_name"      ,
+            "employee_job_title_id"    => "employee.job_title_id              AS employee_job_title_id"   ,
+            "employee_job_title"       => "job_title.title                    AS employee_job_title"      ,
+            "employee_department_id"   => "employee.department_id             AS employee_department_id"  ,
+            "employee_department_name" => "department.name                    AS employee_department_name",
+            "employee_profile_picture" => "employee.profile_picture           AS employee_profile_picture",
 
-            "shift_title"              => "shift_schedule.shift_title           AS shift_title"             ,
-            "start_time"               => "shift_schedule.start_time            AS start_time"              ,
-            "end_time"                 => "shift_schedule.end_time              AS end_time"                ,
-            "is_flexible"              => "shift_schedule.is_flexible           AS is_flexible"             ,
-            "flexible_start_time"      => "shift_schedule.flexible_start_time   AS flexible_start_time"     ,
-            "flexible_end_time"        => "shift_schedule.flexible_end_time     AS flexible_end_time"       ,
-            "core_hours_start_time"    => "shift_schedule.core_hours_start_time AS core_hours_start_time"   ,
-            "core_hours_end_time"      => "shift_schedule.core_hours_end_time   AS core_hours_end_time"     ,
-            "total_hours_per_week"     => "shift_schedule.total_hours_per_week  AS total_hours_per_week"    ,
-            "start_date"               => "shift_schedule.start_date            AS start_date"              ,
-            "recurrence_rule"          => "shift_schedule.recurrence_rule       AS recurrence_rule"          ,
-            "note"                     => "shift_schedule.note                  AS note"                    ,
+            "title"                    => "work_schedule.title                AS title"                    ,
+            "start_time"               => "work_schedule.start_time           AS start_time"              ,
+            "end_time"                 => "work_schedule.end_time             AS end_time"                ,
+            "is_flexible"              => "work_schedule.is_flexible          AS is_flexible"             ,
+            "flexible_start_time"      => "work_schedule.flexible_start_time  AS flexible_start_time"     ,
+            "flexible_end_time"        => "work_schedule.flexible_end_time    AS flexible_end_time"       ,
+            "core_hours_start_time"    => "work_schedule.core_hours_start_time AS core_hours_start_time"   ,
+            "core_hours_end_time"      => "work_schedule.core_hours_end_time  AS core_hours_end_time"     ,
+            "total_hours_per_week"     => "work_schedule.total_hours_per_week AS total_hours_per_week"    ,
+            "start_date"               => "work_schedule.start_date           AS start_date"              ,
+            "recurrence_rule"          => "work_schedule.recurrence_rule      AS recurrence_rule"          ,
+            "note"                     => "work_schedule.note                 AS note"                     ,
         ];
 
         $selectedColumns =
@@ -137,7 +137,7 @@ class ShiftScheduleDao
                 LEFT JOIN
                     employees AS employee
                 ON
-                    shift_schedule.employee_id = employee.id
+                    work_schedule.employee_id = employee.id
             ";
         }
 
@@ -164,7 +164,7 @@ class ShiftScheduleDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "shift_schedule.deleted_at IS NULL";
+            $whereClauses[] = "work_schedule.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -226,7 +226,7 @@ class ShiftScheduleDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                shift_schedules AS shift_schedule
+                work_schedules AS work_schedule
             {$joinClauses}
             WHERE
             " . (empty($whereClauses) ? "1=1" : implode(" AND ", $whereClauses)) . "
@@ -258,7 +258,7 @@ class ShiftScheduleDao
             ];
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the shift schedules. " .
+            error_log("Database Error: An error occurred while fetching the work schedules. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -314,26 +314,26 @@ class ShiftScheduleDao
         return $parsedRule;
     }
 
-    public function update(ShiftSchedule $shiftSchedule): ActionResult
+    public function update(WorkSchedule $workSchedule): ActionResult
     {
         $query = "
-            UPDATE shift_schedules
+            UPDATE work_schedules
             SET
-                employee_id           = :employee_id          ,
-                shift_title           = :shift_title          ,
-                start_time            = :start_time           ,
-                end_time              = :end_time             ,
-                is_flexible           = :is_flexible          ,
-                flexible_start_time   = :flexible_start_time  ,
-                flexible_end_time     = :flexible_end_time    ,
-                core_hours_start_time = :core_hours_start_time,
-                core_hours_end_time   = :core_hours_end_time  ,
-                total_hours_per_week  = :total_hours_per_week ,
-                start_date            = :start_date           ,
-                recurrence_rule       = :recurrence_rule      ,
+                employee_id           = :employee_id           ,
+                title                 = :title                 ,
+                start_time            = :start_time            ,
+                end_time              = :end_time              ,
+                is_flexible           = :is_flexible           ,
+                flexible_start_time   = :flexible_start_time   ,
+                flexible_end_time     = :flexible_end_time     ,
+                core_hours_start_time = :core_hours_start_time ,
+                core_hours_end_time   = :core_hours_end_time   ,
+                total_hours_per_week  = :total_hours_per_week  ,
+                start_date            = :start_date            ,
+                recurrence_rule       = :recurrence_rule       ,
                 note                  = :note
             WHERE
-                id = :shift_schedule_id
+                id = :work_schedule_id
         ";
 
         try {
@@ -341,20 +341,20 @@ class ShiftScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"          , $shiftSchedule->getEmployeeId()        , Helper::getPdoParameterType($shiftSchedule->getEmployeeId()        ));
-            $statement->bindValue(":shift_title"          , $shiftSchedule->getShiftTitle()        , Helper::getPdoParameterType($shiftSchedule->getShiftTitle()        ));
-            $statement->bindValue(":start_time"           , $shiftSchedule->getStartTime()         , Helper::getPdoParameterType($shiftSchedule->getStartTime()         ));
-            $statement->bindValue(":end_time"             , $shiftSchedule->getEndTime()           , Helper::getPdoParameterType($shiftSchedule->getEndTime()           ));
-            $statement->bindValue(":is_flexible"          , $shiftSchedule->isFlexible()           , Helper::getPdoParameterType($shiftSchedule->isFlexible()           ));
-            $statement->bindValue(":flexible_start_time"  , $shiftSchedule->getFlexibleStartTime() , Helper::getPdoParameterType($shiftSchedule->getFlexibleStartTime() ));
-            $statement->bindValue(":flexible_end_time"    , $shiftSchedule->getFlexibleEndTime()   , Helper::getPdoParameterType($shiftSchedule->getFlexibleEndTime()   ));
-            $statement->bindValue(":core_hours_start_time", $shiftSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($shiftSchedule->getCoreHoursStartTime()));
-            $statement->bindValue(":core_hours_end_time"  , $shiftSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($shiftSchedule->getCoreHoursEndTime()  ));
-            $statement->bindValue(":total_hours_per_week" , $shiftSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($shiftSchedule->getTotalHoursPerWeek() ));
-            $statement->bindValue(":start_date"           , $shiftSchedule->getStartDate()         , Helper::getPdoParameterType($shiftSchedule->getStartDate()         ));
-            $statement->bindValue(":recurrence_rule"      , $shiftSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($shiftSchedule->getRecurrenceRule() )   );
-            $statement->bindValue(":note"                 , $shiftSchedule->getNote()              , Helper::getPdoParameterType($shiftSchedule->getNote()              ));
-            $statement->bindValue(":shift_schedule_id"    , $shiftSchedule->getId()                , Helper::getPdoParameterType($shiftSchedule->getId()                ));
+            $statement->bindValue(":employee_id"          , $workSchedule->getEmployeeId()        , Helper::getPdoParameterType($workSchedule->getEmployeeId()        ));
+            $statement->bindValue(":title"                , $workSchedule->getTitle()             , Helper::getPdoParameterType($workSchedule->getTitle()             ));
+            $statement->bindValue(":start_time"           , $workSchedule->getStartTime()         , Helper::getPdoParameterType($workSchedule->getStartTime()         ));
+            $statement->bindValue(":end_time"             , $workSchedule->getEndTime()           , Helper::getPdoParameterType($workSchedule->getEndTime()           ));
+            $statement->bindValue(":is_flexible"          , $workSchedule->isFlexible()           , Helper::getPdoParameterType($workSchedule->isFlexible()           ));
+            $statement->bindValue(":flexible_start_time"  , $workSchedule->getFlexibleStartTime() , Helper::getPdoParameterType($workSchedule->getFlexibleStartTime() ));
+            $statement->bindValue(":flexible_end_time"    , $workSchedule->getFlexibleEndTime()   , Helper::getPdoParameterType($workSchedule->getFlexibleEndTime()   ));
+            $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
+            $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
+            $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));
+            $statement->bindValue(":start_date"           , $workSchedule->getStartDate()         , Helper::getPdoParameterType($workSchedule->getStartDate()         ));
+            $statement->bindValue(":recurrence_rule"      , $workSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($workSchedule->getRecurrenceRule() ));
+            $statement->bindValue(":note"                 , $workSchedule->getNote()              , Helper::getPdoParameterType($workSchedule->getNote()              ));
+            $statement->bindValue(":work_schedule_id"     , $workSchedule->getId()                , Helper::getPdoParameterType($workSchedule->getId()                ));
 
             $statement->execute();
 
@@ -365,26 +365,26 @@ class ShiftScheduleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while updating the shift schedule. " .
+            error_log("Database Error: An error occurred while updating the work schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $shiftScheduleId): ActionResult
+    public function delete(int $workScheduleId): ActionResult
     {
-        return $this->softDelete($shiftScheduleId);
+        return $this->softDelete($workScheduleId);
     }
 
-    private function softDelete(int $shiftScheduleId): ActionResult
+    private function softDelete(int $workScheduleId): ActionResult
     {
         $query = "
-            UPDATE shift_schedules
+            UPDATE work_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :shift_schedule_id
+                id = :work_schedule_id
         ";
 
         try {
@@ -392,7 +392,7 @@ class ShiftScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":shift_schedule_id", $shiftScheduleId, Helper::getPdoParameterType($shiftScheduleId));
+            $statement->bindValue(":work_schedule_id", $workScheduleId, Helper::getPdoParameterType($workScheduleId));
 
             $statement->execute();
 
@@ -403,7 +403,7 @@ class ShiftScheduleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while deleting the shift schedule. " .
+            error_log("Database Error: An error occurred while deleting the work schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

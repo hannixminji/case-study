@@ -3,16 +3,16 @@
 class Attendance
 {
     public function __construct(
-        private readonly ?int    $id                 ,
-        private readonly int     $employeeId         ,
-        private readonly string  $date               ,
-        private readonly ?string $shiftType          ,
-        private readonly ?string $checkInTime        ,
-        private readonly ?string $checkOutTime       ,
-        private readonly ?string $breakStartTime     ,
-        private readonly ?string $breakEndTime       ,
-        private readonly bool    $isOvertimeApproved ,
-        private readonly string  $attendanceStatus   ,
+        private readonly ?int    $id                ,
+        private readonly int     $employeeId        ,
+        private readonly string  $date              ,
+        private readonly ?string $shiftType         ,
+        private readonly ?string $checkInTime       ,
+        private readonly ?string $checkOutTime      ,
+        private readonly ?string $breakStartTime    ,
+        private readonly ?string $breakEndTime      ,
+        private readonly bool    $isOvertimeApproved,
+        private readonly string  $attendanceStatus  ,
         private readonly ?string $remarks
     ) {
     }

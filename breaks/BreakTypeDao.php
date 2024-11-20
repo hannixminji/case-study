@@ -4,7 +4,7 @@ require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
-class ShiftBreakDao
+class BreakTypeDao
 {
     private readonly PDO $pdo;
 
@@ -13,18 +13,20 @@ class ShiftBreakDao
         $this->pdo = $pdo;
     }
 
-    public function create(ShiftBreak $shiftBreak): ActionResult
+    public function create(BreakType $breakType): ActionResult
     {
         $query = "
-            INSERT INTO shift_breaks (
-                shift_schedule_id,
-                break_type_id    ,
-                start_time
+            INSERT INTO break_types (
+                name                          ,
+                duration_in_minutes           ,
+                is_paid                       ,
+                require_break_in_and_break_out
             )
             VALUES (
-                :shift_schedule_id,
-                :break_type_id    ,
-                :start_time
+                :name                          ,
+                :duration_in_minutes           ,
+                :is_paid                       ,
+                :require_break_in_and_break_out
             )
         ";
 
@@ -33,9 +35,10 @@ class ShiftBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":shift_schedule_id", $shiftBreak->getShiftScheduleId(), Helper::getPdoParameterType($shiftBreak->getShiftScheduleId()));
-            $statement->bindValue(":break_type_id"    , $shiftBreak->getBreakTypeId()    , Helper::getPdoParameterType($shiftBreak->getBreakTypeId()    ));
-            $statement->bindValue(":start_time"       , $shiftBreak->getStartTime()      , Helper::getPdoParameterType($shiftBreak->getStartTime()      ));
+            $statement->bindValue(":name"                          , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
+            $statement->bindValue(":duration_in_minutes"           , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
+            $statement->bindValue(":is_paid"                       , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
+            $statement->bindValue(":require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
 
             $statement->execute();
 
@@ -46,8 +49,12 @@ class ShiftBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while creating the shift break. " .
+            error_log("Database Error: An error occurred while creating the break type. " .
                       "Exception: {$exception->getMessage()}");
+
+            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
+                return ActionResult::DUPLICATE_ENTRY_ERROR;
+            }
 
             return ActionResult::FAILURE;
         }
@@ -61,19 +68,14 @@ class ShiftBreakDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                             => "shift_break.id AS id"                                            ,
-            "shift_schedule_id"              => "shift_break.shift_schedule_id AS shift_schedule_id"              ,
-
-            "break_type_id"                  => "shift_break.break_type_id AS break_type_id"                      ,
-            "break_type_name"                => "break_type.name AS break_type_name"                              ,
-            "break_type_duration_in_minutes" => "break_type.duration_in_minutes AS break_type_duration_in_minutes",
-            "break_type_is_paid"             => "break_type.is_paid AS break_type_is_paid"                        ,
-            "break_type_deleted_at"          => "break_type.deleted_at AS break_type_deleted_at"                  ,
-
-            "start_time"                     => "shift_break.start_time AS start_time"                            ,
-            "created_at"                     => "shift_break.created_at AS created_at"                            ,
-            "updated_at"                     => "shift_break.updated_at AS updated_at"                            ,
-            "deleted_at"                     => "shift_break.deleted_at AS deleted_at"                            ,
+            "id"                             => "break_type.id                             AS id"                            ,
+            "name"                           => "break_type.name                           AS name"                          ,
+            "duration_in_minutes"            => "break_type.duration_in_minutes            AS duration_in_minutes"           ,
+            "is_paid"                        => "break_type.is_paid                        AS is_paid"                       ,
+            "require_break_in_and_break_out" => "break_type.require_break_in_and_break_out AS require_break_in_and_break_out",
+            "created_at"                     => "break_type.created_at                     AS created_at"                    ,
+            "updated_at"                     => "break_type.updated_at                     AS updated_at"                    ,
+            "deleted_at"                     => "break_type.deleted_at                     AS deleted_at"
         ];
 
         $selectedColumns =
@@ -81,36 +83,22 @@ class ShiftBreakDao
                 ? $tableColumns
                 : array_intersect_key(
                     $tableColumns,
-                    array_flip($columns)
-                );
-
-        $joinClauses = "";
-
-        if (array_key_exists("break_type_name"               , $selectedColumns) ||
-            array_key_exists("break_type_duration_in_minutes", $selectedColumns) ||
-            array_key_exists("break_type_is_paid"            , $selectedColumns) ||
-            array_key_exists("break_type_deleted_at"         , $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    break_types AS break_type
-                ON
-                    shift_break.break_type_id = break_type.id
-            ";
-        }
+                    array_flip($columns
+                ));
 
         $queryParameters = [];
 
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "shift_break.deleted_at IS NULL";
+            $whereClauses[] = "break_type.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "=":
+                    case "="   :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
@@ -165,8 +153,7 @@ class ShiftBreakDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                shift_breaks AS shift_break
-            {$joinClauses}
+                break_types AS break_type
             WHERE
             " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
@@ -197,21 +184,25 @@ class ShiftBreakDao
             ];
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the shift breaks. " .
+            error_log("Database Error: An error occurred while fetching the break types. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function update(ShiftBreak $shiftBreak): ActionResult
+    public function update(BreakType $breakType): ActionResult
     {
         $query = "
-            UPDATE shift_breaks
+            UPDATE break_types
             SET
-                start_time = :start_time
+                name                 = :name               ,
+                duration_in_minutes  = :duration_in_minutes,
+                is_paid              = :is_paid            ,
+                require_break_in_and_break_out = :require_break_in_and_break_out
+
             WHERE
-                id = :shift_break_id
+                id = :break_type_id
         ";
 
         try {
@@ -219,8 +210,11 @@ class ShiftBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":start_time"    , $shiftBreak->getStartTime(), Helper::getPdoParameterType($shiftBreak->getStartTime()));
-            $statement->bindValue(":shift_break_id", $shiftBreak->getId()       , Helper::getPdoParameterType($shiftBreak->getId()       ));
+            $statement->bindValue(":name"                          , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
+            $statement->bindValue(":duration_in_minutes"           , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
+            $statement->bindValue(":is_paid"                       , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
+            $statement->bindValue(":break_type_id"                 , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
+            $statement->bindValue(":require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
 
             $statement->execute();
 
@@ -231,59 +225,30 @@ class ShiftBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while updating the shift break. " .
+            error_log("Database Error: An error occurred while updating the break type. " .
                       "Exception: {$exception->getMessage()}");
+
+            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
+                return ActionResult::DUPLICATE_ENTRY_ERROR;
+            }
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $shiftBreakId): ActionResult
+    public function delete(int $breakTypeId): ActionResult
     {
-        return $this->softDelete($shiftBreakId);
+        return $this->softDelete($breakTypeId);
     }
 
-    public function deleteByShiftScheduleId(int $shiftScheduleId): ActionResult
+    private function softDelete(int $breakTypeId): ActionResult
     {
         $query = "
-            UPDATE shift_breaks
-            SET
-                deleted_at = CURRENT_TIMESTAMP
-            WHERE
-                shift_schedule_id = :shift_schedule_id
-        ";
-
-        try {
-            $this->pdo->beginTransaction();
-
-            $statement = $this->pdo->prepare($query);
-
-            $statement->bindValue(":shift_schedule_id", $shiftScheduleId, Helper::getPdoParameterType($shiftScheduleId));
-
-            $statement->execute();
-
-            $this->pdo->commit();
-
-            return ActionResult::SUCCESS;
-
-        } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
-            error_log("Database Error: An error occurred while deleting shift breaks by shift schedule ID. " .
-                      "Exception: {$exception->getMessage()}");
-
-            return ActionResult::FAILURE;
-        }
-    }
-
-    private function softDelete(int $shiftBreakId): ActionResult
-    {
-        $query = "
-            UPDATE shift_breaks
+            UPDATE break_types
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :shift_break_id
+                id = :break_type_id
         ";
 
         try {
@@ -291,7 +256,7 @@ class ShiftBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":shift_break_id", $shiftBreakId, Helper::getPdoParameterType($shiftBreakId));
+            $statement->bindValue(":break_type_id", $breakTypeId, Helper::getPdoParameterType($breakTypeId));
 
             $statement->execute();
 
@@ -302,7 +267,7 @@ class ShiftBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while deleting the shift break. " .
+            error_log("Database Error: An error occurred while deleting the break type. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

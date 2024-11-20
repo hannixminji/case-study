@@ -112,7 +112,7 @@ class AllowanceDao
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "=":
+                    case "="   :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];

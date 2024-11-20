@@ -70,20 +70,20 @@ class LeaveRequestDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "leave_request.id            AS id"                      ,
-            "employee_id"              => "leave_request.employee_id   AS employee_id"             ,
-            "employee_full_name"       => "employee.full_name          AS employee_full_name"      ,
-            "employee_department_id"   => "employee.department_id      AS employee_department_id"  ,
-            "employee_department_name" => "department.name             AS employee_department_name",
-            "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
-            "employee_job_title"       => "job_title.title             AS employee_job_title"      ,
-            "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
-            "employee_manager_id"      => "employee.manager_id         AS employee_manager_id"     ,
-            "leave_type_id"            => "leave_request.leave_type_id AS leave_type_id"           ,
-            "leave_type_name"          => "leave_type.name             AS leave_type_name"         ,
-            "start_date"               => "leave_request.start_date    AS start_date"              ,
-            "end_date"                 => "leave_request.end_date      AS end_date"                ,
-            "reason"                   => "leave_request.reason        AS reason"                  ,
+            "id"                       => "leave_request.id               AS id"                      ,
+            "employee_id"              => "leave_request.employee_id      AS employee_id"             ,
+            "employee_full_name"       => "employee.full_name             AS employee_full_name"      ,
+            "employee_department_id"   => "employee.department_id         AS employee_department_id"  ,
+            "employee_department_name" => "department.name                AS employee_department_name",
+            "employee_job_title_id"    => "employee.job_title_id          AS employee_job_title_id"   ,
+            "employee_job_title"       => "job_title.title                AS employee_job_title"      ,
+            "employee_supervisor_id"   => "employee.supervisor_id         AS employee_supervisor_id"  ,
+            "employee_manager_id"      => "employee.manager_id            AS employee_manager_id"     ,
+            "leave_type_id"            => "leave_request.leave_type_id    AS leave_type_id"           ,
+            "leave_type_name"          => "leave_type.name                AS leave_type_name"         ,
+            "start_date"               => "leave_request.start_date       AS start_date"              ,
+            "end_date"                 => "leave_request.end_date         AS end_date"                ,
+            "reason"                   => "leave_request.reason           AS reason"                  ,
 
             "status" => "
                 CASE

@@ -1,11 +1,11 @@
 <?php
 
-class ShiftBreak
+class ScheduleBreak
 {
     public function __construct(
-        private readonly ?int    $id             ,
-        private readonly int     $shiftScheduleId,
-        private readonly int     $breakTypeId    ,
+        private readonly ?int    $id            ,
+        private readonly int     $workScheduleId,
+        private readonly int     $breakTypeId   ,
         private readonly ?string $startTime
     ) {
     }
@@ -15,9 +15,9 @@ class ShiftBreak
         return $this->id;
     }
 
-    public function getShiftScheduleId(): int
+    public function getWorkScheduleId(): int
     {
-        return $this->shiftScheduleId;
+        return $this->workScheduleId;
     }
 
     public function getBreakTypeId(): int

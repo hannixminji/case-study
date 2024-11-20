@@ -67,15 +67,15 @@ class JobTitleDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"              => "job_title.id                  AS id"             ,
-            "title"           => "job_title.title               AS title"          ,
-            "department_id"   => "job_title.department_id       AS department_id"  ,
-            "department_name" => "department.name               AS department_name",
-            "description"     => "job_title.description         AS description"    ,
-            "status"          => "job_title.status              AS status"         ,
-            "created_at"      => "job_title.created_at          AS created_at"     ,
-            "updated_at"      => "job_title.updated_at          AS updated_at"     ,
-            "deleted_at"      => "job_title.deleted_at          AS deleted_at"
+            "id"              => "job_title.id            AS id"             ,
+            "title"           => "job_title.title         AS title"          ,
+            "department_id"   => "job_title.department_id AS department_id"  ,
+            "department_name" => "department.name         AS department_name",
+            "description"     => "job_title.description   AS description"    ,
+            "status"          => "job_title.status        AS status"         ,
+            "created_at"      => "job_title.created_at    AS created_at"     ,
+            "updated_at"      => "job_title.updated_at    AS updated_at"     ,
+            "deleted_at"      => "job_title.deleted_at    AS deleted_at"
         ];
 
         $selectedColumns =
