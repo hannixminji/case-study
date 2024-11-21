@@ -61,19 +61,20 @@ class ScheduleBreakDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                    => "schedule_break.id               AS id"                   ,
-            "work_schedule_id"      => "schedule_break.work_schedule_id AS work_schedule_id"     ,
+            "id"                             => "schedule_break.id               AS id"                   ,
+            "work_schedule_id"               => "schedule_break.work_schedule_id AS work_schedule_id"     ,
 
-            "break_type_id"         => "schedule_break.break_type_id    AS break_type_id"        ,
-            "break_type_name"       => "break_type.name                 AS break_type_name"      ,
-            "break_type_duration"   => "break_type.duration_in_minutes  AS break_type_duration"  ,
-            "break_type_is_paid"    => "break_type.is_paid              AS break_type_is_paid"   ,
-            "break_type_deleted_at" => "break_type.deleted_at           AS break_type_deleted_at",
+            "break_type_id"                  => "schedule_break.break_type_id    AS break_type_id"        ,
+            "break_type_name"                => "break_type.name                 AS break_type_name"      ,
+            "break_type_duration_in_minutes" => "break_type.duration_in_minutes  AS break_type_duration"  ,
+            "break_type_is_paid"             => "break_type.is_paid              AS break_type_is_paid"   ,
+            "break_type_deleted_at"          => "break_type.deleted_at           AS break_type_deleted_at",
 
-            "start_time"            => "schedule_break.start_time       AS start_time"           ,
-            "created_at"            => "schedule_break.created_at       AS created_at"           ,
-            "updated_at"            => "schedule_break.updated_at       AS updated_at"           ,
-            "deleted_at"            => "schedule_break.deleted_at       AS deleted_at"           ,
+            "start_time"                     => "schedule_break.start_time       AS start_time"           ,
+            "end_time"                       => "DATE_ADD(schedule_break.start_time, INTERVAL break_type.duration_in_minutes MINUTE) AS end_time",
+            "created_at"                     => "schedule_break.created_at       AS created_at"           ,
+            "updated_at"                     => "schedule_break.updated_at       AS updated_at"           ,
+            "deleted_at"                     => "schedule_break.deleted_at       AS deleted_at"           ,
         ];
 
         $selectedColumns =
@@ -116,6 +117,10 @@ class ScheduleBreakDao
                         $queryParameters[] = $filterCriterion["value"];
                         break;
 
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
+                        break;
+
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
@@ -127,7 +132,7 @@ class ScheduleBreakDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -236,6 +241,55 @@ class ScheduleBreakDao
 
             return ActionResult::FAILURE;
         }
+    }
+
+    public function getScheduledBreak(int $workScheduleId, string $currentTime): ActionResult|array
+    {
+        $columns = [
+            "id"                       ,
+            "break_type_id"            ,
+            "break_duration_in_minutes",
+            "start_time"               ,
+            "end_time"
+        ];
+
+        $filterCriteria = [
+            [
+                "column"   => "schedule_break.deleted_at",
+                "operator" => "IS NULL"
+            ],
+            [
+                "column"   => "schedule_break.work_schedule_id",
+                "operator" => "=",
+                "value"    => $workScheduleId
+            ],
+            [
+                "column"   => "schedule_break.start_time",
+                "operator" => "<=",
+                "value"    => $currentTime
+            ],
+            [
+                "column"   => "DATE_ADD(schedule_break.start_time, INTERVAL break_type.duration_in_minutes MINUTE) AS end_time",
+                "operator" => ">=",
+                "value"    => $currentTime
+            ]
+        ];
+
+        $result = $this->fetchAll(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            limit         : 1
+        );
+
+        if (empty($result["result_set"])) {
+            return ActionResult::NO_SCHEDULED_BREAK;
+        }
+
+        if ($result === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $result["result_set"];
     }
 
     public function delete(int $scheduleBreakId): ActionResult

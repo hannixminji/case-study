@@ -17,13 +17,11 @@ class EmployeeBreakDao
     {
         $query = "
             INSERT INTO employee_breaks (
-                employee_id  ,
-                break_type_id,
+                schedule_break_id,
                 start_time
             )
             VALUES (
-                :employee_id  ,
-                :break_type_id,
+                :schedule_break_id,
                 :start_time
             )
         ";
@@ -33,9 +31,8 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"  , $employeeBreak->getEmployeeId() , Helper::getPdoParameterType($employeeBreak->getEmployeeId() ));
-            $statement->bindValue(":break_type_id", $employeeBreak->getBreakTypeId(), Helper::getPdoParameterType($employeeBreak->getBreakTypeId()));
-            $statement->bindValue(":start_time"   , $employeeBreak->getStartTime()  , Helper::getPdoParameterType($employeeBreak->getStartTime()  ));
+            $statement->bindValue(":schedule_break_id", $employeeBreak->getScheduleBreakId(), Helper::getPdoParameterType($employeeBreak->getScheduleBreakId()));
+            $statement->bindValue(":start_time"       , $employeeBreak->getStartTime()      , Helper::getPdoParameterType($employeeBreak->getStartTime()      ));
 
             $statement->execute();
 

@@ -13,32 +13,28 @@ class AttendanceDao
         $this->pdo = $pdo;
     }
 
-    public function create(Attendance $attendance): ActionResult
+    public function checkIn(Attendance $attendance): ActionResult
     {
         $query = "
             INSERT INTO attendance (
-                employee_id         ,
-                date                ,
-                shift_type          ,
-                check_in_time       ,
-                check_out_time      ,
-                break_start_time    ,
-                break_end_time      ,
-                is_overtime_approved,
-                attendance_status   ,
-                remarks
+                id               ,
+                work_schedule_id ,
+                date             ,
+                day_of_the_week  ,
+                shift_type       ,
+                check_in_time    ,
+                late_check_in    ,
+                attendance_status
             )
             VALUES (
-                :employee_id         ,
-                :date                ,
-                :shift_type          ,
-                :check_in_time       ,
-                :check_out_time      ,
-                :break_start_time    ,
-                :break_end_time      ,
-                :is_overtime_approved,
-                :attendance_status   ,
-                :remarks
+                :id               ,
+                :work_schedule_id ,
+                :date             ,
+                :day_of_the_week  ,
+                :shift_type       ,
+                :check_in_time    ,
+                :late_check_in    ,
+                :attendance_status,
             )
         ";
 
@@ -47,16 +43,14 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"         , $attendance->getEmployeeId()      , Helper::getPdoParameterType($attendance->getEmployeeId()      ));
-            $statement->bindValue(":date"                , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
-            $statement->bindValue(":shift_type"          , $attendance->getShiftType()       , Helper::getPdoParameterType($attendance->getShiftType()       ));
-            $statement->bindValue(":check_in_time"       , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
-            $statement->bindValue(":check_out_time"      , $attendance->getCheckOutTime()    , Helper::getPdoParameterType($attendance->getCheckOutTime()    ));
-            $statement->bindValue(":break_start_time"    , $attendance->getBreakStartTime()  , Helper::getPdoParameterType($attendance->getBreakStartTime()  ));
-            $statement->bindValue(":break_end_time"      , $attendance->getBreakEndTime()    , Helper::getPdoParameterType($attendance->getBreakEndTime()    ));
-            $statement->bindValue(":is_overtime_approved", $attendance->isOvertimeApproved() , Helper::getPdoParameterType($attendance->isOvertimeApproved() ));
-            $statement->bindValue(":attendance_status"   , $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
-            $statement->bindValue(":remarks"             , $attendance->getRemarks()         , Helper::getPdoParameterType($attendance->getRemarks()         ));
+            $statement->bindValue(":id"               , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
+            $statement->bindValue(":work_schedule_id" , $attendance->getWorkScheduleId()  , Helper::getPdoParameterType($attendance->getWorkScheduleId()  ));
+            $statement->bindValue(":date"             , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
+            $statement->bindValue(":day_of_the_week"  , $attendance->getDayOfTheWeek()    , Helper::getPdoParameterType($attendance->getDayOfTheWeek()    ));
+            $statement->bindValue(":shift_type"       , $attendance->getShiftType()       , Helper::getPdoParameterType($attendance->getShiftType()       ));
+            $statement->bindValue(":check_in_time"    , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
+            $statement->bindValue(":late_check_in"    , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
+            $statement->bindValue(":attendance_status", $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
 
             $statement->execute();
 
@@ -67,7 +61,51 @@ class AttendanceDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while creating the attendance record. " .
+            error_log("Database Error: An error occurred while checking in the attendance. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function checkOut(Attendance $attendance): ActionResult
+    {
+        $query = "
+            UPDATE attendance
+            SET
+                check_out_time                = :check_out_time               ,
+                total_break_duration_in_hours = :total_break_duration_in_hours,
+                total_hours_worked            = :total_hours_worked           ,
+                early_check_out               = :early_check_out              ,
+                overtime_hours                = :overtime_hours               ,
+                attendance_status             = :attendance_status
+            WHERE
+                id = :attendance_id
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":check_out_time"               , $attendance->getCheckOutTime()             , Helper::getPdoParameterType($attendance->getCheckOutTime()             ));
+            $statement->bindValue(":total_break_duration_in_hours", $attendance->getTotalBreakDurationInHours(), Helper::getPdoParameterType($attendance->getTotalBreakDurationInHours()));
+            $statement->bindValue(":total_hours_worked"           , $attendance->getTotalHoursWorked()         , Helper::getPdoParameterType($attendance->getTotalHoursWorked()         ));
+            $statement->bindValue(":early_check_out"              , $attendance->getEarlyCheckOut()            , Helper::getPdoParameterType($attendance->getEarlyCheckOut()            ));
+            $statement->bindValue(":overtime_hours"               , $attendance->getOvertimeHours()            , Helper::getPdoParameterType($attendance->getOvertimeHours()            ));
+            $statement->bindValue(":attendance_status"            , $attendance->getAttendanceStatus()         , Helper::getPdoParameterType($attendance->getAttendanceStatus()         ));
+            $statement->bindValue(":attendance_id"                , $attendance->getId()                       , Helper::getPdoParameterType($attendance->getId()                       ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while checking out in the attendance. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -82,24 +120,31 @@ class AttendanceDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                  => "attendance.id                  AS id",
-            "employee_id"         => "attendance.employee_id         AS employee_id",
-            "employee_code" => "",
-            "employee_full_name" => "",
-            "employee_department" => "",
-            "employee_job_title" => "",
-            "date"                => "attendance.date                AS date",
-            "day_of_week"         => "DAYNAME(attendance.date)       AS day_of_week",
-            "shift_type"          => "attendance.shift_type          AS shift_type",
-            "check_in_time"       => "attendance.check_in_time       AS check_in_time",
-            "check_out_time"      => "attendance.check_out_time      AS check_out_time",
-            "break_start_time"    => "attendance.break_start_time    AS break_start_time",
-            "break_end_time"      => "attendance.break_end_time      AS break_end_time",
-            "is_overtime_approved"=> "attendance.is_overtime_approved AS is_overtime_approved",
-            "attendance_status"   => "attendance.attendance_status   AS attendance_status",
-            "remarks"             => "attendance.remarks             AS remarks",
-            "created_at"          => "attendance.created_at          AS created_at",
-            "updated_at"          => "attendance.updated_at          AS updated_at"
+            "id"                                => "attendance.id                            AS id"                           ,
+            "work_schedule_id"                  => "attendance.work_schedule_id              AS work_schedule_id"             ,
+            "work_schedule_is_flexible"         => "work_schedule.is_flexible                AS work_schedule_is_flexible"    ,
+
+            "employee_id"                       => "work_schedule.employee_id                AS employee_id"                  ,
+            "employee_code"                     => "employee.code                            AS employee_code"                ,
+            "employee_full_name"                => "employee.full_name                       AS employee_full_name"           ,
+            "department_id"                     => "department.id                            AS department_id"                ,
+            "department_name"                   => "department.name                          AS department_name"              ,
+            "job_title_id"                      => "job_title.id                             AS job_title_id"                 ,
+            "job_title"                         => "job_title.title                          AS job_title"                    ,
+
+            "date"                              => "attendance.date                          AS date"                         ,
+            "day_of_the_week"                   => "DAYOFWEEK(attendance.date)               AS day_of_the_week"              ,
+            "shift_type"                        => "attendance.shift_type                    AS shift_type"                   ,
+            "check_in_time"                     => "attendance.check_in_time                 AS check_in_time"                ,
+            "check_out_time"                    => "attendance.check_out_time                AS check_out_time"               ,
+            "total_break_duration_in_hours"     => "attendance.total_break_duration_in_hours AS total_break_duration_in_hours",
+            "total_hours_worked"                => "attendance.total_hours_worked            AS total_hours_worked"           ,
+            "late_check_in"                     => "attendance.late_check_in                 AS late_check_in"                ,
+            "early_check_out"                   => "attendance.early_check_out               AS early_check_out"              ,
+            "overtime_hours"                    => "attendance.overtime_hours                AS overtime_hours"               ,
+            "is_overtime_approved"              => "attendance.is_overtime_approved          AS is_overtime_approved"         ,
+            "attendance_status"                 => "attendance.attendance_status             AS attendance_status"            ,
+            "remarks"                           => "attendance.remarks                       AS remarks"                      ,
         ];
 
         $selectedColumns =
@@ -107,8 +152,65 @@ class AttendanceDao
                 ? $tableColumns
                 : array_intersect_key(
                     $tableColumns,
-                    array_flip($columns)
-                );
+                    array_flip($columns
+                ));
+
+        $joinClauses = "";
+
+        if (array_key_exists("work_schedule_is_flexible", $selectedColumns) ||
+
+            array_key_exists("employee_id"              , $selectedColumns) ||
+            array_key_exists("employee_code"            , $selectedColumns) ||
+            array_key_exists("employee_full_name"       , $selectedColumns) ||
+
+            array_key_exists("department_id"            , $selectedColumns) ||
+            array_key_exists("department_name"          , $selectedColumns) ||
+
+            array_key_exists("job_title_id"             , $selectedColumns) ||
+            array_key_exists("job_title"                , $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    work_schedules AS work_schedule
+                ON
+                    attendance.work_schedule_id = work_schedule.id
+            ";
+
+            if (array_key_exists("employee_code"     , $selectedColumns) ||
+                array_key_exists("employee_full_name", $selectedColumns) ||
+
+                array_key_exists("department_id"     , $selectedColumns) ||
+                array_key_exists("department_name"   , $selectedColumns) ||
+
+                array_key_exists("job_title_id"      , $selectedColumns) ||
+                array_key_exists("job_title"         , $selectedColumns)) {
+                $joinClauses .= "
+                    LEFT JOIN
+                        employees AS employee
+                    ON
+                        work_schedule.employee_id = employee.id
+                ";
+
+                if (array_key_exists("department_id"  , $selectedColumns) ||
+                    array_key_exists("department_name", $selectedColumns)) {
+                    $joinClauses .= "
+                        LEFT JOIN
+                            departments AS department
+                        ON
+                            employee.department_id = department.id
+                    ";
+                }
+
+                if (array_key_exists("job_title_id", $selectedColumns) ||
+                    array_key_exists("job_title"   , $selectedColumns)) {
+                    $joinClauses .= "
+                        LEFT JOIN
+                            job_titles AS job_title
+                        ON
+                            employee.job_title_id = job_title.id
+                    ";
+                }
+            }
+        }
 
         $queryParameters = [];
 
@@ -120,7 +222,7 @@ class AttendanceDao
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "=":
+                    case "="   :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
@@ -140,14 +242,13 @@ class AttendanceDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
                 if (isset($sortCriterion["direction"])) {
                     $direction = $sortCriterion["direction"];
                     $orderByClauses[] = "{$column} {$direction}";
-
                 } elseif (isset($sortCriterion["custom_order"])) {
                     $customOrder = $sortCriterion["custom_order"];
                     $caseExpressions = ["CASE {$column}"];
@@ -179,9 +280,9 @@ class AttendanceDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                attendance
+                attendances AS attendance
             WHERE
-            " . implode(" AND ", $whereClauses) . "
+                " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -222,16 +323,14 @@ class AttendanceDao
         $query = "
             UPDATE attendance
             SET
-                employee_id          = :employee_id         ,
-                date                 = :date                ,
-                shift_type           = :shift_type          ,
-                check_in_time        = :check_in_time       ,
-                check_out_time       = :check_out_time      ,
-                break_start_time     = :break_start_time    ,
-                break_end_time       = :break_end_time      ,
-                is_overtime_approved = :is_overtime_approved,
-                attendance_status    = :attendance_status   ,
-                remarks              = :remarks
+                check_in_time      = :check_in_time     ,
+                check_out_time     = :check_out_time    ,
+                total_hours_worked = :total_hours_worked,
+                late_check_in      = :late_check_in     ,
+                early_check_out    = :early_check_out   ,
+                overtime_hours     = :overtime_hours    ,
+                attendance_status  = :attendance_status ,
+                remarks            = :remarks
             WHERE
                 id = :attendance_id
         ";
@@ -241,17 +340,15 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"         , $attendance->getEmployeeId()      , Helper::getPdoParameterType($attendance->getEmployeeId()      ));
-            $statement->bindValue(":date"                , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
-            $statement->bindValue(":shift_type"          , $attendance->getShiftType()       , Helper::getPdoParameterType($attendance->getShiftType()       ));
-            $statement->bindValue(":check_in_time"       , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
-            $statement->bindValue(":check_out_time"      , $attendance->getCheckOutTime()    , Helper::getPdoParameterType($attendance->getCheckOutTime()    ));
-            $statement->bindValue(":break_start_time"    , $attendance->getBreakStartTime()  , Helper::getPdoParameterType($attendance->getBreakStartTime()  ));
-            $statement->bindValue(":break_end_time"      , $attendance->getBreakEndTime()    , Helper::getPdoParameterType($attendance->getBreakEndTime()    ));
-            $statement->bindValue(":is_overtime_approved", $attendance->isOvertimeApproved() , Helper::getPdoParameterType($attendance->isOvertimeApproved() ));
-            $statement->bindValue(":attendance_status"   , $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
-            $statement->bindValue(":remarks"             , $attendance->getRemarks()         , Helper::getPdoParameterType($attendance->getRemarks()         ));
-            $statement->bindValue(":attendance_id"       , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
+            $statement->bindValue(":check_in_time"     , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
+            $statement->bindValue(":check_out_time"    , $attendance->getCheckOutTime()    , Helper::getPdoParameterType($attendance->getCheckOutTime()    ));
+            $statement->bindValue(":total_hours_worked", $attendance->getTotalHoursWorked(), Helper::getPdoParameterType($attendance->getTotalHoursWorked()));
+            $statement->bindValue(":late_check_in"     , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
+            $statement->bindValue(":early_check_out"   , $attendance->getEarlyCheckOut()   , Helper::getPdoParameterType($attendance->getEarlyCheckOut()   ));
+            $statement->bindValue(":overtime_hours"    , $attendance->getOvertimeHours()   , Helper::getPdoParameterType($attendance->getOvertimeHours()   ));
+            $statement->bindValue(":attendance_status" , $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
+            $statement->bindValue(":remarks"           , $attendance->getRemarks()         , Helper::getPdoParameterType($attendance->getRemarks()         ));
+            $statement->bindValue(":attendance_id"     , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
 
             $statement->execute();
 
@@ -263,6 +360,39 @@ class AttendanceDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while updating the attendance record. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function approveOvertime(int $attendanceId): ActionResult
+    {
+        $query = "
+            UPDATE attendance
+            SET
+                is_overtime_approved = 1
+            WHERE
+                id = :attendance_id
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":attendance_id", $attendanceId, Helper::getPdoParameterType($attendanceId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while approving overtime. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

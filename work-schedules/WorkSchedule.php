@@ -3,19 +3,21 @@
 class WorkSchedule
 {
     public function __construct(
-        private readonly ?int    $id                ,
-        private readonly int     $employeeId        ,
-        private readonly string  $title             ,
-        private readonly string  $startTime         ,
-        private readonly string  $endTime           ,
-        private readonly bool    $isFlexible        ,
-        private readonly ?string $flexibleStartTime ,
-        private readonly ?string $flexibleEndTime   ,
-        private readonly ?string $coreHoursStartTime,
-        private readonly ?string $coreHoursEndTime  ,
-        private readonly ?int    $totalHoursPerWeek ,
-        private readonly string  $startDate         ,
-        private readonly string  $recurrenceRule    ,
+        private readonly ?int    $id                  ,
+        private readonly int     $employeeId          ,
+        private readonly string  $title               ,
+        private readonly string  $startTime           ,
+        private readonly string  $endTime             ,
+        private readonly bool    $isFlexible          ,
+        private readonly ?string $arrival_start_time  ,
+        private readonly ?string $arrival_end_time    ,
+        private readonly ?string $coreHoursStartTime  ,
+        private readonly ?string $coreHoursEndTime    ,
+        private readonly ?string $departure_start_time,
+        private readonly ?string $departure_end_time  ,
+        private readonly ?int    $totalHoursPerWeek   ,
+        private readonly string  $startDate           ,
+        private readonly string  $recurrenceRule      ,
         private readonly ?string $note
     ) {
     }
@@ -50,14 +52,14 @@ class WorkSchedule
         return $this->isFlexible;
     }
 
-    public function getFlexibleStartTime(): ?string
+    public function getArrivalStartTime(): ?string
     {
-        return $this->flexibleStartTime;
+        return $this->arrival_start_time;
     }
 
-    public function getFlexibleEndTime(): ?string
+    public function getArrivalEndTime(): ?string
     {
-        return $this->flexibleEndTime;
+        return $this->arrival_end_time;
     }
 
     public function getCoreHoursStartTime(): ?string
@@ -68,6 +70,16 @@ class WorkSchedule
     public function getCoreHoursEndTime(): ?string
     {
         return $this->coreHoursEndTime;
+    }
+
+    public function getDepartureStartTime(): ?string
+    {
+        return $this->departure_start_time;
+    }
+
+    public function getDepartureEndTime(): ?string
+    {
+        return $this->departure_end_time;
     }
 
     public function getTotalHoursPerWeek(): ?int

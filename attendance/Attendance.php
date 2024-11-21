@@ -3,17 +3,21 @@
 class Attendance
 {
     public function __construct(
-        private readonly ?int    $id                ,
-        private readonly int     $employeeId        ,
-        private readonly string  $date              ,
-        private readonly ?string $shiftType         ,
-        private readonly ?string $checkInTime       ,
-        private readonly ?string $checkOutTime      ,
-        private readonly ?string $breakStartTime    ,
-        private readonly ?string $breakEndTime      ,
-        private readonly bool    $isOvertimeApproved,
-        private readonly string  $attendanceStatus  ,
-        private readonly ?string $remarks
+        private readonly ?int    $id                        = null,
+        private readonly int     $workScheduleId                  ,
+        private readonly string  $date                            ,
+        private readonly string  $dayOfTheWeek                    ,
+        private readonly string  $shiftType                       ,
+        private readonly string  $checkInTime                     ,
+        private readonly ?string $checkOutTime              = null,
+        private readonly ?float  $totalBreakDurationInHours = null,
+        private readonly ?float  $totalHoursWorked          = null,
+        private readonly ?int    $lateCheckIn               = null,
+        private readonly ?int    $earlyCheckOut             = null,
+        private readonly ?float  $overtimeHours             = null,
+        private readonly ?bool   $isOvertimeApproved        = null,
+        private readonly string  $attendanceStatus                ,
+        private readonly ?string $remarks                   = null
     ) {
     }
 
@@ -22,9 +26,9 @@ class Attendance
         return $this->id;
     }
 
-    public function getEmployeeId(): int
+    public function getWorkScheduleId(): int
     {
-        return $this->employeeId;
+        return $this->workScheduleId;
     }
 
     public function getDate(): string
@@ -32,12 +36,17 @@ class Attendance
         return $this->date;
     }
 
-    public function getShiftType(): ?string
+    public function getDayOfTheWeek(): string
+    {
+        return $this->dayOfTheWeek;
+    }
+
+    public function getShiftType(): string
     {
         return $this->shiftType;
     }
 
-    public function getCheckInTime(): ?string
+    public function getCheckInTime(): string
     {
         return $this->checkInTime;
     }
@@ -47,17 +56,32 @@ class Attendance
         return $this->checkOutTime;
     }
 
-    public function getBreakStartTime(): ?string
+    public function getTotalBreakDurationInHours(): ?float
     {
-        return $this->breakStartTime;
+        return $this->totalBreakDurationInHours;
     }
 
-    public function getBreakEndTime(): ?string
+    public function getTotalHoursWorked(): ?float
     {
-        return $this->breakEndTime;
+        return $this->totalHoursWorked;
     }
 
-    public function isOvertimeApproved(): bool
+    public function getLateCheckIn(): ?int
+    {
+        return $this->lateCheckIn;
+    }
+
+    public function getEarlyCheckOut(): ?int
+    {
+        return $this->earlyCheckOut;
+    }
+
+    public function getOvertimeHours(): ?float
+    {
+        return $this->overtimeHours;
+    }
+
+    public function isOvertimeApproved(): ?bool
     {
         return $this->isOvertimeApproved;
     }
