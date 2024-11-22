@@ -1,0 +1,343 @@
+        if ($result === ActionResult::SUCCESS) {
+            return [
+                'status' => 'success',
+                'message' => 'Employee created successfully.',
+            ];
+        } elseif ($result === ActionResult::FAILURE) {
+            return [
+                'status' => 'error',
+                'message' => 'Failed to create the employee.',
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'message' => "Error occurred: Duplicate entry for key '{$result}'.",
+            ];
+        }
+
+    public function changePassword(int $employeeId, string $currentPassword, string $newPassword): ActionResult
+    {
+        $getPasswordQuery = "
+            SELECT
+                password
+            FROM
+                employees
+            WHERE
+                id = :employee_id
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($getPasswordQuery);
+
+            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
+
+            $statement->execute();
+
+            $employee = $statement->fetch(PDO::FETCH_ASSOC);
+
+            if ( ! password_verify($currentPassword, $employee["password"])) {
+                return ActionResult::PASSWORD_INCORRECT;
+            }
+
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
+
+            $this->pdo->beginTransaction();
+
+            $changePasswordQuery = "
+                UPDATE employees
+                SET
+                    password = :new_password
+                WHERE
+                    id = :employee_id
+            ";
+
+            $updateStatement = $this->pdo->prepare($changePasswordQuery);
+
+            $updateStatement->bindValue(":new_password", $hashedPassword, Helper::getPdoParameterType($hashedPassword));
+            $updateStatement->bindValue(":employee_id" , $employeeId    , Helper::getPdoParameterType($employeeId    ));
+
+            $updateStatement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while changing the password. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+        if ($result === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'Failed to fetch the employee.'
+            ];
+        }
+
+        if (empty($result['result_set'])) {
+            return [
+                'status'  => 'error',
+                'message' => 'Employee not found.'
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'id'     => $result['result_set'][0]['id']
+        ];
+
+<?php
+
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
+
+class OvertimeRateAssignmentDao
+{
+    private readonly PDO $pdo;
+    private readonly OvertimeRateDao $overtimeRateDao;
+
+    public function __construct(PDO $pdo, OvertimeRateDao $overtimeRateDao)
+    {
+        $this->pdo = $pdo;
+        $this->overtimeRateDao = $overtimeRateDao;
+    }
+
+    public function create(OvertimeRateAssignment $overtimeRateAssignment): ActionResult
+    {
+        $query = "
+            INSERT INTO overtime_rate_assignments (
+                department_id       ,
+                job_title_id        ,
+                employee_id         ,
+                assignment_level
+            ) VALUES (
+                :department_id       ,
+                :job_title_id        ,
+                :employee_id         ,
+                :assignment_level
+            )
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(':department_id'       , $overtimeRateAssignment->getDepartmentId()     , Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()     ));
+            $statement->bindValue(':job_title_id'        , $overtimeRateAssignment->getJobTitleId()       , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()       ));
+            $statement->bindValue(':employee_id'         , $overtimeRateAssignment->getEmployeeId()       , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()       ));
+            $statement->bindValue(':assignment_level'    , $overtimeRateAssignment->getAssignmentLevel()  , Helper::getPdoParameterType($overtimeRateAssignment->getAssignmentLevel()  ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while creating the overtime rate assignment. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    private function hasExistingAssignment(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|bool
+    {
+        $query = "
+            SELECT
+                id
+            FROM
+                overtime_rate_assignments
+            WHERE
+                (:department_id IS NULL OR department_id = :department_id)
+            AND (:job_title_id  IS NULL OR job_title_id  = :job_title_id )
+            AND (:employee_id   IS NULL OR employee_id   = :employee_id  )
+            AND assignment_level = :assignment_level
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(':department_id'   , $overtimeRateAssignment->getDepartmentId()   , Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()   ));
+            $statement->bindValue(':job_title_id'    , $overtimeRateAssignment->getJobTitleId()     , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()     ));
+            $statement->bindValue(':employee_id'     , $overtimeRateAssignment->getEmployeeId()     , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()     ));
+            $statement->bindValue(':assignment_level', $overtimeRateAssignment->getAssignmentLevel(), Helper::getPdoParameterType($overtimeRateAssignment->getAssignmentLevel()));
+
+            $statement->execute();
+
+            return $statement->rowCount() > 0;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while checking for an existing assignment. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function assign(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates): ActionResult
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $hasExistingAssignment = $this->hasExistingAssignment($overtimeRateAssignment);
+
+            if ($hasExistingAssignment === ActionResult::FAILURE) {
+                return ActionResult::FAILURE;
+            }
+
+            if ($hasExistingAssignment === false) {
+                $insertOvertimeRateSetQuery = "INSERT INTO overtime_rate_sets () VALUES ()";
+                $this->pdo->exec($insertOvertimeRateSetQuery);
+
+                $overtimeRateSetId = $this->pdo->lastInsertId();
+
+                foreach ($overtimeRates as $overtimeRate) {
+                    $result = $this->overtimeRateDao->create($overtimeRate, $overtimeRateSetId);
+
+                    if ($result === ActionResult::FAILURE) {
+                        $this->pdo->rollBack();
+
+                        return ActionResult::FAILURE;
+                    }
+                }
+
+                $overtimeRateAssignment = new OvertimeRateAssignment(
+                    null,
+                    $overtimeRateAssignment->getDepartmentId(),
+                    $overtimeRateAssignment->getJobTitleId(),
+                    $overtimeRateAssignment->getEmployeeId(),
+                    $overtimeRateAssignment->getAssignmentLevel()
+                );
+
+                $this->create($overtimeRateAssignment);
+
+            } else {
+                foreach ($overtimeRates as $overtimeRate) {
+                    $result = $this->overtimeRateDao->update($overtimeRate);
+
+                    if ($result === ActionResult::FAILURE) {
+                        $this->pdo->rollBack();
+
+                        return ActionResult::FAILURE;
+                    }
+                }
+            }
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while assigning the overtime rates. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+}
+
+<?php
+try {
+    $pdo = new PDO('mysql:host=localhost;dbname=your_database', 'username', 'password');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $employee_id = 123;
+    $job_title_id = 456;
+    $department_id = 789;
+    $assignment_level = 'Employee';
+
+    $id = null;
+
+    if ($assignment_level == 'Employee') {
+        $sql = "SELECT id FROM overtime_rate_assignments WHERE employee_id = :employee_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':employee_id', $employee_id);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        if ($id === false) {
+            $sql = "SELECT id FROM overtime_rate_assignments WHERE job_title_id = :job_title_id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':job_title_id', $job_title_id);
+            $stmt->execute();
+            $id = $stmt->fetchColumn();
+
+            if ($id === false) {
+                $sql = "SELECT id FROM overtime_rate_assignments WHERE department_id = :department_id";
+                $stmt = $pdo->prepare($sql);
+                $stmt->bindParam(':department_id', $department_id);
+                $stmt->execute();
+                $id = $stmt->fetchColumn();
+
+                if ($id === false) {
+                    $sql = "SELECT id FROM overtime_rate_assignments WHERE assignment_level = 'All' AND department_id IS NULL AND job_title_id IS NULL AND employee_id IS NULL";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute();
+                    $id = $stmt->fetchColumn();
+                }
+            }
+        }
+    } elseif ($assignment_level == 'Job Title') {
+        $sql = "SELECT id FROM overtime_rate_assignments WHERE job_title_id = :job_title_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':job_title_id', $job_title_id);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        if ($id === false) {
+            $sql = "SELECT id FROM overtime_rate_assignments WHERE department_id = :department_id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':department_id', $department_id);
+            $stmt->execute();
+            $id = $stmt->fetchColumn();
+
+            if ($id === false) {
+                $sql = "SELECT id FROM overtime_rate_assignments WHERE assignment_level = 'All' AND department_id IS NULL AND job_title_id IS NULL AND employee_id IS NULL";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute();
+                $id = $stmt->fetchColumn();
+            }
+        }
+    } elseif ($assignment_level == 'Department') {
+        $sql = "SELECT id FROM overtime_rate_assignments WHERE department_id = :department_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':department_id', $department_id);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+
+        if ($id === false) {
+            $sql = "SELECT id FROM overtime_rate_assignments WHERE assignment_level = 'All' AND department_id IS NULL AND job_title_id IS NULL AND employee_id IS NULL";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute();
+            $id = $stmt->fetchColumn();
+        }
+    } elseif ($assignment_level == 'All') {
+        $sql = "SELECT id FROM overtime_rate_assignments WHERE assignment_level = 'All' AND department_id IS NULL AND job_title_id IS NULL AND employee_id IS NULL";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+    }
+
+    if ($id !== false) {
+        echo "ID: " . $id;
+    } else {
+        echo "No ID found.";
+    }
+
+} catch (PDOException $e) {
+    echo "Error: " . $e->getMessage();
+}
+?>

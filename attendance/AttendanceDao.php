@@ -121,12 +121,15 @@ class AttendanceDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                                => "attendance.id                            AS id"                           ,
+
             "work_schedule_id"                  => "attendance.work_schedule_id              AS work_schedule_id"             ,
             "work_schedule_is_flexible"         => "work_schedule.is_flexible                AS work_schedule_is_flexible"    ,
 
             "employee_id"                       => "work_schedule.employee_id                AS employee_id"                  ,
             "employee_code"                     => "employee.code                            AS employee_code"                ,
             "employee_full_name"                => "employee.full_name                       AS employee_full_name"           ,
+            "employee_supervisor_id"            => "employee_supervisor_id                   AS employee_supervisor_id"       ,
+            "employee_manager_id"               => "employee.manager_id                      AS employee_manager_id"          ,
             "department_id"                     => "department.id                            AS department_id"                ,
             "department_name"                   => "department.name                          AS department_name"              ,
             "job_title_id"                      => "job_title.id                             AS job_title_id"                 ,
@@ -145,6 +148,8 @@ class AttendanceDao
             "is_overtime_approved"              => "attendance.is_overtime_approved          AS is_overtime_approved"         ,
             "attendance_status"                 => "attendance.attendance_status             AS attendance_status"            ,
             "remarks"                           => "attendance.remarks                       AS remarks"                      ,
+            "created_at"                        => "attendance.created_at                    AS created_at"                   ,
+            "updated_at"                        => "attendance.updated_at                    AS updated_at"
         ];
 
         $selectedColumns =
@@ -162,6 +167,8 @@ class AttendanceDao
             array_key_exists("employee_id"              , $selectedColumns) ||
             array_key_exists("employee_code"            , $selectedColumns) ||
             array_key_exists("employee_full_name"       , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"   , $selectedColumns) ||
+            array_key_exists("employee_manager_id"      , $selectedColumns) ||
 
             array_key_exists("department_id"            , $selectedColumns) ||
             array_key_exists("department_name"          , $selectedColumns) ||

@@ -196,9 +196,9 @@ class BreakTypeDao
         $query = "
             UPDATE break_types
             SET
-                name                 = :name               ,
-                duration_in_minutes  = :duration_in_minutes,
-                is_paid              = :is_paid            ,
+                name                           = :name                          ,
+                duration_in_minutes            = :duration_in_minutes           ,
+                is_paid                        = :is_paid                       ,
                 require_break_in_and_break_out = :require_break_in_and_break_out
 
             WHERE

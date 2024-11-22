@@ -13,7 +13,7 @@ class EmployeeDao
         $this->pdo = $pdo;
     }
 
-    public function create(Employee $employee): ActionResult
+    public function create(Employee $employee): ActionResult|string
     {
         $query = "
             INSERT INTO employees (
@@ -438,7 +438,7 @@ class EmployeeDao
         }
     }
 
-    public function update(Employee $employee): ActionResult
+    public function update(Employee $employee): ActionResult|string
     {
         $query = "
             UPDATE employees
@@ -576,48 +576,25 @@ class EmployeeDao
         }
     }
 
-    public function changePassword(int $employeeId, string $currentPassword, string $newPassword): ActionResult
+    public function changePassword(int $employeeId, string $newHashedPassword): ActionResult
     {
-        $getPasswordQuery = "
-            SELECT
-                password
-            FROM
-                employees
+        $query = "
+            UPDATE employees
+            SET
+                password = :new_hashed_password
             WHERE
                 id = :employee_id
         ";
 
         try {
-            $statement = $this->pdo->prepare($getPasswordQuery);
-
-            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
-
-            $statement->execute();
-
-            $employee = $statement->fetch(PDO::FETCH_ASSOC);
-
-            if ( ! password_verify($currentPassword, $employee["password"])) {
-                return ActionResult::PASSWORD_INCORRECT;
-            }
-
-            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT);
-
             $this->pdo->beginTransaction();
 
-            $changePasswordQuery = "
-                UPDATE employees
-                SET
-                    password = :new_password
-                WHERE
-                    id = :employee_id
-            ";
+            $statement = $this->pdo->prepare($query);
 
-            $updateStatement = $this->pdo->prepare($changePasswordQuery);
+            $statement->bindValue(":new_hashed_password", $newHashedPassword, Helper::getPdoParameterType($newHashedPassword));
+            $statement->bindValue(":employee_id"        , $employeeId       , Helper::getPdoParameterType($employeeId       ));
 
-            $updateStatement->bindValue(":new_password", $hashedPassword, Helper::getPdoParameterType($hashedPassword));
-            $updateStatement->bindValue(":employee_id" , $employeeId    , Helper::getPdoParameterType($employeeId    ));
-
-            $updateStatement->execute();
+            $statement->execute();
 
             $this->pdo->commit();
 

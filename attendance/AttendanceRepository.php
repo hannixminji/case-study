@@ -1,10 +1,6 @@
 <?php
 
-require_once __DIR__ . '/AttendanceDao.php'                 ;
-
-require_once __DIR__ . '/../includes/Helper.php'            ;
-require_once __DIR__ . '/../includes/enums/ActionResult.php';
-require_once __DIR__ . '/../includes/enums/ErrorCode.php'   ;
+require_once __DIR__ . '/AttendanceDao.php';
 
 class AttendanceRepository
 {

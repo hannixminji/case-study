@@ -346,7 +346,7 @@ class LeaveRequestDao
 
     public function isEmployeeOnLeave(int $employeeId): ActionResult|bool
     {
-        $query = '
+        $query = "
             SELECT
                 COUNT(*)
             FROM
@@ -354,9 +354,9 @@ class LeaveRequestDao
             WHERE
                 employee_id = :employee_id
             AND
-                status = \'In Progress\'
+                status = 'In Progress'
             LIMIT 1
-        ';
+        ";
 
         try {
             $statement = $this->pdo->prepare($query);

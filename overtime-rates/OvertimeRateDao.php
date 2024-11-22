@@ -13,11 +13,11 @@ class OvertimeRateDao
         $this->pdo = $pdo;
     }
 
-    public function create(OvertimeRate $overtimeRate, int $overtimeRateSetId): ActionResult
+    public function create(OvertimeRate $overtimeRate, int $overtimeRateAssignmentId): ActionResult
     {
         $query = "
             INSERT INTO overtime_rates (
-                overtime_rate_set_id                ,
+                overtime_rate_assignment_id         ,
                 day_type                            ,
                 holiday_type                        ,
                 regular_time_rate                   ,
@@ -26,7 +26,7 @@ class OvertimeRateDao
                 night_differential_and_overtime_rate
             )
             VALUES (
-                :overtime_rate_set_id                ,
+                :overtime_rate_assignment_id         ,
                 :day_type                            ,
                 :holiday_type                        ,
                 :regular_time_rate                   ,
@@ -41,7 +41,7 @@ class OvertimeRateDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":overtime_rate_set_id"                , $overtimeRateSetId                                  , Helper::getPdoParameterType($overtimeRateSetId                                  ));
+            $statement->bindValue(":overtime_rate_assignment_id"         , $overtimeRateAssignmentId                           , Helper::getPdoParameterType($overtimeRateAssignmentId                           ));
             $statement->bindValue(":day_type"                            , $overtimeRate->getDayType()                         , Helper::getPdoParameterType($overtimeRate->getDayType()                         ));
             $statement->bindValue(":holiday_type"                        , $overtimeRate->getHolidayType()                     , Helper::getPdoParameterType($overtimeRate->getHolidayType()                     ));
             $statement->bindValue(":regular_time_rate"                   , $overtimeRate->getRegularTimeRate()                 , Helper::getPdoParameterType($overtimeRate->getRegularTimeRate()                 ));
@@ -65,35 +65,28 @@ class OvertimeRateDao
         }
     }
 
-    public function fetchByOvertimeRateSetId(int $overtimeRateSetId): ActionResult|array
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId): ActionResult|array
     {
         $query = "
             SELECT
-                id                                  ,
-                overtime_rate_set_id                ,
-                day_type                            ,
-                holiday_type                        ,
-                regular_time_rate                   ,
-                overtime_rate                       ,
-                night_differential_rate             ,
-                night_differential_and_overtime_rate,
+                *
             FROM
                 overtime_rates
             WHERE
-                overtime_rate_set_id = :overtime_rate_set_id
+                overtime_rate_assignment_id = :overtime_rate_assignment_id
         ";
 
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':overtime_rate_set_id', $overtimeRateSetId, Helper::getPdoParameterType($overtimeRateSetId));
+            $statement->bindValue(":overtime_rate_assignment_id", $overtimeRateAssignmentId, Helper::getPdoParameterType($overtimeRateAssignmentId));
 
             $statement->execute();
 
             return $statement->fetchAll(PDO::FETCH_ASSOC);
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching overtime rates. " .
+            error_log("Database Error: An error occurred while fetching overtime rates. ".
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -110,7 +103,8 @@ class OvertimeRateDao
                 night_differential_rate              = :night_differential_rate             ,
                 night_differential_and_overtime_rate = :night_differential_and_overtime_rate
             WHERE
-                id = :overtime_rate_id
+                overtime_rate_assignment_id = :overtime_rate_assignment_id
+            AND id = :overtime_rate_id
         ";
 
         try {
@@ -122,6 +116,7 @@ class OvertimeRateDao
             $statement->bindValue(":overtime_rate"                       , $overtimeRate->getOvertimeRate()                    , Helper::getPdoParameterType($overtimeRate->getOvertimeRate()                    ));
             $statement->bindValue(":night_differential_rate"             , $overtimeRate->getNightDifferentialRate()           , Helper::getPdoParameterType($overtimeRate->getNightDifferentialRate()           ));
             $statement->bindValue(":night_differential_and_overtime_rate", $overtimeRate->getNightDifferentialAndOvertimeRate(), Helper::getPdoParameterType($overtimeRate->getNightDifferentialAndOvertimeRate()));
+            $statement->bindValue(":overtime_rate_assignment_id"         , $overtimeRate->getOvertimeRateAssignmentId()        , Helper::getPdoParameterType($overtimeRate->getOvertimeRateAssignmentId()        ));
             $statement->bindValue(":overtime_rate_id"                    , $overtimeRate->getId()                              , Helper::getPdoParameterType($overtimeRate->getId()                              ));
 
             $statement->execute();

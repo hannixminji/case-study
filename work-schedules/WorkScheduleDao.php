@@ -126,6 +126,9 @@ class WorkScheduleDao
             "start_date"               => "work_schedule.start_date            AS start_date"              ,
             "recurrence_rule"          => "work_schedule.recurrence_rule       AS recurrence_rule"         ,
             "note"                     => "work_schedule.note                  AS note"                    ,
+            "created_at"               => "work_schedule.created_at            AS created_at"              ,
+            "updated_at"               => "work_schedule.updated_at            AS updated_at"              ,
+            "deleted_at"               => "work_schedule.deleted_at            AS deleted_at"
         ];
 
         $selectedColumns =

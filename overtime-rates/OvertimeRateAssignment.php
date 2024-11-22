@@ -3,12 +3,10 @@
 class OvertimeRateAssignment
 {
     public function __construct(
-        private readonly ?int $id               ,
-        private readonly ?int $overtimeRateSetId,
-        private readonly int  $departmentId     ,
-        private readonly int  $jobTitleId       ,
-        private readonly int  $employeeId       ,
-        private readonly int  $assignmentLevel
+        private readonly ?int $id           = null,
+        private readonly ?int $departmentId = null,
+        private readonly ?int $jobTitleId   = null,
+        private readonly ?int $employeeId   = null
     ) {
     }
 
@@ -17,28 +15,18 @@ class OvertimeRateAssignment
         return $this->id;
     }
 
-    public function getOvertimeRateSetId(): ?int
-    {
-        return $this->overtimeRateSetId;
-    }
-
-    public function getDepartmentId(): int
+    public function getDepartmentId(): ?int
     {
         return $this->departmentId;
     }
 
-    public function getJobTitleId(): int
+    public function getJobTitleId(): ?int
     {
         return $this->jobTitleId;
     }
 
-    public function getEmployeeId(): int
+    public function getEmployeeId(): ?int
     {
         return $this->employeeId;
-    }
-
-    public function getAssignmentLevel(): int
-    {
-        return $this->assignmentLevel;
     }
 }
