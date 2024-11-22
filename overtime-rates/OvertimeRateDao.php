@@ -69,7 +69,14 @@ class OvertimeRateDao
     {
         $query = "
             SELECT
-                *
+                id                                  ,
+                overtime_rate_assignment_id         ,
+                day_type                            ,
+                holiday_type                        ,
+                regular_time_rate                   ,
+                overtime_rate                       ,
+                night_differential_rate             ,
+                night_differential_and_overtime_rate
             FROM
                 overtime_rates
             WHERE

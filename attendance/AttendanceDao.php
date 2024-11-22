@@ -20,7 +20,6 @@ class AttendanceDao
                 id               ,
                 work_schedule_id ,
                 date             ,
-                day_of_the_week  ,
                 shift_type       ,
                 check_in_time    ,
                 late_check_in    ,
@@ -30,7 +29,6 @@ class AttendanceDao
                 :id               ,
                 :work_schedule_id ,
                 :date             ,
-                :day_of_the_week  ,
                 :shift_type       ,
                 :check_in_time    ,
                 :late_check_in    ,
@@ -46,7 +44,6 @@ class AttendanceDao
             $statement->bindValue(":id"               , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
             $statement->bindValue(":work_schedule_id" , $attendance->getWorkScheduleId()  , Helper::getPdoParameterType($attendance->getWorkScheduleId()  ));
             $statement->bindValue(":date"             , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
-            $statement->bindValue(":day_of_the_week"  , $attendance->getDayOfTheWeek()    , Helper::getPdoParameterType($attendance->getDayOfTheWeek()    ));
             $statement->bindValue(":shift_type"       , $attendance->getShiftType()       , Helper::getPdoParameterType($attendance->getShiftType()       ));
             $statement->bindValue(":check_in_time"    , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
             $statement->bindValue(":late_check_in"    , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
@@ -73,12 +70,12 @@ class AttendanceDao
         $query = "
             UPDATE attendance
             SET
-                check_out_time                = :check_out_time               ,
-                total_break_duration_in_hours = :total_break_duration_in_hours,
-                total_hours_worked            = :total_hours_worked           ,
-                early_check_out               = :early_check_out              ,
-                overtime_hours                = :overtime_hours               ,
-                attendance_status             = :attendance_status
+                check_out_time                  = :check_out_time                 ,
+                total_break_duration_in_minutes = :total_break_duration_in_minutes,
+                total_hours_worked              = :total_hours_worked             ,
+                early_check_out                 = :early_check_out                ,
+                overtime_hours                  = :overtime_hours                 ,
+                attendance_status               = :attendance_status
             WHERE
                 id = :attendance_id
         ";
@@ -88,13 +85,13 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":check_out_time"               , $attendance->getCheckOutTime()             , Helper::getPdoParameterType($attendance->getCheckOutTime()             ));
-            $statement->bindValue(":total_break_duration_in_hours", $attendance->getTotalBreakDurationInHours(), Helper::getPdoParameterType($attendance->getTotalBreakDurationInHours()));
-            $statement->bindValue(":total_hours_worked"           , $attendance->getTotalHoursWorked()         , Helper::getPdoParameterType($attendance->getTotalHoursWorked()         ));
-            $statement->bindValue(":early_check_out"              , $attendance->getEarlyCheckOut()            , Helper::getPdoParameterType($attendance->getEarlyCheckOut()            ));
-            $statement->bindValue(":overtime_hours"               , $attendance->getOvertimeHours()            , Helper::getPdoParameterType($attendance->getOvertimeHours()            ));
-            $statement->bindValue(":attendance_status"            , $attendance->getAttendanceStatus()         , Helper::getPdoParameterType($attendance->getAttendanceStatus()         ));
-            $statement->bindValue(":attendance_id"                , $attendance->getId()                       , Helper::getPdoParameterType($attendance->getId()                       ));
+            $statement->bindValue(":check_out_time"                 , $attendance->getCheckOutTime()               , Helper::getPdoParameterType($attendance->getCheckOutTime()               ));
+            $statement->bindValue(":total_break_duration_in_minutes", $attendance->getTotalBreakDurationInMinutes(), Helper::getPdoParameterType($attendance->getTotalBreakDurationInMinutes()));
+            $statement->bindValue(":total_hours_worked"             , $attendance->getTotalHoursWorked()           , Helper::getPdoParameterType($attendance->getTotalHoursWorked()           ));
+            $statement->bindValue(":early_check_out"                , $attendance->getEarlyCheckOut()              , Helper::getPdoParameterType($attendance->getEarlyCheckOut()              ));
+            $statement->bindValue(":overtime_hours"                 , $attendance->getOvertimeHours()              , Helper::getPdoParameterType($attendance->getOvertimeHours()              ));
+            $statement->bindValue(":attendance_status"              , $attendance->getAttendanceStatus()           , Helper::getPdoParameterType($attendance->getAttendanceStatus()           ));
+            $statement->bindValue(":attendance_id"                  , $attendance->getId()                         , Helper::getPdoParameterType($attendance->getId()                         ));
 
             $statement->execute();
 
@@ -120,36 +117,36 @@ class AttendanceDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                                => "attendance.id                            AS id"                           ,
+            "id"                              => "attendance.id                              AS id"                             ,
 
-            "work_schedule_id"                  => "attendance.work_schedule_id              AS work_schedule_id"             ,
-            "work_schedule_is_flexible"         => "work_schedule.is_flexible                AS work_schedule_is_flexible"    ,
+            "work_schedule_id"                => "attendance.work_schedule_id                AS work_schedule_id"               ,
+            "work_schedule_is_flexible"       => "work_schedule.is_flexible                  AS work_schedule_is_flexible"      ,
 
-            "employee_id"                       => "work_schedule.employee_id                AS employee_id"                  ,
-            "employee_code"                     => "employee.code                            AS employee_code"                ,
-            "employee_full_name"                => "employee.full_name                       AS employee_full_name"           ,
-            "employee_supervisor_id"            => "employee_supervisor_id                   AS employee_supervisor_id"       ,
-            "employee_manager_id"               => "employee.manager_id                      AS employee_manager_id"          ,
-            "department_id"                     => "department.id                            AS department_id"                ,
-            "department_name"                   => "department.name                          AS department_name"              ,
-            "job_title_id"                      => "job_title.id                             AS job_title_id"                 ,
-            "job_title"                         => "job_title.title                          AS job_title"                    ,
+            "employee_id"                     => "work_schedule.employee_id                  AS employee_id"                    ,
+            "employee_code"                   => "employee.code                              AS employee_code"                  ,
+            "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
+            "employee_supervisor_id"          => "employee_supervisor_id                     AS employee_supervisor_id"         ,
+            "employee_manager_id"             => "employee.manager_id                        AS employee_manager_id"            ,
+            "department_id"                   => "department.id                              AS department_id"                  ,
+            "department_name"                 => "department.name                            AS department_name"                ,
+            "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
+            "job_title"                       => "job_title.title                            AS job_title"                      ,
 
-            "date"                              => "attendance.date                          AS date"                         ,
-            "day_of_the_week"                   => "DAYOFWEEK(attendance.date)               AS day_of_the_week"              ,
-            "shift_type"                        => "attendance.shift_type                    AS shift_type"                   ,
-            "check_in_time"                     => "attendance.check_in_time                 AS check_in_time"                ,
-            "check_out_time"                    => "attendance.check_out_time                AS check_out_time"               ,
-            "total_break_duration_in_hours"     => "attendance.total_break_duration_in_hours AS total_break_duration_in_hours",
-            "total_hours_worked"                => "attendance.total_hours_worked            AS total_hours_worked"           ,
-            "late_check_in"                     => "attendance.late_check_in                 AS late_check_in"                ,
-            "early_check_out"                   => "attendance.early_check_out               AS early_check_out"              ,
-            "overtime_hours"                    => "attendance.overtime_hours                AS overtime_hours"               ,
-            "is_overtime_approved"              => "attendance.is_overtime_approved          AS is_overtime_approved"         ,
-            "attendance_status"                 => "attendance.attendance_status             AS attendance_status"            ,
-            "remarks"                           => "attendance.remarks                       AS remarks"                      ,
-            "created_at"                        => "attendance.created_at                    AS created_at"                   ,
-            "updated_at"                        => "attendance.updated_at                    AS updated_at"
+            "date"                            => "attendance.date                            AS date"                           ,
+            "day_of_the_week"                 => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                ,
+            "shift_type"                      => "attendance.shift_type                      AS shift_type"                     ,
+            "check_in_time"                   => "attendance.check_in_time                   AS check_in_time"                  ,
+            "check_out_time"                  => "attendance.check_out_time                  AS check_out_time"                 ,
+            "total_break_duration_in_minutes" => "attendance.total_break_duration_in_minutes AS total_break_duration_in_minutes",
+            "total_hours_worked"              => "attendance.total_hours_worked              AS total_hours_worked"             ,
+            "late_check_in"                   => "attendance.late_check_in                   AS late_check_in"                  ,
+            "early_check_out"                 => "attendance.early_check_out                 AS early_check_out"                ,
+            "overtime_hours"                  => "attendance.overtime_hours                  AS overtime_hours"                 ,
+            "is_overtime_approved"            => "attendance.is_overtime_approved            AS is_overtime_approved"           ,
+            "attendance_status"               => "attendance.attendance_status               AS attendance_status"              ,
+            "remarks"                         => "attendance.remarks                         AS remarks"                        ,
+            "created_at"                      => "attendance.created_at                      AS created_at"                     ,
+            "updated_at"                      => "attendance.updated_at                      AS updated_at"
         ];
 
         $selectedColumns =
@@ -181,42 +178,43 @@ class AttendanceDao
                 ON
                     attendance.work_schedule_id = work_schedule.id
             ";
+        }
 
-            if (array_key_exists("employee_code"     , $selectedColumns) ||
-                array_key_exists("employee_full_name", $selectedColumns) ||
 
-                array_key_exists("department_id"     , $selectedColumns) ||
-                array_key_exists("department_name"   , $selectedColumns) ||
+        if (array_key_exists("employee_code"     , $selectedColumns) ||
+            array_key_exists("employee_full_name", $selectedColumns) ||
 
-                array_key_exists("job_title_id"      , $selectedColumns) ||
-                array_key_exists("job_title"         , $selectedColumns)) {
-                $joinClauses .= "
-                    LEFT JOIN
-                        employees AS employee
-                    ON
-                        work_schedule.employee_id = employee.id
-                ";
+            array_key_exists("department_id"     , $selectedColumns) ||
+            array_key_exists("department_name"   , $selectedColumns) ||
 
-                if (array_key_exists("department_id"  , $selectedColumns) ||
-                    array_key_exists("department_name", $selectedColumns)) {
-                    $joinClauses .= "
-                        LEFT JOIN
-                            departments AS department
-                        ON
-                            employee.department_id = department.id
-                    ";
-                }
+            array_key_exists("job_title_id"      , $selectedColumns) ||
+            array_key_exists("job_title"         , $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    employees AS employee
+                ON
+                    work_schedule.employee_id = employee.id
+            ";
+        }
 
-                if (array_key_exists("job_title_id", $selectedColumns) ||
-                    array_key_exists("job_title"   , $selectedColumns)) {
-                    $joinClauses .= "
-                        LEFT JOIN
-                            job_titles AS job_title
-                        ON
-                            employee.job_title_id = job_title.id
-                    ";
-                }
-            }
+        if (array_key_exists("department_id"  , $selectedColumns) ||
+            array_key_exists("department_name", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    departments AS department
+                ON
+                    employee.department_id = department.id
+            ";
+        }
+
+        if (array_key_exists("job_title_id", $selectedColumns) ||
+            array_key_exists("job_title"   , $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    job_titles AS job_title
+                ON
+                    employee.job_title_id = job_title.id
+            ";
         }
 
         $queryParameters = [];

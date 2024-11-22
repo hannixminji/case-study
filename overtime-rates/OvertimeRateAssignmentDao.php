@@ -1,19 +1,19 @@
 <?php
 
-require_once __DIR__ . "/../includes/Helper.php"            ;
-require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
+require_once __DIR__ . "/OvertimeRateDao.php";
 
 class OvertimeRateAssignmentDao
 {
     private readonly PDO $pdo;
+    private readonly OvertimeRateDao $overtimeRateDao;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, OvertimeRateDao $overtimeRateDao)
     {
         $this->pdo = $pdo;
+        $this->overtimeRateDao = $overtimeRateDao;
     }
 
-    public function create(OvertimeRateAssignment $overtimeRateAssignment): ActionResult
+    public function create(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
     {
         $query = "
             INSERT INTO overtime_rate_assignments (
@@ -41,7 +41,7 @@ class OvertimeRateAssignmentDao
 
             $this->pdo->commit();
 
-            return ActionResult::SUCCESS;
+            return (int) $this->pdo->lastInsertId();
 
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
@@ -57,7 +57,58 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function findAssignmentId(int $employee_id, int $job_title_id, int $department_id): ActionResult|int
+    public function assignOvertimeRates(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates): ActionResult
+    {
+        try {
+            $this->pdo->beginTransaction();
+
+            $overtimeRateAssignmentId = $this->create($overtimeRateAssignment);
+
+            if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
+                return ActionResult::FAILURE;
+            }
+
+            if ($overtimeRateAssignmentId === ActionResult::DUPLICATE_ENTRY_ERROR) {
+                foreach ($overtimeRates as $overtimeRate) {
+                    $result = $this->overtimeRateDao->update($overtimeRate);
+
+                    if ($result === ActionResult::FAILURE) {
+                        $this->pdo->rollBack();
+
+                        return ActionResult::FAILURE;
+                    }
+                }
+
+                $this->pdo->commit();
+
+                return ActionResult::SUCCESS;
+            }
+
+            foreach ($overtimeRates as $overtimeRate) {
+                $result = $this->overtimeRateDao->create($overtimeRate, $overtimeRateAssignmentId);
+
+                if ($result === ActionResult::FAILURE) {
+                    $this->pdo->rollBack();
+
+                    return ActionResult::FAILURE;
+                }
+            }
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while assigning overtime rates. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function findAssignmentId(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
     {
         $query = "
             SELECT
@@ -86,15 +137,13 @@ class OvertimeRateAssignmentDao
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"  , $employee_id  , Helper::getPdoParameterType($employee_id  ));
-            $statement->bindValue(":job_title_id" , $job_title_id , Helper::getPdoParameterType($job_title_id ));
-            $statement->bindValue(":department_id", $department_id, Helper::getPdoParameterType($department_id));
+            $statement->bindValue(":department_id", $overtimeRateAssignment->getDepartmentId(), Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()));
+            $statement->bindValue(":job_title_id" , $overtimeRateAssignment->getJobTitleId()  , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()  ));
+            $statement->bindValue(":employee_id"  , $overtimeRateAssignment->getEmployeeId()  , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()  ));
 
             $statement->execute();
 
-            $id = $statement->fetchColumn();
-
-            return (int) $id;
+            return (int) $statement->fetchColumn();
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the ID. " .
