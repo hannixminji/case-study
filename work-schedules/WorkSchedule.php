@@ -3,22 +3,22 @@
 class WorkSchedule
 {
     public function __construct(
-        private readonly ?int    $id                  ,
-        private readonly int     $employeeId          ,
-        private readonly string  $title               ,
-        private readonly string  $startTime           ,
-        private readonly string  $endTime             ,
-        private readonly bool    $isFlexible          ,
-        private readonly ?string $arrival_start_time  ,
-        private readonly ?string $arrival_end_time    ,
-        private readonly ?string $coreHoursStartTime  ,
-        private readonly ?string $coreHoursEndTime    ,
-        private readonly ?string $departure_start_time,
-        private readonly ?string $departure_end_time  ,
-        private readonly ?int    $totalHoursPerWeek   ,
-        private readonly string  $startDate           ,
-        private readonly string  $recurrenceRule      ,
-        private readonly ?string $note
+        private readonly ?int    $id                   = null,
+        private readonly int     $employeeId                 ,
+        private readonly string  $title                      ,
+        private readonly ?string $startTime            = null,
+        private readonly ?string $endTime              = null,
+        private readonly bool    $isFlexible                 ,
+        private readonly ?string $arrival_start_time   = null,
+        private readonly ?string $arrival_end_time     = null,
+        private readonly ?string $coreHoursStartTime   = null,
+        private readonly ?string $coreHoursEndTime     = null,
+        private readonly ?string $departure_start_time = null,
+        private readonly ?string $departure_end_time   = null,
+        private readonly ?int    $totalHoursPerWeek    = null,
+        private readonly string  $startDate                  ,
+        private readonly string  $recurrenceRule             ,
+        private readonly ?string $note                 = null
     ) {
     }
 

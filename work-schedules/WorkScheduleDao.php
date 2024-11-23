@@ -143,12 +143,13 @@ class WorkScheduleDao
 
         if (array_key_exists("employee_rfid_uid"       , $selectedColumns) ||
             array_key_exists("employee_full_name"      , $selectedColumns) ||
-            array_key_exists("employee_job_title"      , $selectedColumns) ||
             array_key_exists("employee_department_name", $selectedColumns) ||
             array_key_exists("employee_profile_picture", $selectedColumns) ||
 
+            array_key_exists("employee_job_title_id"   , $selectedColumns) ||
             array_key_exists("employee_job_title"      , $selectedColumns) ||
 
+            array_key_exists("employee_department_id"  , $selectedColumns) ||
             array_key_exists("employee_department_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
@@ -184,27 +185,35 @@ class WorkScheduleDao
             $whereClauses[] = "work_schedule.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
                     case "="   :
                     case "LIKE":
-                        $whereClauses[] = "{$column} {$operator} ?";
+                        $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
                         break;
+
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
+                        break;
+
                     case "BETWEEN":
-                        $whereClauses[] = "{$column} {$operator} ? AND ?";
+                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
                         break;
+
+                    default:
+                        // Do nothing
                 }
             }
         }
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 

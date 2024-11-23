@@ -140,6 +140,32 @@ class SettingDao
         }
     }
 
+    public function getSettingValue(string $settingKey, string $groupName): ActionResult|string
+    {
+        $columns = [ "setting_value" ];
+
+        $filterCriteria = [
+            [
+                "column"   => "setting_key",
+                "operator" => "="          ,
+                "value"    => $settingKey
+            ],
+            [
+                "column"   => "group_name",
+                "operator" => "="         ,
+                "value"    => $groupName
+            ]
+        ];
+
+        $result = $this->fetchAll(columns: $columns, filterCriteria: $filterCriteria, limit: 1);
+
+        if ($result === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $result["result_set"][0]["setting_value"];
+    }
+
     public function update(Setting $setting): ActionResult
     {
         $query = "

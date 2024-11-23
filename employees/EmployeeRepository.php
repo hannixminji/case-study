@@ -41,7 +41,13 @@ class EmployeeRepository
             ],
         ];
 
-        return $this->fetchAllEmployees(['id'], $filterCriteria);
+        $result = $this->fetchAllEmployees(columns: ['id'], filterCriteria: $filterCriteria, limit: 1);
+
+        if ($result === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return (int) $result['result_set'][0]['id'];
     }
 
     public function changePassword(int $employeeId, string $newHashedPassword): ActionResult
