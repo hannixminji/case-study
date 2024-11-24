@@ -28,7 +28,7 @@ class AttendanceService
         $this->settingRepository      = $settingRepository     ;
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentTime, string $currentDate)
+    public function handleRfidTap(string $rfidUid, string $currentDateTime)
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
@@ -55,7 +55,14 @@ class AttendanceService
             ];
         }
 
-        $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $currentDate, $currentDate);
+        $previousDate = (new DateTime($currentDateTime))
+            ->modify('-1 day')
+            ->format('Y-m-d'   );
+
+        $currentDate  = (new DateTime($currentDateTime))
+            ->format('Y-m-d');
+
+        $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $previousDate, $currentDate);
 
         if ($workSchedules === ActionResult::FAILURE) {
             return [
@@ -71,15 +78,58 @@ class AttendanceService
             ];
         }
 
-        foreach ($workSchedules as $workSchedule) {
-            if ($workSchedule['is_flexible'] === false) {
-                $startTime = new DateTime($workSchedule['start_time']);
-                $endTime   = new DateTime($workSchedule['end_time'  ]);
+        $currentTime = (new DateTime($currentDateTime))->format('H:i:s');
 
-                if ($currentTime >= $startTime && $currentTime <= $endTime) {
+        $columns = [
+            'check_in_time' ,
+            'check_out_time'
+        ];
 
-                }
-            }
+        $filterCriteria = [
+            [
+                'column'   => 'attendance.employee_id',
+                'operator' => '=',
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '>='             ,
+                'value'    => $previousDate
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '<='             ,
+                'value'    => $currentDate
+            ]
+        ];
+
+        $sortCriteria = [
+            [
+                'column'    => 'attendance.date',
+                'direction' => 'DESC'
+            ]
+        ];
+
+        $attendanceLogPreviousAndCurrentDay = $this->attendanceRepository->fetchAllAttendance(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            sortCriteria  : $sortCriteria
+        );
+
+        if ($attendanceLogPreviousAndCurrentDay === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
+        }
+
+        if (empty($attendanceLogPreviousAndCurrentDay)) {
+            $attendanceLogPreviousAndCurrentDay = [
+                [
+                    'check_in_time'  => null,
+                    'check_out_time' => null
+                ]
+            ];
         }
     }
 }

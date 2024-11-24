@@ -47,14 +47,11 @@ class WorkScheduleRepository
         string $endDate
     ): ActionResult|array {
         $columns = [
-            'employee_id'         ,
-            'start_time'          ,
-            'end_time'            ,
-            'is_flexible'         ,
-            'arrival_start_time'  ,
-            'arrival_end_time'    ,
-            'departure_start_time',
-            'departure_end_time'  ,
+            'start_time'         ,
+            'end_time'           ,
+            'is_flextime'        ,
+            'flextime_start_time',
+            'flextime_end_time'  ,
             'recurrence_rule'
         ];
 
@@ -85,7 +82,7 @@ class WorkScheduleRepository
                 'direction' => 'ASC'
             ],
             [
-                'column'    => 'work_schedule.arrival_start_time',
+                'column'    => 'work_schedule.flextime_start_time',
                 'direction' => 'ASC'
             ]
         ];
@@ -96,18 +93,28 @@ class WorkScheduleRepository
             return ActionResult::FAILURE;
         }
 
-        $workSchedules = $result['result_set'];
+        $employeeWorkSchedules = $result['result_set'];
 
-        if (empty($workSchedules)) {
+        if (empty($employeeWorkSchedules)) {
             return ActionResult::NO_WORK_SCHEDULE_FOUND;
         }
 
-        foreach ($workSchedules as $workSchedule) {
+        $workSchedules = [];
+
+        foreach ($employeeWorkSchedules as $workSchedule) {
             $recurrenceRule = $workSchedule['recurrence_rule'];
 
-            $dates = $this->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
+            $recurrenceDates = $this->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
 
-            $workSchedule['dates'] = $dates;
+            foreach ($recurrenceDates as $recurrenceDate) {
+                if ($recurrenceDate >= $startDate && $recurrenceDate <= $endDate) {
+                    $workSchedules[] = $workSchedule;
+                }
+            }
+        }
+
+        if (empty($workSchedules)) {
+            return ActionResult::NO_WORK_SCHEDULE_FOUND;
         }
 
         return $workSchedules;
