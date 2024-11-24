@@ -31,6 +31,49 @@ class AttendanceRepository
         return $this->attendanceDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function getLastAttendanceRecord(int $employeeId): ActionResult|array
+    {
+        $columns = [
+            'id'              ,
+            'work_schedule_id',
+            'date'            ,
+            'check_in_time'   ,
+            'check_out_time'
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'attendance.employee_id',
+                'operator' => '=',
+                'value'    => $employeeId
+            ]
+        ];
+
+        $sortCriteria = [
+            [
+                'column'    => 'attendance.date',
+                'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'attendance.check_in_time',
+                'direction' => 'DESC'
+            ]
+        ];
+
+        $result = $this->attendanceDao->fetchAll(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            sortCriteria  : $sortCriteria  ,
+            limit         : 1
+        );
+
+        if ($result === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $result['result_set'][0];
+    }
+
     public function updateAttendance(Attendance $attendance): ActionResult
     {
         return $this->attendanceDao->update($attendance);

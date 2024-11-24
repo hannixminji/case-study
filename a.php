@@ -44,3 +44,59 @@ echo $id;
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
+/*
+
+<?php
+
+$currentTime = '04:35:00';
+
+$workSchedules = [
+    '2024-11-24' => [
+        [
+            'start_time' => '08:00:00',
+            'end_time'   => '17:00:00',
+        ],
+        [
+            'start_time' => '18:00:00',
+            'end_time'   => '19:00:00',
+        ],
+        [
+            'start_time' => '20:00:00',
+            'end_time'   => '03:00:00',
+        ],
+    ]
+];
+
+$currentWorkSchedule = [];
+$nextWorkSchedule = [];
+
+foreach ($workSchedules as $date => $schedules) {
+    foreach ($schedules as $schedule) {
+        $startTime = $schedule['start_time'];
+        $endTime   = $schedule['end_time'  ];
+
+        if ($endTime < $startTime) {
+            if ($currentTime >= $startTime || $currentTime <= $endTime) {
+                $currentWorkSchedule = $schedule;
+                break 2;
+            }
+        } else {
+            if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                $currentWorkSchedule = $schedule;
+                break 2;
+            }
+        }
+
+        if (empty($nextWorkSchedule) && $currentTime < $startTime) {
+            $nextWorkSchedule = $schedule;
+        }
+    }
+}
+
+if (empty($currentWorkSchedule) && ! empty($nextWorkSchedule)) {
+    $currentWorkSchedule = $nextWorkSchedule;
+}
+
+print_r($currentWorkSchedule);
+
+*/

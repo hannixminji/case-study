@@ -341,3 +341,31 @@ try {
     echo "Error: " . $e->getMessage();
 }
 ?>
+
+        foreach ($attendanceLogPreviousAndCurrentDay as $attendanceLog) {
+            $checkInTime  = $attendanceLogPreviousAndCurrentDay['check_in_time' ];
+            $checkOutTime = $attendanceLogPreviousAndCurrentDay['check_out_time'];
+
+            foreach ($workSchedules as $workSchedule) {
+                $workScheduleStartTime = $workSchedule['start_time'];
+                $workScheduleEndTime   = $workSchedule['end_time'  ];
+
+                if ($checkInTime !== null && $checkOutTime !== null) {
+                    // Do nothing
+                } elseif (($checkInTime  === null  &&
+                           $checkOutTime === null) &&
+
+                          ($currentTime <  $workScheduleStartTime ||
+                          ($currentTime >= $workScheduleStartTime &&
+                           $currentTime <= $workScheduleEndTime))) {
+                    $currentSchedule = $workSchedule;
+                } elseif (($checkInTime  !== null  &&
+                           $checkOutTime === null) &&
+
+                           ($currentTime >  $workScheduleEndTime   ||
+                           ($currentTime >= $workScheduleStartTime &&
+                            $currentTime <= $workScheduleEndTime))) {
+                    $currentSchedule = $workSchedule;
+                }
+
+            }

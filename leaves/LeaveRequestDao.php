@@ -98,7 +98,7 @@ class LeaveRequestDao
             ",
 
             "approved_at"              => "leave_request.approved_at      AS approved_at",
-            "approved_by"              => "approved_by_employee.full_name AS approved_by",
+            "approved_by"              => "approved_by.full_name          AS approved_by",
             "created_at"               => "leave_request.created_at       AS created_at" ,
             "updated_at"               => "leave_request.updated_at       AS updated_at" ,
             "deleted_at"               => "leave_request.deleted_at       AS deleted_at"
@@ -114,7 +114,18 @@ class LeaveRequestDao
 
         $joinClauses = "";
 
-        if (array_key_exists("employee_id", $selectedColumns)) {
+        if (array_key_exists("employee_full_name"      , $selectedColumns) ||
+
+            array_key_exists("employee_department_id"  , $selectedColumns) ||
+            array_key_exists("employee_department_name", $selectedColumns) ||
+
+            array_key_exists("employee_job_title_id"   , $selectedColumns) ||
+            array_key_exists("employee_job_title"      , $selectedColumns) ||
+
+            array_key_exists("supervisor_id"           , $selectedColumns) ||
+            array_key_exists("manager_id"              , $selectedColumns) ||
+
+            array_key_exists("approved_by"             , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     employees AS employee
@@ -132,7 +143,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("employee_job_title", $selectedColumns)) {
+        if (array_key_exists("employee_job_title"   , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     job_titles AS job_title
@@ -153,7 +164,7 @@ class LeaveRequestDao
         if (array_key_exists("approved_by", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
-                    admins AS approved_by
+                    employees AS approved_by
                 ON
                     leave_request.approved_by = approved_by.id
             ";
@@ -315,7 +326,7 @@ class LeaveRequestDao
         $query = '
             UPDATE leave_requests
             SET
-                status     = :status
+                status = :status
             WHERE
                 id = :leave_request_id
         ';

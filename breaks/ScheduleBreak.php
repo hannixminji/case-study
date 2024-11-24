@@ -3,10 +3,10 @@
 class ScheduleBreak
 {
     public function __construct(
-        private readonly ?int    $id            ,
-        private readonly int     $workScheduleId,
-        private readonly int     $breakTypeId   ,
-        private readonly ?string $startTime
+        private readonly ?int    $id             = null,
+        private readonly int     $workScheduleId       ,
+        private readonly int     $breakTypeId          ,
+        private readonly ?string $startTime      = null
     ) {
     }
 

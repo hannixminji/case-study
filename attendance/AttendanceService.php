@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/Attendance.php'                              ;
+
 require_once __DIR__ . '/AttendanceRepository.php'                    ;
 require_once __DIR__ . '/../employees/EmployeeRepository.php'         ;
 require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'        ;
@@ -28,7 +30,7 @@ class AttendanceService
         $this->settingRepository      = $settingRepository     ;
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentDateTime)
+    public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
@@ -55,81 +57,136 @@ class AttendanceService
             ];
         }
 
-        $previousDate = (new DateTime($currentDateTime))
-            ->modify('-1 day')
-            ->format('Y-m-d'   );
+        $lastAttendanceRecord = $this->attendanceRepository->getLastAttendanceRecord($employeeId);
 
-        $currentDate  = (new DateTime($currentDateTime))
+        if ($lastAttendanceRecord === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.',
+            ];
+        }
+
+        $currentDate = (new DateTime($currentDateTime))
             ->format('Y-m-d');
 
-        $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $previousDate, $currentDate);
+        $currentTime = (new DateTime($currentDateTime))
+            ->format('H:i:s');
 
-        if ($workSchedules === ActionResult::FAILURE) {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.'
-            ];
+        if ( empty($lastAttendanceRecord) ||
+            ($lastAttendanceRecord['check_in_time' ] !== null &&
+             $lastAttendanceRecord['check_out_time'] !== null)) {
+
+            $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $currentDate, $currentDate);
+
+            if ($workSchedules === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            if ($workSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'You do not have a work schedule for today.'
+                ];
+            }
+
+            $currentWorkSchedule = $this->getCurrentWorkSchedule($workSchedules, $currentTime);
+
+            $minutesCanCheckInBeforeShift = $this->settingRepository->getSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
+
+            if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $minutesCanCheckInBeforeShift = (int) $minutesCanCheckInBeforeShift * 60;
+            $startTime = (new DateTime($currentWorkSchedule['start_time']))->getTimestamp();
+            $earliestCheckInTime = $startTime - $minutesCanCheckInBeforeShift;
+            $currentTime = (new DateTime($currentDateTime))->getTimestamp();
+
+            if ($currentTime < $earliestCheckInTime) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'You are not allowed to check in early.'
+                ];
+            }
+
+            $attendanceStatus = 'Present';
+            $lateCheckIn = 0;
+
+            if ( ! $currentWorkSchedule['is_flextime']) {
+                $gracePeriod = $this->settingRepository->getSettingValue('grace_period', 'work_schedule');
+
+                if ($gracePeriod === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $gracePeriodInSeconds = (int) $gracePeriod * 60;
+                $adjustedStartTime = $startTime + $gracePeriodInSeconds;
+
+                if ($currentTime > $adjustedStartTime) {
+                    $lateCheckIn = ceil(($currentTime - $adjustedStartTime) / 60);
+                    $attendanceStatus = 'Late';
+                }
+            }
+
+            $attendance = new Attendance(
+                workScheduleId  : $currentWorkSchedule['id'],
+                date            : $currentDate              ,
+                checkInTime     : $currentTime              ,
+                lateCheckIn     : $lateCheckIn              ,
+                attendanceStatus: $attendanceStatus
+            );
+
+            $this->attendanceRepository->checkIn($attendance);
+        } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
+                  $lastAttendanceRecord['check_out_time'] === null) {
+
+            //$attendance = new Attendance();
         }
 
-        if ($workSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
-            return [
-                'status'  => 'error',
-                'message' => 'You do not have a work schedule for today.'
-            ];
+        return [];
+    }
+
+    private function getCurrentWorkSchedule(array $workSchedules, string $currentTime): array
+    {
+        $currentWorkSchedule = [];
+        $nextWorkSchedule = [];
+
+        foreach ($workSchedules as $schedules) {
+            foreach ($schedules as $schedule) {
+                $startTime = $schedule['start_time'];
+                $endTime   = $schedule['end_time'  ];
+
+                if ($endTime < $startTime) {
+                    if ($currentTime >= $startTime || $currentTime <= $endTime) {
+                        $currentWorkSchedule = $schedule;
+                        break 2;
+                    }
+                } else {
+                    if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                        $currentWorkSchedule = $schedule;
+                        break 2;
+                    }
+                }
+
+                if (empty($nextWorkSchedule) && $currentTime < $startTime) {
+                    $nextWorkSchedule = $schedule;
+                }
+            }
         }
 
-        $currentTime = (new DateTime($currentDateTime))->format('H:i:s');
-
-        $columns = [
-            'check_in_time' ,
-            'check_out_time'
-        ];
-
-        $filterCriteria = [
-            [
-                'column'   => 'attendance.employee_id',
-                'operator' => '=',
-                'value'    => $employeeId
-            ],
-            [
-                'column'   => 'attendance.date',
-                'operator' => '>='             ,
-                'value'    => $previousDate
-            ],
-            [
-                'column'   => 'attendance.date',
-                'operator' => '<='             ,
-                'value'    => $currentDate
-            ]
-        ];
-
-        $sortCriteria = [
-            [
-                'column'    => 'attendance.date',
-                'direction' => 'DESC'
-            ]
-        ];
-
-        $attendanceLogPreviousAndCurrentDay = $this->attendanceRepository->fetchAllAttendance(
-            columns       : $columns       ,
-            filterCriteria: $filterCriteria,
-            sortCriteria  : $sortCriteria
-        );
-
-        if ($attendanceLogPreviousAndCurrentDay === ActionResult::FAILURE) {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.'
-            ];
+        if (empty($currentWorkSchedule) && !empty($nextWorkSchedule)) {
+            $currentWorkSchedule = $nextWorkSchedule;
         }
 
-        if (empty($attendanceLogPreviousAndCurrentDay)) {
-            $attendanceLogPreviousAndCurrentDay = [
-                [
-                    'check_in_time'  => null,
-                    'check_out_time' => null
-                ]
-            ];
-        }
+        return $currentWorkSchedule;
     }
 }

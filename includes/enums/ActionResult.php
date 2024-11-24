@@ -8,4 +8,5 @@ enum ActionResult: int
     case PASSWORD_INCORRECT     = 3;
     case NO_SCHEDULED_BREAK     = 4;
     case NO_WORK_SCHEDULE_FOUND = 5;
+    case NO_RECORD_FOUND        = 6;
 }

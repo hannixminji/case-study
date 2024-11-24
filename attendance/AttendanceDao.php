@@ -17,19 +17,15 @@ class AttendanceDao
     {
         $query = "
             INSERT INTO attendance (
-                id               ,
                 work_schedule_id ,
                 date             ,
-                shift_type       ,
                 check_in_time    ,
                 late_check_in    ,
                 attendance_status
             )
             VALUES (
-                :id               ,
                 :work_schedule_id ,
                 :date             ,
-                :shift_type       ,
                 :check_in_time    ,
                 :late_check_in    ,
                 :attendance_status,
@@ -41,10 +37,8 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":id"               , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
             $statement->bindValue(":work_schedule_id" , $attendance->getWorkScheduleId()  , Helper::getPdoParameterType($attendance->getWorkScheduleId()  ));
             $statement->bindValue(":date"             , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
-            $statement->bindValue(":shift_type"       , $attendance->getShiftType()       , Helper::getPdoParameterType($attendance->getShiftType()       ));
             $statement->bindValue(":check_in_time"    , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
             $statement->bindValue(":late_check_in"    , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
             $statement->bindValue(":attendance_status", $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
@@ -134,7 +128,6 @@ class AttendanceDao
 
             "date"                            => "attendance.date                            AS date"                           ,
             "day_of_the_week"                 => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                ,
-            "shift_type"                      => "attendance.shift_type                      AS shift_type"                     ,
             "check_in_time"                   => "attendance.check_in_time                   AS check_in_time"                  ,
             "check_out_time"                  => "attendance.check_out_time                  AS check_out_time"                 ,
             "total_break_duration_in_minutes" => "attendance.total_break_duration_in_minutes AS total_break_duration_in_minutes",

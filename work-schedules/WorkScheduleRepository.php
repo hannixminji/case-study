@@ -47,6 +47,7 @@ class WorkScheduleRepository
         string $endDate
     ): ActionResult|array {
         $columns = [
+            'id'                 ,
             'start_time'         ,
             'end_time'           ,
             'is_flextime'        ,
@@ -87,7 +88,11 @@ class WorkScheduleRepository
             ]
         ];
 
-        $result = $this->workScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria);
+        $result = $this->workScheduleDao->fetchAll(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            sortCriteria  : $sortCriteria
+        );
 
         if ($result === ActionResult::FAILURE) {
             return ActionResult::FAILURE;
@@ -101,20 +106,24 @@ class WorkScheduleRepository
 
         $workSchedules = [];
 
+        $start = new DateTime($startDate);
+        $end = (new DateTime($endDate))->modify('+1 day');
+
+        $interval = new DateInterval('P1D');
+        $dateRange = new DatePeriod($start, $interval, $end);
+
+        foreach ($dateRange as $date) {
+            $workSchedules[$date->format('Y-m-d')] = [];
+        }
+
         foreach ($employeeWorkSchedules as $workSchedule) {
             $recurrenceRule = $workSchedule['recurrence_rule'];
 
             $recurrenceDates = $this->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
 
             foreach ($recurrenceDates as $recurrenceDate) {
-                if ($recurrenceDate >= $startDate && $recurrenceDate <= $endDate) {
-                    $workSchedules[] = $workSchedule;
-                }
+                $workSchedules[$recurrenceDate][] = $workSchedule;
             }
-        }
-
-        if (empty($workSchedules)) {
-            return ActionResult::NO_WORK_SCHEDULE_FOUND;
         }
 
         return $workSchedules;

@@ -41,7 +41,11 @@ class EmployeeRepository
             ],
         ];
 
-        $result = $this->fetchAllEmployees(columns: ['id'], filterCriteria: $filterCriteria, limit: 1);
+        $result = $this->fetchAllEmployees(
+            columns       : ['id']         ,
+            filterCriteria: $filterCriteria,
+            limit         : 1
+        );
 
         if ($result === ActionResult::FAILURE) {
             return ActionResult::FAILURE;

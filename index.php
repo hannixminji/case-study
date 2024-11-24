@@ -8,75 +8,125 @@ class RecurrenceExtractor
 {
     public function getRecurrenceDatesInRange(string $recurrencePattern, string $startDate, string $endDate): array
     {
-        // Parse the recurrence pattern into an associative array
         $rules = $this->parseRecurrencePattern($recurrencePattern);
-
         if (!$rules) {
             throw new InvalidArgumentException("Invalid recurrence pattern.");
         }
 
         $rule = new RRule($rules);
-
-        // Collect the specific dates from the recurrence rule
         $dates = [];
 
-        // Loop through the occurrences and stop when we exceed the end date
         foreach ($rule as $occurrence) {
-            // Convert the occurrence to Y-m-d format
             $date = $occurrence->format('Y-m-d');
-
-            // Check if the date is within the range
             if ($date > $endDate) {
-                break; // Stop if we exceed the end date
+                break;
             }
-
-            // Add the date if it is within the range
             if ($date >= $startDate) {
                 $dates[] = $date;
             }
         }
-
         return $dates;
     }
 
     private function parseRecurrencePattern(string $pattern): ?array
     {
-        // Split the recurrence pattern into key-value pairs
         $parts = explode(';', $pattern);
         $rules = [];
-
         foreach ($parts as $part) {
-            // Each part is in the format KEY=VALUE
             $pair = explode('=', $part);
             if (count($pair) == 2) {
                 $rules[$pair[0]] = $pair[1];
             }
         }
 
-        // Check if mandatory keys are present (e.g., FREQ and DTSTART)
-        if (isset($rules['FREQ']) && isset($rules['DTSTART'])) {
-            return $rules;
-        }
-
-        return null;
+        return $rules;
     }
 }
 
-// Usage Example
-$recurrencePattern = "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-02;BYDAY=MO,FR;"; // Example pattern
+// Example Work Schedules (mock data with recurrence rules)
+$workSchedulesFromDB = [
+    [
+        'id' => 1,
+        'start_time' => '09:00:00',
+        'end_time' => '12:00:00',
+        'is_flextime' => false,
+        'flextime_start_time' => null,
+        'flextime_end_time' => null,
+        'recurrence_rule' => "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE,TH,FR,SA,SU;"
+    ],
+    [
+        'id' => 2,
+        'start_time' => '12:00:00',
+        'end_time' => '15:00:00',
+        'is_flextime' => false,
+        'flextime_start_time' => null,
+        'flextime_end_time' => null,
+        'recurrence_rule' => "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=TU,WE;"
+    ],
+    [
+        'id' => 3,
+        'start_time' => '15:00:00',
+        'end_time' => '18:00:00',
+        'is_flextime' => false,
+        'flextime_start_time' => null,
+        'flextime_end_time' => null,
+        'recurrence_rule' => "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,WE;"
+    ],
+    [
+        'id' => 4,
+        'start_time' => '18:00:00',
+        'end_time' => '21:00:00',
+        'is_flextime' => false,
+        'flextime_start_time' => null,
+        'flextime_end_time' => null,
+        'recurrence_rule' => "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=TU,FR;"
+    ]
+];
+
+// Define the date range to extract schedules
+$startDate = '2024-11-13';
+$endDate = '2024-11-15';
+
+// Initialize the recurrence extractor
 $recurrenceExtractor = new RecurrenceExtractor();
 
-try {
-    // Get the recurrence dates within the range from 2024-11-01 to 2024-12-31
-    $dates = $recurrenceExtractor->getRecurrenceDatesInRange($recurrencePattern, '2024-11-01', '2024-12-31');
+$workSchedules = [];
 
-    echo "Recurrence Dates from 2024-11-01 to 2024-12-31:\n";
-    foreach ($dates as $date) {
-        echo $date . "\n";
-    }
-} catch (InvalidArgumentException $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+// Initialize all dates in the range as empty arrays (or null, as per your requirement)
+$start = new DateTime($startDate);
+$end = (new DateTime($endDate))->modify('+1 day');
+
+$interval = new DateInterval('P1D');
+$dateRange = new DatePeriod($start, $interval, $end);
+
+foreach ($dateRange as $date) {
+    $workSchedules[$date->format('Y-m-d')] = []; // Initialize with an empty array or null
 }
+// Output the work schedules grouped by date inside the array
+echo '<pre>';
+print_r($workSchedules);
+echo '</pre>';
+// Loop through each work schedule and extract the recurrence dates
+foreach ($workSchedulesFromDB as $workSchedule) {
+    $recurrenceRule = $workSchedule['recurrence_rule'];
+    $recurrenceDates = $recurrenceExtractor->getRecurrenceDatesInRange($recurrenceRule, $startDate, $endDate);
+
+    foreach ($recurrenceDates as $recurrenceDate) {
+        // Populate the array with the schedules for the corresponding date
+        $workSchedules[$recurrenceDate][] = $workSchedule;
+    }
+}
+
+// Output the work schedules grouped by date inside the array
+echo '<pre>';
+print_r($workSchedules);
+echo '</pre>';
+
+
+
+
+
+
 
 
 /*

@@ -6,7 +6,6 @@ class Attendance
         private readonly ?int    $id                          = null,
         private readonly int     $workScheduleId                    ,
         private readonly string  $date                              ,
-        private readonly string  $shiftType                         ,
         private readonly string  $checkInTime                       ,
         private readonly ?string $checkOutTime                = null,
         private readonly ?float  $totalBreakDurationInMinutes = null,
@@ -33,11 +32,6 @@ class Attendance
     public function getDate(): string
     {
         return $this->date;
-    }
-
-    public function getShiftType(): string
-    {
-        return $this->shiftType;
     }
 
     public function getCheckInTime(): string
