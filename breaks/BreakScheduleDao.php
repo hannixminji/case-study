@@ -4,7 +4,7 @@ require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
-class ScheduleBreakDao
+class BreakScheduleDao
 {
     private readonly PDO $pdo;
 
@@ -13,10 +13,10 @@ class ScheduleBreakDao
         $this->pdo = $pdo;
     }
 
-    public function create(ScheduleBreak $scheduleBreak): ActionResult
+    public function create(BreakSchedule $breakSchedule): ActionResult
     {
         $query = "
-            INSERT INTO schedule_breaks (
+            INSERT INTO break_schedules (
                 work_schedule_id,
                 break_type_id   ,
                 start_time
@@ -33,9 +33,9 @@ class ScheduleBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_id", $scheduleBreak->getWorkScheduleId(), Helper::getPdoParameterType($scheduleBreak->getWorkScheduleId()));
-            $statement->bindValue(":break_type_id"   , $scheduleBreak->getBreakTypeId()   , Helper::getPdoParameterType($scheduleBreak->getBreakTypeId()   ));
-            $statement->bindValue(":start_time"      , $scheduleBreak->getStartTime()     , Helper::getPdoParameterType($scheduleBreak->getStartTime()     ));
+            $statement->bindValue(":work_schedule_id", $breakSchedule->getWorkScheduleId(), Helper::getPdoParameterType($breakSchedule->getWorkScheduleId()));
+            $statement->bindValue(":break_type_id"   , $breakSchedule->getBreakTypeId()   , Helper::getPdoParameterType($breakSchedule->getBreakTypeId()   ));
+            $statement->bindValue(":start_time"      , $breakSchedule->getStartTime()     , Helper::getPdoParameterType($breakSchedule->getStartTime()     ));
 
             $statement->execute();
 
@@ -46,7 +46,7 @@ class ScheduleBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while creating the schedule break. " .
+            error_log("Database Error: An error occurred while creating the break schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -61,20 +61,19 @@ class ScheduleBreakDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                             => "schedule_break.id               AS id"                   ,
-            "work_schedule_id"               => "schedule_break.work_schedule_id AS work_schedule_id"     ,
+            "id"                             => "break_schedule.id               AS id"                   ,
+            "work_schedule_id"               => "break_schedule.work_schedule_id AS work_schedule_id"     ,
 
-            "break_type_id"                  => "schedule_break.break_type_id    AS break_type_id"        ,
+            "break_type_id"                  => "break_schedule.break_type_id    AS break_type_id"        ,
             "break_type_name"                => "break_type.name                 AS break_type_name"      ,
             "break_type_duration_in_minutes" => "break_type.duration_in_minutes  AS break_type_duration"  ,
             "break_type_is_paid"             => "break_type.is_paid              AS break_type_is_paid"   ,
             "break_type_deleted_at"          => "break_type.deleted_at           AS break_type_deleted_at",
 
-            "start_time"                     => "schedule_break.start_time       AS start_time"           ,
-            "end_time"                       => "DATE_ADD(schedule_break.start_time, INTERVAL break_type.duration_in_minutes MINUTE) AS end_time",
-            "created_at"                     => "schedule_break.created_at       AS created_at"           ,
-            "updated_at"                     => "schedule_break.updated_at       AS updated_at"           ,
-            "deleted_at"                     => "schedule_break.deleted_at       AS deleted_at"           ,
+            "start_time"                     => "break_schedule.start_time       AS start_time"           ,
+            "created_at"                     => "break_schedule.created_at       AS created_at"           ,
+            "updated_at"                     => "break_schedule.updated_at       AS updated_at"           ,
+            "deleted_at"                     => "break_schedule.deleted_at       AS deleted_at"           ,
         ];
 
         $selectedColumns =
@@ -95,7 +94,7 @@ class ScheduleBreakDao
                 LEFT JOIN
                     break_types AS break_type
                 ON
-                    schedule_break.break_type_id = break_type.id
+                    break_schedule.break_type_id = break_type.id
             ";
         }
 
@@ -104,7 +103,7 @@ class ScheduleBreakDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "schedule_break.deleted_at IS NULL";
+            $whereClauses[] = "break_schedule.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -170,7 +169,7 @@ class ScheduleBreakDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                schedule_breaks AS schedule_break
+                break_schedules AS break_schedule
             {$joinClauses}
             WHERE
             " . implode(" AND ", $whereClauses) . "
@@ -202,21 +201,21 @@ class ScheduleBreakDao
             ];
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the schedule breaks. " .
+            error_log("Database Error: An error occurred while fetching the break schedules. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function update(ScheduleBreak $scheduleBreak): ActionResult
+    public function update(BreakSchedule $breakSchedule): ActionResult
     {
         $query = "
-            UPDATE schedule_breaks
+            UPDATE break_schedules
             SET
                 start_time = :start_time
             WHERE
-                id = :schedule_break_id
+                id = :break_schedule_id
         ";
 
         try {
@@ -224,8 +223,8 @@ class ScheduleBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":start_time"       , $scheduleBreak->getStartTime(), Helper::getPdoParameterType($scheduleBreak->getStartTime()));
-            $statement->bindValue(":schedule_break_id", $scheduleBreak->getId()       , Helper::getPdoParameterType($scheduleBreak->getId()       ));
+            $statement->bindValue(":start_time"       , $breakSchedule->getStartTime(), Helper::getPdoParameterType($breakSchedule->getStartTime()));
+            $statement->bindValue(":break_schedule_id", $breakSchedule->getId()       , Helper::getPdoParameterType($breakSchedule->getId()       ));
 
             $statement->execute();
 
@@ -236,71 +235,17 @@ class ScheduleBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while updating the schedule break. " .
+            error_log("Database Error: An error occurred while updating the break schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function getScheduledBreak(int $workScheduleId, string $currentTime): ActionResult|array
-    {
-        $columns = [
-            "id"                       ,
-            "break_type_id"            ,
-            "break_duration_in_minutes",
-            "start_time"               ,
-            "end_time"
-        ];
-
-        $filterCriteria = [
-            [
-                "column"   => "schedule_break.deleted_at",
-                "operator" => "IS NULL"
-            ],
-            [
-                "column"   => "schedule_break.work_schedule_id",
-                "operator" => "=",
-                "value"    => $workScheduleId
-            ],
-            [
-                "column"   => "schedule_break.start_time",
-                "operator" => "<=",
-                "value"    => $currentTime
-            ],
-            [
-                "column"   => "DATE_ADD(schedule_break.start_time, INTERVAL break_type.duration_in_minutes MINUTE) AS end_time",
-                "operator" => ">=",
-                "value"    => $currentTime
-            ]
-        ];
-
-        $result = $this->fetchAll(
-            columns       : $columns       ,
-            filterCriteria: $filterCriteria,
-            limit         : 1
-        );
-
-        if (empty($result["result_set"])) {
-            return ActionResult::NO_SCHEDULED_BREAK;
-        }
-
-        if ($result === ActionResult::FAILURE) {
-            return ActionResult::FAILURE;
-        }
-
-        return $result["result_set"];
-    }
-
-    public function delete(int $scheduleBreakId): ActionResult
-    {
-        return $this->softDelete($scheduleBreakId);
-    }
-
     public function deleteByWorkScheduleId(int $workScheduleId): ActionResult
     {
         $query = "
-            UPDATE schedule_breaks
+            UPDATE break_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
@@ -323,21 +268,26 @@ class ScheduleBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while deleting schedule breaks by work schedule ID. " .
+            error_log("Database Error: An error occurred while deleting break schedules by work schedule ID. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    private function softDelete(int $scheduleBreakId): ActionResult
+    public function delete(int $breakScheduleId): ActionResult
+    {
+        return $this->softDelete($breakScheduleId);
+    }
+
+    private function softDelete(int $breakScheduleId): ActionResult
     {
         $query = "
-            UPDATE schedule_breaks
+            UPDATE break_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :schedule_break_id
+                id = :break_schedule_id
         ";
 
         try {
@@ -345,7 +295,7 @@ class ScheduleBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":schedule_break_id", $scheduleBreakId, Helper::getPdoParameterType($scheduleBreakId));
+            $statement->bindValue(":break_schedule_id", $breakScheduleId, Helper::getPdoParameterType($breakScheduleId));
 
             $statement->execute();
 
@@ -356,7 +306,7 @@ class ScheduleBreakDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log("Database Error: An error occurred while deleting the schedule break. " .
+            error_log("Database Error: An error occurred while deleting the break schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

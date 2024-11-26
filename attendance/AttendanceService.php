@@ -66,14 +66,12 @@ class AttendanceService
             ];
         }
 
-        $currentDate = (new DateTime($currentDateTime))
-            ->format('Y-m-d');
-
-        $currentTime = (new DateTime($currentDateTime))
-            ->format('H:i:s');
+        $currentDateTime = new DateTime($currentDateTime );
+        $currentDate     = $currentDateTime->format('Y-m-d');
+        $currentTime     = $currentDateTime->format('H:i:s');
 
         if ( empty($lastAttendanceRecord) ||
-            ($lastAttendanceRecord['check_in_time' ] !== null &&
+            ($lastAttendanceRecord['check_in_time' ] !== null  &&
              $lastAttendanceRecord['check_out_time'] !== null)) {
 
             $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $currentDate, $currentDate);
@@ -94,23 +92,31 @@ class AttendanceService
 
             $currentWorkSchedule = $this->getCurrentWorkSchedule($workSchedules, $currentTime);
 
+            $endTime = (new DateTime($currentWorkSchedule['end_time']))->format('H:i:s');
+
+            if ($currentTime > $endTime) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'You cannot check in after your shift has ended.'
+                ];
+            }
+
             $minutesCanCheckInBeforeShift = $this->settingRepository->getSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
             if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
 
-            $minutesCanCheckInBeforeShift = (int) $minutesCanCheckInBeforeShift * 60;
-            $startTime = (new DateTime($currentWorkSchedule['start_time']))->getTimestamp();
-            $earliestCheckInTime = $startTime - $minutesCanCheckInBeforeShift;
-            $currentTime = (new DateTime($currentDateTime))->getTimestamp();
+            $earliestCheckInTime = (new DateTime($currentWorkSchedule['start_time']))
+                ->modify("-{$minutesCanCheckInBeforeShift} minutes")
+                ->format('H:i:s');
 
             if ($currentTime < $earliestCheckInTime) {
                 return [
-                    'status'  => 'error',
+                    'status' => 'error',
                     'message' => 'You are not allowed to check in early.'
                 ];
             }
@@ -123,16 +129,17 @@ class AttendanceService
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error',
+                        'status' => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
 
-                $gracePeriodInSeconds = (int) $gracePeriod * 60;
-                $adjustedStartTime = $startTime + $gracePeriodInSeconds;
+                $adjustedStartTime = (new DateTime($currentWorkSchedule['start_time']))
+                    ->modify("+{$gracePeriod} minutes")
+                    ->format('H:i:s');
 
                 if ($currentTime > $adjustedStartTime) {
-                    $lateCheckIn = ceil(($currentTime - $adjustedStartTime) / 60);
+                    $lateCheckIn = ceil((strtotime($currentTime) - strtotime($adjustedStartTime)) / 60);
                     $attendanceStatus = 'Late';
                 }
             }
@@ -146,6 +153,7 @@ class AttendanceService
             );
 
             $this->attendanceRepository->checkIn($attendance);
+
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
 
@@ -160,10 +168,12 @@ class AttendanceService
         $currentWorkSchedule = [];
         $nextWorkSchedule = [];
 
+        $currentTime = (new DateTime($currentTime))->format('H:i:s');
+
         foreach ($workSchedules as $schedules) {
             foreach ($schedules as $schedule) {
-                $startTime = $schedule['start_time'];
-                $endTime   = $schedule['end_time'  ];
+                $startTime = (new DateTime($schedule['start_time']))->format('H:i:s');
+                $endTime   = (new DateTime($schedule['end_time'  ]))->format('H:i:s');
 
                 if ($endTime < $startTime) {
                     if ($currentTime >= $startTime || $currentTime <= $endTime) {

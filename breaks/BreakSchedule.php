@@ -1,6 +1,6 @@
 <?php
 
-class ScheduleBreak
+class BreakSchedule
 {
     public function __construct(
         private readonly ?int    $id             = null,
