@@ -63,10 +63,10 @@ class EmployeeBreakService
             $currentDateTime = new DateTime($currentDateTime );
             $currentTime     = $currentDateTime->format('H:i:s');
 
-            $workSchedulestartTime = $lastAttendanceRecord['work_schedule_start_time'];
+            $workScheduleStartTime = $lastAttendanceRecord['work_schedule_start_time'];
             $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_end_time'  ];
 
-            $workScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workSchedulestartTime))->format('H:i:s'));
+            $workScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleStartTime))->format('H:i:s'));
             $workScheduleEndDateTime   = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleEndTime  ))->format('H:i:s'));
 
             if ($workScheduleEndDateTime < $workScheduleStartDateTime) {

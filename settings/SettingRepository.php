@@ -23,7 +23,33 @@ class SettingRepository
 
     public function fetchSettingValue(string $settingKey, string $groupName): ActionResult|string
     {
-        return $this->settingDao->fetchSettingValue($settingKey, $groupName);
+        $columns = [
+            "setting_value"
+        ];
+
+        $filterCriteria = [
+            [
+                "column"   => "setting.setting_key",
+                "operator" => "="                  ,
+                "value"    => $settingKey
+            ],
+            [
+                "column"   => "setting.group_name",
+                "operator" => "="                 ,
+                "value"    => $groupName
+            ]
+        ];
+
+        $result = $this->fetchAllSettings(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            limit         : 1);
+
+        if ($result === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $result["result_set"][0]["setting_value"];
     }
 
     public function updateSetting(Setting $setting): ActionResult

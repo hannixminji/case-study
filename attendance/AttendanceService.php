@@ -155,10 +155,10 @@ class AttendanceService
             }
 
             $attendance = new Attendance(
-                workScheduleId  : $currentWorkSchedule['id'],
-                date            : $currentDate              ,
-                checkInTime     : $currentTime              ,
-                lateCheckIn     : $lateCheckIn              ,
+                workScheduleId  : $currentWorkSchedule['id']                     ,
+                date            : $currentDate                                   ,
+                checkInTime     : $currentDateTime->format('Y-m-d H:i:s'),
+                lateCheckIn     : $lateCheckIn                                   ,
                 attendanceStatus: $attendanceStatus
             );
 
@@ -252,6 +252,7 @@ class AttendanceService
             foreach ($breakSchedules as $breakSchedule) {
                 if ($breakSchedule['is_require_break_in_and_break_out']) {
                     if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
+
                         $employeeBreak = new EmployeeBreak(
                             breakScheduleId: $breakSchedule['id'],
                             startTime      : null
@@ -290,7 +291,7 @@ class AttendanceService
                         }
                     } else {
                         foreach ($employeeBreaks as $employeeBreak) {
-                            if ($employeeBreak['break_schedule_id'] === $breakSchedule['id']) {
+                            if ($employeeBreak['break_schedule_id'] === $breakSchedule['id'] && $employeeBreak['start_time'] !== null && $employeeBreak['end_time'] !== null) {
                                 if ($employeeBreak['break_duration_in_minutes'] > $breakSchedule['break_type_duration_in_minutes']) {
                                     if ( ! $breakSchedule['break_type_is_paid']) {
                                         $unpaidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
@@ -305,6 +306,7 @@ class AttendanceService
                                         $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
                                     }
                                 }
+                                break;
                             }
                         }
                     }
@@ -322,10 +324,11 @@ class AttendanceService
             $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
             $checkOutTime = $currentDateTime;
             $totalWorkDuration = $checkInTime->diff($checkOutTime);
-            $totalHoursWorked = $totalWorkDuration->h * 60 + $totalWorkDuration->i - $unpaidBreakDurationInMinutes;
+            $totalHoursWorked = ($totalWorkDuration->h * 60 + $totalWorkDuration->i - $unpaidBreakDurationInMinutes) / 60;
 
             $workScheduleEndTime = $lastAttendanceRecord['work_schedule_end_time'];
-            $workScheduleEndTime = new DateTime($workScheduleEndTime);
+            $workScheduleEndTime = (new DateTime($workScheduleEndTime))->format('H:i:s');
+
         }
 
         if ($isCheckIn) {
