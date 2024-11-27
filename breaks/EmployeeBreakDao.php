@@ -56,11 +56,7 @@ class EmployeeBreakDao
             UPDATE employee_breaks
             SET
                 end_time = :end_time,
-                break_duration_in_minutes = TIMESTAMPDIFF(
-                    MINUTE    ,
-                    start_time,
-                    :end_time
-                )
+                break_duration_in_minutes = :break_duration_in_minutes
             WHERE
                 id = :employee_break_id
         ";
@@ -70,8 +66,9 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":end_time"         , $employeeBreak->getEndTime(), Helper::getPdoParameterType($employeeBreak->getEndTime()));
-            $statement->bindValue(":employee_break_id", $employeeBreak->getId()     , Helper::getPdoParameterType($employeeBreak->getId()     ));
+            $statement->bindValue(":end_time"                 , $employeeBreak->getEndTime()               , Helper::getPdoParameterType($employeeBreak->getEndTime()               ));
+            $statement->bindValue(":break_duration_in_minutes", $employeeBreak->getBreakDurationInMinutes(), Helper::getPdoParameterType($employeeBreak->getBreakDurationInMinutes()));
+            $statement->bindValue(":employee_break_id"        , $employeeBreak->getId()                    , Helper::getPdoParameterType($employeeBreak->getId()                    ));
 
             $statement->execute();
 

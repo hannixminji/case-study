@@ -34,12 +34,14 @@ class EmployeeBreakRepository
     public function fetchEmployeeLastBreakRecord(int $employeeId): ActionResult|array
     {
         $columns = [
-            'id'                       ,
-            'break_schedule_id'        ,
-            'break_schedule_start_time',
-            'start_time'               ,
-            'end_time'                 ,
-            'break_duration_in_minutes'
+            'id'                               ,
+            'break_schedule_id'                ,
+            'break_schedule_start_time'        ,
+            'start_time'                       ,
+            'end_time'                         ,
+            'break_duration_in_minutes'        ,
+            'is_paid'                          ,
+            'is_require_break_in_and_break_out',
         ];
 
         $filterCriteria = [

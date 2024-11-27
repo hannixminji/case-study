@@ -26,7 +26,7 @@ class EmployeeBreakService
         $this->breakScheduleRepository = $breakScheduleRepository;
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentDateTime)
+    public function handleRfidTap(string $rfidUid, string $currentDateTime): ActionResult|array
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
@@ -54,6 +54,8 @@ class EmployeeBreakService
                 'message' => 'You cannot take a break without checking in first.',
             ];
         }
+
+        $isBreakIn = false;
 
         if ($lastAttendanceRecord['check_in_time' ] !== null &&
             $lastAttendanceRecord['check_out_time'] === null) {
@@ -90,6 +92,8 @@ class EmployeeBreakService
             if ( empty($lastBreakRecord) ||
                 ($lastBreakRecord['start_time'] !== null  &&
                  $lastBreakRecord['end_time'  ] !== null)) {
+
+                $isBreakIn = true;
 
                 $workScheduleId = (int) $lastAttendanceRecord['work_schedule_id'];
 
@@ -139,6 +143,13 @@ class EmployeeBreakService
                     ];
                 }
 
+                if ( ! $currentBreakSchedule['is_require_break_in_and_break_out']) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'Break-in and break-out times are not required for this schedule.',
+                    ];
+                }
+
                 $breakScheduleStartTime = null;
                 $breakScheduleEndTime   = null;
 
@@ -171,11 +182,18 @@ class EmployeeBreakService
                     ];
                 }
             } else {
+                $startTime = new DateTime($lastBreakRecord['start_time']);
+                $endTime = new DateTime($currentTime);
+
+                $interval = $startTime->diff($endTime);
+                $breakDurationInMinutes = $interval->h * 60 + $interval->i;
+
                 $employeeBreak = new EmployeeBreak(
-                    id             : $lastBreakRecord['id'               ],
-                    startTime      : $lastBreakRecord['start_time'       ],
-                    breakScheduleId: $lastBreakRecord['break_schedule_id'],
-                    endTime        : $currentTime
+                    id                    : $lastBreakRecord['id'               ],
+                    breakScheduleId       : $lastBreakRecord['break_schedule_id'],
+                    startTime             : $lastBreakRecord['start_time'       ],
+                    endTime               : $currentTime                         ,
+                    breakDurationInMinutes: $breakDurationInMinutes
                 );
 
                 $result = $this->employeeBreakRepository->breakOut($employeeBreak);
@@ -187,6 +205,18 @@ class EmployeeBreakService
                     ];
                 }
             }
+        }
+
+        if ($isBreakIn) {
+            return [
+                'status' => 'success',
+                'message' => 'Break-in recorded successfully.'
+            ];
+        } else {
+            return [
+                'status' => 'success',
+                'message' => 'Break-out recorded successfully.'
+            ];
         }
     }
 

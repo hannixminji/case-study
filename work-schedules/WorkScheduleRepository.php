@@ -46,6 +46,9 @@ class WorkScheduleRepository
         string $startDate ,
         string $endDate
     ): ActionResult|array {
+        $startDate = (new DateTime($startDate))->format('Y-m-d');
+        $endDate   = (new DateTime($endDate  ))->format('Y-m-d');
+
         $columns = [
             'id'             ,
             'start_time'     ,
@@ -67,7 +70,7 @@ class WorkScheduleRepository
             [
                 'column'   => 'work_schedule.start_date',
                 'operator' => '<=',
-                'value'    => $startDate
+                'value'    => $endDate
             ]
         ];
 

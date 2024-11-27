@@ -7,27 +7,35 @@ require_once __DIR__ . '/../employees/EmployeeRepository.php'         ;
 require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'        ;
 require_once __DIR__ . '/../work-schedules/WorkScheduleRepository.php';
 require_once __DIR__ . '/../settings/SettingRepository.php'           ;
+require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'       ;
+require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'       ;
 
 class AttendanceService
 {
-    private readonly AttendanceRepository   $attendanceRepository  ;
-    private readonly EmployeeRepository     $employeeRepository    ;
-    private readonly LeaveRequestRepository $leaveRequestRepository;
-    private readonly WorkScheduleRepository $workScheduleRepository;
-    private readonly SettingRepository      $settingRepository     ;
+    private readonly AttendanceRepository    $attendanceRepository   ;
+    private readonly EmployeeRepository      $employeeRepository     ;
+    private readonly LeaveRequestRepository  $leaveRequestRepository ;
+    private readonly WorkScheduleRepository  $workScheduleRepository ;
+    private readonly SettingRepository       $settingRepository      ;
+    private readonly BreakScheduleRepository $breakScheduleRepository;
+    private readonly EmployeeBreakRepository $employeeBreakRepository;
 
     public function __construct(
-        AttendanceRepository   $attendanceRepository  ,
-        EmployeeRepository     $employeeRepository    ,
-        LeaveRequestRepository $leaveRequestRepository,
-        WorkScheduleRepository $workScheduleRepository,
-        SettingRepository      $settingRepository
+        AttendanceRepository    $attendanceRepository   ,
+        EmployeeRepository      $employeeRepository     ,
+        LeaveRequestRepository  $leaveRequestRepository ,
+        WorkScheduleRepository  $workScheduleRepository ,
+        SettingRepository       $settingRepository      ,
+        BreakScheduleRepository $breakScheduleRepository,
+        EmployeeBreakRepository $employeeBreakRepository
     ) {
-        $this->attendanceRepository   = $attendanceRepository  ;
-        $this->employeeRepository     = $employeeRepository    ;
-        $this->leaveRequestRepository = $leaveRequestRepository;
-        $this->workScheduleRepository = $workScheduleRepository;
-        $this->settingRepository      = $settingRepository     ;
+        $this->attendanceRepository    = $attendanceRepository   ;
+        $this->employeeRepository      = $employeeRepository     ;
+        $this->leaveRequestRepository  = $leaveRequestRepository ;
+        $this->workScheduleRepository  = $workScheduleRepository ;
+        $this->settingRepository       = $settingRepository      ;
+        $this->breakScheduleRepository = $breakScheduleRepository;
+        $this->employeeBreakRepository = $employeeBreakRepository;
     }
 
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
@@ -70,9 +78,13 @@ class AttendanceService
         $currentDate     = $currentDateTime->format('Y-m-d');
         $currentTime     = $currentDateTime->format('H:i:s');
 
+        $isCheckIn = false;
+
         if ( empty($lastAttendanceRecord) ||
             ($lastAttendanceRecord['check_in_time' ] !== null  &&
              $lastAttendanceRecord['check_out_time'] !== null)) {
+
+            $isCheckIn = true;
 
             $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $currentDate, $currentDate);
 
@@ -155,14 +167,178 @@ class AttendanceService
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
 
-            /*
-            $attendance = new Attendance(
-                    id: $lastAttendanceRecord['id'],
+            $breakScheduleColumns = [
+                'id'                            ,
+                'start_time'                    ,
+                'break_type_duration_in_minutes',
+                'is_flexible'                   ,
+                'earliest_start_time'           ,
+                'latest_end_time'               ,
+                'break_type_is_paid'
+            ];
+
+            $filterCriteria = [
+                [
+                    'column'   => 'break_schedule.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'break_schedule.work_schedule_id',
+                    'operator' => '=',
+                    'value'    => $lastAttendanceRecord['work_schedule_id']
+                ]
+            ];
+
+            $result = $this->breakScheduleRepository->fetchAllBreakSchedules($breakScheduleColumns, $filterCriteria);
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $breakSchedules = $result['result_set'];
+
+            $employeeBreakColumns = [
+                'id'                               ,
+                'break_schedule_id'                ,
+                'break_schedule_start_time'        ,
+                'start_time'                       ,
+                'end_time'                         ,
+                'break_duration_in_minutes'        ,
+                'is_require_break_in_and_break_out',
+            ];
+
+            $filterCriteria = [
+                [
+                    'column'   => 'employee_break.employee_id',
+                    'operator' => '='                          ,
+                    'value'    => $employeeId
+                ]
+            ];
+
+            $sortCriteria = [
+                [
+                    'column'    => 'employee_break.created_at',
+                    'direction' => 'DESC'
+                ],
+                [
+                    'column'    => 'employee_break.start_time',
+                    'direction' => 'DESC'
+                ]
+            ];
+
+            $result = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                columns       : $employeeBreakColumns,
+                filterCriteria: $filterCriteria      ,
+                sortCriteria  : $sortCriteria
             );
-            */
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $employeeBreaks = $result['result_set'];
+
+            $completedBreakIds = array_column($employeeBreaks, 'break_schedule_id');
+
+            $unpaidBreakDurationInMinutes = 0;
+            $paidBreakDurationInMinutes   = 0;
+
+            foreach ($breakSchedules as $breakSchedule) {
+                if ($breakSchedule['is_require_break_in_and_break_out']) {
+                    if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
+                        $employeeBreak = new EmployeeBreak(
+                            breakScheduleId: $breakSchedule['id'],
+                            startTime      : null
+                        );
+
+                        $result = $this->employeeBreakRepository->breakIn($employeeBreak);
+
+                        if ($result === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $lastBreakRecord = $this->employeeBreakRepository->fetchEmployeeLastBreakRecord($employeeId);
+
+                        if ($lastBreakRecord === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $employeeBreak = new EmployeeBreak(
+                            id             : $lastBreakRecord['id'               ],
+                            breakScheduleId: $lastBreakRecord['break_schedule_id']
+                        );
+
+                        $result = $this->employeeBreakRepository->breakOut($employeeBreak);
+
+                        if ($result === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+                    } else {
+                        foreach ($employeeBreaks as $employeeBreak) {
+                            if ($employeeBreak['break_schedule_id'] === $breakSchedule['id']) {
+                                if ($employeeBreak['break_duration_in_minutes'] > $breakSchedule['break_type_duration_in_minutes']) {
+                                    if ( ! $breakSchedule['break_type_is_paid']) {
+                                        $unpaidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
+                                    } else {
+                                        $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                        $unpaidBreakDurationInMinutes += ($employeeBreak['break_duration_in_minutes'] - $breakSchedule['break_type_duration_in_minutes']);
+                                    }
+                                } else {
+                                    if ( ! $breakSchedule['break_type_is_paid']) {
+                                        $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                    } else {
+                                        $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if ( ! $breakSchedule['break_type_is_paid']) {
+                        $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                    } else {
+                        $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                    }
+                }
+            }
+
+            $totalBreakDurationInMinutes = $unpaidBreakDurationInMinutes + $paidBreakDurationInMinutes;
+
+            $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
+            $checkOutTime = $currentDateTime;
+            $totalWorkDuration = $checkInTime->diff($checkOutTime);
+            $totalHoursWorked = $totalWorkDuration->h * 60 + $totalWorkDuration->i - $unpaidBreakDurationInMinutes;
+
+            $workScheduleEndTime = $lastAttendanceRecord['work_schedule_end_time'];
+            $workScheduleEndTime = new DateTime($workScheduleEndTime);
         }
 
-        return [];
+        if ($isCheckIn) {
+            return [
+                'status' => 'success',
+                'message' => 'Checked-in recorded successfully.'
+            ];
+        } else {
+            return [
+                'status' => 'success',
+                'message' => 'Checked-out recorded successfully.'
+            ];
+        }
     }
 
     private function getCurrentWorkSchedule(array $workSchedules, string $currentTime): array
