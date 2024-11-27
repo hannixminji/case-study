@@ -3,15 +3,15 @@
 class Allowance
 {
     public function __construct(
-        private readonly ?int    $id           ,
-        private readonly string  $name         ,
-        private readonly float   $amount       ,
-        private readonly bool    $isTaxable    ,
-        private readonly string  $frequency    ,
-        private readonly ?string $description  ,
-        private readonly string  $status       ,
-        private readonly string  $effectiveDate,
-        private readonly ?string $endDate      ,
+        private readonly ? int    $id            = null,
+        private readonly   string $name                ,
+        private readonly   float  $amount              ,
+        private readonly   bool   $isTaxable           ,
+        private readonly   string $frequency           ,
+        private readonly ? string $description   = null,
+        private readonly   string $status              ,
+        private readonly   string $effectiveDate       ,
+        private readonly ? string $endDate       = null
     ) {
     }
 
@@ -55,7 +55,7 @@ class Allowance
         return $this->effectiveDate;
     }
 
-    public function getEndDate(): string
+    public function getEndDate(): ?string
     {
         return $this->endDate;
     }

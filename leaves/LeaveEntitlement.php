@@ -3,12 +3,12 @@
 class LeaveEntitlement
 {
     public function __construct(
-        private readonly ?int $id                  ,
-        private readonly int  $employeeId          ,
-        private readonly int  $leaveTypeId         ,
-        private readonly int  $numberOfEntitledDays,
-        private readonly int  $numberOfDaysTaken   ,
-        private readonly int  $remainingDays
+        private readonly ? int $id                   = null,
+        private readonly   int $employeeId                 ,
+        private readonly   int $leaveTypeId                ,
+        private readonly   int $numberOfEntitledDays       ,
+        private readonly   int $numberOfDaysTaken          ,
+        private readonly   int $remainingDays
     ) {
     }
 

@@ -3,14 +3,14 @@
 class OvertimeRate
 {
     public function __construct(
-        private readonly ?int   $id                              ,
-        private readonly ?int   $overtimeRateAssignmentId        ,
-        private readonly string $dayType                         ,
-        private readonly string $holidayType                     ,
-        private readonly float  $regularTimeRate                 ,
-        private readonly float  $overtimeRate                    ,
-        private readonly float  $nightDifferentialRate           ,
-        private readonly float  $nightDifferentialAndOvertimeRate
+        private readonly ? int    $id                               = null,
+        private          ? int    $overtimeRateAssignmentId         = null,
+        private readonly   string $dayType                                ,
+        private readonly   string $holidayType                            ,
+        private readonly   float  $regularTimeRate                        ,
+        private readonly   float  $overtimeRate                           ,
+        private readonly   float  $nightDifferentialRate                  ,
+        private readonly   float  $nightDifferentialAndOvertimeRate
     ) {
     }
 
@@ -22,6 +22,11 @@ class OvertimeRate
     public function getOvertimeRateAssignmentId(): ?int
     {
         return $this->overtimeRateAssignmentId;
+    }
+
+    public function setOvertimeRateAssignmentId(int $overtimeRateAssignmentId): void
+    {
+        $this->overtimeRateAssignmentId = $overtimeRateAssignmentId;
     }
 
     public function getDayType(): string

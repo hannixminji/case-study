@@ -14,19 +14,19 @@ class SettingDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"            => "settings.id            AS id"           ,
-            "setting_key"   => "settings.setting_key   AS setting_key"  ,
-            "setting_value" => "settings.setting_value AS setting_value",
-            "group_name"    => "settings.group_name    AS group_name"   ,
-            "created_at"    => "settings.created_at    AS created_at"   ,
-            "updated_at"    => "settings.updated_at    AS updated_at"
+            "id"            => "setting.id            AS id"           ,
+            "setting_key"   => "setting.setting_key   AS setting_key"  ,
+            "setting_value" => "setting.setting_value AS setting_value",
+            "group_name"    => "setting.group_name    AS group_name"   ,
+            "created_at"    => "setting.created_at    AS created_at"   ,
+            "updated_at"    => "setting.updated_at    AS updated_at"
         ];
 
         $selectedColumns =
@@ -102,7 +102,7 @@ class SettingDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                settings
+                settings AS setting
             WHERE
                 " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
@@ -140,24 +140,29 @@ class SettingDao
         }
     }
 
-    public function getSettingValue(string $settingKey, string $groupName): ActionResult|string
+    public function fetchSettingValue(string $settingKey, string $groupName): ActionResult|string
     {
-        $columns = [ "setting_value" ];
+        $columns = [
+            "setting_value"
+        ];
 
         $filterCriteria = [
             [
-                "column"   => "setting_key",
-                "operator" => "="          ,
+                "column"   => "setting.setting_key",
+                "operator" => "="                  ,
                 "value"    => $settingKey
             ],
             [
-                "column"   => "group_name",
-                "operator" => "="         ,
+                "column"   => "setting.group_name",
+                "operator" => "="                 ,
                 "value"    => $groupName
             ]
         ];
 
-        $result = $this->fetchAll(columns: $columns, filterCriteria: $filterCriteria, limit: 1);
+        $result = $this->fetchAll(
+            columns       : $columns       ,
+            filterCriteria: $filterCriteria,
+            limit         : 1);
 
         if ($result === ActionResult::FAILURE) {
             return ActionResult::FAILURE;

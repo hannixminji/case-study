@@ -13,7 +13,7 @@ class OvertimeRateDao
         $this->pdo = $pdo;
     }
 
-    public function create(OvertimeRate $overtimeRate, int $overtimeRateAssignmentId): ActionResult
+    public function create(OvertimeRate $overtimeRate): ActionResult
     {
         $query = "
             INSERT INTO overtime_rates (
@@ -41,7 +41,7 @@ class OvertimeRateDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":overtime_rate_assignment_id"         , $overtimeRateAssignmentId                           , Helper::getPdoParameterType($overtimeRateAssignmentId                           ));
+            $statement->bindValue(":overtime_rate_assignment_id"         , $overtimeRate->getOvertimeRateAssignmentId()        , Helper::getPdoParameterType($overtimeRate->getOvertimeRateAssignmentId()        ));
             $statement->bindValue(":day_type"                            , $overtimeRate->getDayType()                         , Helper::getPdoParameterType($overtimeRate->getDayType()                         ));
             $statement->bindValue(":holiday_type"                        , $overtimeRate->getHolidayType()                     , Helper::getPdoParameterType($overtimeRate->getHolidayType()                     ));
             $statement->bindValue(":regular_time_rate"                   , $overtimeRate->getRegularTimeRate()                 , Helper::getPdoParameterType($overtimeRate->getRegularTimeRate()                 ));
@@ -60,6 +60,10 @@ class OvertimeRateDao
 
             error_log("Database Error: An error occurred while creating the overtime rate. " .
                       "Exception: {$exception->getMessage()}");
+
+            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
+                return ActionResult::DUPLICATE_ENTRY_ERROR;
+            }
 
             return ActionResult::FAILURE;
         }
@@ -111,7 +115,8 @@ class OvertimeRateDao
                 night_differential_and_overtime_rate = :night_differential_and_overtime_rate
             WHERE
                 overtime_rate_assignment_id = :overtime_rate_assignment_id
-            AND id = :overtime_rate_id
+            AND
+                id = :overtime_rate_id
         ";
 
         try {

@@ -31,7 +31,7 @@ class EmployeeBreakRepository
         return $this->employeeBreakDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function fetchLastEmployeeBreakRecord(int $employeeId): ActionResult|array
+    public function fetchEmployeeLastBreakRecord(int $employeeId): ActionResult|array
     {
         $columns = [
             'id'                       ,

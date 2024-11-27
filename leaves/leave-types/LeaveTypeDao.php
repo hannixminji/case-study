@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../includes/Helper.php'            ;
-require_once __DIR__ . '/../../includes/enums/ActionResult.php';
-require_once __DIR__ . '/../../includes/enums/ErrorCode.php'   ;
+require_once __DIR__ . "/../../includes/Helper.php"            ;
+require_once __DIR__ . "/../../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../../includes/enums/ErrorCode.php"   ;
 
 class LeaveTypeDao
 {
@@ -15,7 +15,7 @@ class LeaveTypeDao
 
     public function create(LeaveType $leaveType): ActionResult
     {
-        $query = '
+        $query = "
             INSERT INTO leave_types (
                 name                  ,
                 maximum_number_of_days,
@@ -30,18 +30,18 @@ class LeaveTypeDao
                 :description           ,
                 :status
             )
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
-            $statement->bindValue(':maximum_number_of_days', $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
-            $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
-            $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
-            $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
+            $statement->bindValue(":name"                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
+            $statement->bindValue(":maximum_number_of_days", $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
+            $statement->bindValue(":is_paid"               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(":description"           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
+            $statement->bindValue(":status"                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
 
             $statement->execute();
 
@@ -52,8 +52,8 @@ class LeaveTypeDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the leave type. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while creating the leave type. " .
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -64,11 +64,11 @@ class LeaveTypeDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                     => "leave_type.id                     AS id"                    ,
@@ -90,8 +90,6 @@ class LeaveTypeDao
                     array_flip($columns)
                 );
 
-        $joinClauses = "";
-
         $queryParameters = [];
 
         $whereClauses = [];
@@ -104,7 +102,7 @@ class LeaveTypeDao
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
-                    case "="  :
+                    case "="   :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
@@ -124,7 +122,7 @@ class LeaveTypeDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -164,7 +162,6 @@ class LeaveTypeDao
                 " . implode(", ", $selectedColumns) . "
             FROM
                 leave_types AS leave_type
-            {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
@@ -204,7 +201,7 @@ class LeaveTypeDao
 
     public function update(LeaveType $leaveType): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE leave_types
             SET
                 name                   = :name                  ,
@@ -214,19 +211,19 @@ class LeaveTypeDao
                 status                 = :status
             WHERE
                 id = :leave_type_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
-            $statement->bindValue(':maximum_number_of_days', $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
-            $statement->bindValue(':is_paid'               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
-            $statement->bindValue(':description'           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
-            $statement->bindValue(':status'                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
-            $statement->bindValue(':leave_type_id'         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));
+            $statement->bindValue(":name"                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
+            $statement->bindValue(":maximum_number_of_days", $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
+            $statement->bindValue(":is_paid"               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(":description"           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
+            $statement->bindValue(":status"                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
+            $statement->bindValue(":leave_type_id"         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));
 
             $statement->execute();
 
@@ -237,8 +234,8 @@ class LeaveTypeDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the leave type. ' .
-                    'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while updating the leave type. " .
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -255,22 +252,21 @@ class LeaveTypeDao
 
     private function softDelete(int $leaveTypeId): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE leave_types
             SET
-                status     = "Archived"       ,
-                deleted_at = CURRENT_TIMESTAMP,
-                deleted_by = :deleted_by
+                status     = 'Archived'       ,
+                deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :leave_type_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':leave_type_id', $leaveTypeId, Helper::getPdoParameterType($leaveTypeId));
+            $statement->bindValue(":leave_type_id", $leaveTypeId, Helper::getPdoParameterType($leaveTypeId));
 
             $statement->execute();
 
@@ -281,8 +277,8 @@ class LeaveTypeDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the leave type. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while deleting the leave type. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

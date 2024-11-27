@@ -12,18 +12,18 @@ class SettingRepository
     }
 
     public function fetchAllSettings(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->settingDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function getSettingValue(string $settingKey, string $groupName): ActionResult|string
+    public function fetchSettingValue(string $settingKey, string $groupName): ActionResult|string
     {
-        return $this->settingDao->getSettingValue($settingKey, $groupName);
+        return $this->settingDao->fetchSettingValue($settingKey, $groupName);
     }
 
     public function updateSetting(Setting $setting): ActionResult

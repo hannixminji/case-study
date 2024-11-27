@@ -3,7 +3,7 @@
         'name' => 'payroll/payroll',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '3a3872ca357242c327362e2e13651e08c520c093',
+        'reference' => '033c09d7471ceb41c416e16199f5729d31b446f0',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'payroll/payroll' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '3a3872ca357242c327362e2e13651e08c520c093',
+            'reference' => '033c09d7471ceb41c416e16199f5729d31b446f0',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -57,7 +57,7 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function assignOvertimeRates(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates): ActionResult
+    public function assign(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates): ActionResult
     {
         try {
             $this->pdo->beginTransaction();
@@ -85,7 +85,9 @@ class OvertimeRateAssignmentDao
             }
 
             foreach ($overtimeRates as $overtimeRate) {
-                $result = $this->overtimeRateDao->create($overtimeRate, $overtimeRateAssignmentId);
+                $overtimeRate->setOvertimeRateAssignmentId($overtimeRateAssignmentId);
+
+                $result = $this->overtimeRateDao->create($overtimeRate);
 
                 if ($result === ActionResult::FAILURE) {
                     $this->pdo->rollBack();
@@ -108,7 +110,7 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function findAssignmentId(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
+    public function findId(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
     {
         $query = "
             SELECT
@@ -118,17 +120,17 @@ class OvertimeRateAssignmentDao
             WHERE
                 (employee_id = :employee_id AND job_title_id = :job_title_id AND department_id = :department_id)
             OR
-                (employee_id IS NULL AND job_title_id = :job_title_id AND department_id = :department_id)
+                (employee_id IS NULL        AND job_title_id = :job_title_id AND department_id = :department_id)
             OR
-                (employee_id IS NULL AND job_title_id IS NULL AND department_id = :department_id)
+                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id = :department_id)
             OR
-                (employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL)
+                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL        )
             ORDER BY
                 CASE
                     WHEN employee_id = :employee_id AND job_title_id = :job_title_id AND department_id = :department_id THEN 1
-                    WHEN employee_id IS NULL AND job_title_id = :job_title_id AND department_id = :department_id        THEN 2
-                    WHEN employee_id IS NULL AND job_title_id IS NULL AND department_id = :department_id                THEN 3
-                    WHEN employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL                         THEN 4
+                    WHEN employee_id IS NULL        AND job_title_id = :job_title_id AND department_id = :department_id THEN 2
+                    WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id = :department_id THEN 3
+                    WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL          THEN 4
                                                                                                                         ELSE 5
                 END
             LIMIT 1
@@ -143,7 +145,11 @@ class OvertimeRateAssignmentDao
 
             $statement->execute();
 
-            return (int) $statement->fetchColumn();
+            $result = $statement->fetchColumn();
+
+            return $result !== false
+                ? (int) $result
+                : ActionResult::NO_RECORD_FOUND;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the ID. " .

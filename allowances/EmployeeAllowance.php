@@ -3,10 +3,10 @@
 class EmployeeAllowance
 {
     public function __construct(
-        private readonly ?int  $id         ,
-        private readonly int   $employeeId ,
-        private readonly int   $allowanceId,
-        private readonly float $amount
+        private readonly ? int   $id          = null,
+        private readonly   int   $employeeId        ,
+        private readonly   int   $allowanceId       ,
+        private readonly   float $amount
     ) {
     }
 

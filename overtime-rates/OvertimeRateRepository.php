@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/OvertimeRateDao.php";
+require_once __DIR__ . '/OvertimeRateDao.php';
 
 class OvertimeRateRepository
 {
@@ -11,9 +11,9 @@ class OvertimeRateRepository
         $this->overtimeRateDao = $overtimeRateDao;
     }
 
-    public function create(OvertimeRate $overtimeRate, int $overtimeRateAssignmentId): ActionResult
+    public function create(OvertimeRate $overtimeRate): ActionResult
     {
-        return $this->overtimeRateDao->create($overtimeRate, $overtimeRateAssignmentId);
+        return $this->overtimeRateDao->create($overtimeRate);
     }
 
     public function fetchOvertimeRates(int $overtimeRateAssignmentId): ActionResult|array

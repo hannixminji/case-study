@@ -32,10 +32,6 @@ class EmployeeBreakService
 
     public function handleRfidTap(string $rfidUid, string $currentDateTime)
     {
-        $currentDateTime = new DateTime($currentDateTime );
-        $currentDate     = $currentDateTime->format('Y-m-d');
-        $currentTime     = $currentDateTime->format('H:i:s');
-
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
         if ($employeeId === ActionResult::FAILURE) {
@@ -54,48 +50,80 @@ class EmployeeBreakService
             ];
         }
 
-        if (empty($lastAttendanceRecord) || $lastAttendanceRecord['check_in_time'] === null) {
+        if ( empty($lastAttendanceRecord) ||
+            ($lastAttendanceRecord['check_in_time' ] !== null  &&
+             $lastAttendanceRecord['check_out_time'] !== null)) {
             return [
                 'status'  => 'error',
                 'message' => 'You cannot take a break without checking in first.',
             ];
         }
 
-        $workScheduleId = $lastAttendanceRecord['work_schedule_id'];
+        if ($lastAttendanceRecord['check_in_time' ] !== null &&
+            $lastAttendanceRecord['check_out_time'] === null) {
 
-        $columns = [
-            'start_time'                    ,
-            'break_type_duration_in_minutes'
-        ];
+            $lastBreakRecord = $this->employeeBreakRepository->fetchEmployeeLastBreakRecord($employeeId);
 
-        $filterCriteria = [
-            [
-                'column'   => 'break_schedule.work_schedule_id',
-                'operator' => '=',
-                'value'    => $workScheduleId
-            ]
-        ];
+            if ($lastBreakRecord === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.',
+                ];
+            }
 
-        $breakSchedules = $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria);
+            $currentDateTime = new DateTime($currentDateTime );
+            $currentDate     = $currentDateTime->format('Y-m-d');
+            $currentTime     = $currentDateTime->format('H:i:s');
 
-        if ($breakSchedules === ActionResult::FAILURE) {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.',
-            ];
+            if ( empty($lastBreakRecord) ||
+                ($lastBreakRecord['start_time'] !== null  &&
+                 $lastBreakRecord['end_time'  ] !== null)) {
+
+                $workScheduleId = (int) $lastAttendanceRecord['work_schedule_id'];
+
+                $columns = [
+                    'id'                            ,
+                    'start_time'                    ,
+                    'break_type_duration_in_minutes'
+                ];
+
+                $filterCriteria = [
+                    [
+                        'column'   => 'break_schedule.work_schedule_id',
+                        'operator' => '=',
+                        'value'    => $workScheduleId
+                    ]
+                ];
+
+                $breakSchedules = $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria);
+
+                if ($breakSchedules === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.',
+                    ];
+                }
+
+                if (empty($breakSchedules)) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'No breaks have been scheduled for this schedule.',
+                    ];
+                }
+
+                $currentBreakSchedule = $this->getCurrentBreakSchedule($breakSchedules, $currentTime);
+
+                if (empty($currentBreakSchedule)) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'Break already ended.',
+                    ];
+                }
+
+                $startTime = (new DateTime($currentBreakSchedule['start_time']))->format('H:i:s');
+                $endTime   = (new DateTime($currentBreakSchedule['end_time'  ]))->format('H:i:s');
+            }
         }
-
-        if (empty($breakSchedules)) {
-            return [
-                'status'  => 'error',
-                'message' => 'No breaks have been scheduled for this schedule.',
-            ];
-        }
-
-        $currentBreakSchedule = $this->getCurrentBreakSchedule($breakSchedules, $currentTime);
-
-        $startTime = (new DateTime($currentBreakSchedule['start_time']))->format('H:i:s');
-        $endTime   = (new DateTime($currentBreakSchedule['end_time'  ]))->format('H:i:s');
     }
 
     private function getCurrentBreakSchedule(array $breakSchedules, string $currentTime): array

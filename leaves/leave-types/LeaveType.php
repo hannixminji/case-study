@@ -3,12 +3,12 @@
 class LeaveType
 {
     public function __construct(
-        private readonly ?int    $id                 ,
-        private readonly string  $name               ,
-        private readonly int     $maximumNumberOfDays,
-        private readonly bool    $isPaid             ,
-        private readonly ?string $description        ,
-        private readonly string  $status
+        private readonly ? int    $id                  = null,
+        private readonly   string $name                      ,
+        private readonly   int    $maximumNumberOfDays       ,
+        private readonly   bool   $isPaid                    ,
+        private readonly ? string $description         = null,
+        private readonly   string $status
     ) {
     }
 

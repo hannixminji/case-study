@@ -92,16 +92,14 @@ class AttendanceService
 
             $currentWorkSchedule = $this->getCurrentWorkSchedule($workSchedules, $currentTime);
 
-            $endTime = (new DateTime($currentWorkSchedule['end_time']))->format('H:i:s');
-
-            if ($currentTime > $endTime) {
+            if (empty($currentWorkSchedule)) {
                 return [
                     'status'  => 'error',
-                    'message' => 'You cannot check in after your shift has ended.'
+                    'message' => 'Your scheduled work has already ended.'
                 ];
             }
 
-            $minutesCanCheckInBeforeShift = $this->settingRepository->getSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
+            $minutesCanCheckInBeforeShift = $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
             if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
                 return [
@@ -125,7 +123,7 @@ class AttendanceService
             $lateCheckIn = 0;
 
             if ( ! $currentWorkSchedule['is_flextime']) {
-                $gracePeriod = $this->settingRepository->getSettingValue('grace_period', 'work_schedule');
+                $gracePeriod = $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
@@ -157,7 +155,11 @@ class AttendanceService
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
 
-            //$attendance = new Attendance();
+            /*
+            $attendance = new Attendance(
+                    id: $lastAttendanceRecord['id'],
+            );
+            */
         }
 
         return [];
@@ -166,7 +168,7 @@ class AttendanceService
     private function getCurrentWorkSchedule(array $workSchedules, string $currentTime): array
     {
         $currentWorkSchedule = [];
-        $nextWorkSchedule = [];
+        $nextWorkSchedule    = [];
 
         $currentTime = (new DateTime($currentTime))->format('H:i:s');
 
@@ -193,7 +195,7 @@ class AttendanceService
             }
         }
 
-        if (empty($currentWorkSchedule) && !empty($nextWorkSchedule)) {
+        if (empty($currentWorkSchedule) && ! empty($nextWorkSchedule)) {
             $currentWorkSchedule = $nextWorkSchedule;
         }
 

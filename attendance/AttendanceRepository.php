@@ -34,10 +34,15 @@ class AttendanceRepository
     public function getLastAttendanceRecord(int $employeeId): ActionResult|array
     {
         $columns = [
-            'id'              ,
-            'work_schedule_id',
-            'date'            ,
-            'check_in_time'   ,
+            'id'                               ,
+            'work_schedule_id'                 ,
+            'work_schedule_start_time'         ,
+            'work_schedule_end_time'           ,
+            'work_schedule_is_flexible'        ,
+            'work_schedule_flexible_start_time',
+            'work_schedule_flexible_end_time'  ,
+            'date'                             ,
+            'check_in_time'                    ,
             'check_out_time'
         ];
 
