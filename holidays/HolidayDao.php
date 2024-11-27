@@ -70,11 +70,11 @@ class HolidayDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                    => "holiday.id                    AS id"                   ,
@@ -127,7 +127,7 @@ class HolidayDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 

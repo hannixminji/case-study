@@ -104,11 +104,11 @@ class AttendanceDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                                => "attendance.id                              AS id"                               ,
@@ -117,8 +117,6 @@ class AttendanceDao
             "work_schedule_start_time"          => "",
             "work_schedule_end_time"            => "",
             "work_schedule_is_flexible"         => "work_schedule.is_flexible                  AS work_schedule_is_flexible"        ,
-            "work_schedule_flexible_start_time" => "work_schedule.flexible_start_time          AS work_schedule_flexible_start_time",
-            "work_schedule_flexible_end_time"   => "work_schedule.flexible_end_time            AS work_schedule_flexible_end_time"  ,
 
             "employee_id"                       => "work_schedule.employee_id                  AS employee_id"                      ,
             "employee_code"                     => "employee.code                              AS employee_code"                    ,

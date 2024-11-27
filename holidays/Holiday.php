@@ -3,14 +3,14 @@
 class Holiday
 {
     public function __construct(
-        private readonly ?int    $id                 ,
-        private readonly string  $name               ,
-        private readonly string  $startDate          ,
-        private readonly string  $endDate            ,
-        private readonly bool    $isPaid             ,
-        private readonly bool    $isRecurringAnnually,
-        private readonly ?string $description        ,
-        private readonly string  $status
+        private readonly ? int    $id                  = null,
+        private readonly   string $name                      ,
+        private readonly   string $startDate                 ,
+        private readonly   string $endDate                   ,
+        private readonly   bool   $isPaid                    ,
+        private readonly   bool   $isRecurringAnnually       ,
+        private readonly ? string $description         = null,
+        private readonly   string $status
     ) {
     }
 

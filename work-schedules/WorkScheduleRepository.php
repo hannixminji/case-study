@@ -17,11 +17,11 @@ class WorkScheduleRepository
     }
 
     public function fetchAllWorkSchedules(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->workScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
@@ -47,12 +47,10 @@ class WorkScheduleRepository
         string $endDate
     ): ActionResult|array {
         $columns = [
-            'id'                 ,
-            'start_time'         ,
-            'end_time'           ,
-            'is_flextime'        ,
-            'flextime_start_time',
-            'flextime_end_time'  ,
+            'id'             ,
+            'start_time'     ,
+            'end_time'       ,
+            'is_flextime'    ,
             'recurrence_rule'
         ];
 
@@ -68,7 +66,7 @@ class WorkScheduleRepository
             ],
             [
                 'column'   => 'work_schedule.start_date',
-                'operator' => '>=',
+                'operator' => '<=',
                 'value'    => $startDate
             ]
         ];
@@ -80,10 +78,6 @@ class WorkScheduleRepository
             ],
             [
                 'column'    => 'work_schedule.start_time',
-                'direction' => 'ASC'
-            ],
-            [
-                'column'    => 'work_schedule.flextime_start_time',
                 'direction' => 'ASC'
             ]
         ];
@@ -107,7 +101,8 @@ class WorkScheduleRepository
         $workSchedules = [];
 
         $start = new DateTime($startDate);
-        $end = (new DateTime($endDate))->modify('+1 day');
+        $end   = (new DateTime($endDate))
+            ->modify('+1 day');
 
         $interval = new DateInterval('P1D');
         $dateRange = new DatePeriod($start, $interval, $end);

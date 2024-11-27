@@ -147,7 +147,7 @@ class LeaveEntitlementDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -219,6 +219,45 @@ class LeaveEntitlementDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching leave entitlements. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function updateBalance(LeaveEntitlement $leaveEntitlement): ActionResult
+    {
+        $query = "
+            UPDATE leave_entitlements
+            SET
+                number_of_days_taken = :number_of_days_taken,
+                remaining_days       = :remaining_days
+            WHERE
+                leave_type_id = :leave_type_id
+            AND
+                employee_id = :employee_id
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":number_of_days_taken", $leaveEntitlement->getNumberOfDaysTaken(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()));
+            $statement->bindValue(":remaining_days"      , $leaveEntitlement->getRemainingDays()    , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()    ));
+            $statement->bindValue(":leave_type_id"       , $leaveEntitlement->getLeaveTypeId()      , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()      ));
+            $statement->bindValue(":employee_id"         , $leaveEntitlement->getEmployeeId()       , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()       ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while updating the leave entitlement. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

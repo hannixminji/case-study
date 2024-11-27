@@ -22,11 +22,11 @@ class AttendanceRepository
     }
 
     public function fetchAllAttendance(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->attendanceDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
@@ -39,8 +39,6 @@ class AttendanceRepository
             'work_schedule_start_time'         ,
             'work_schedule_end_time'           ,
             'work_schedule_is_flexible'        ,
-            'work_schedule_flexible_start_time',
-            'work_schedule_flexible_end_time'  ,
             'date'                             ,
             'check_in_time'                    ,
             'check_out_time'

@@ -17,14 +17,20 @@ class BreakScheduleDao
     {
         $query = "
             INSERT INTO break_schedules (
-                work_schedule_id,
-                break_type_id   ,
-                start_time
+                work_schedule_id   ,
+                break_type_id      ,
+                start_time         ,
+                is_flexible        ,
+                earliest_start_time,
+                latest_end_time
             )
             VALUES (
-                :work_schedule_id,
-                :break_type_id   ,
-                :start_time
+                :work_schedule_id   ,
+                :break_type_id      ,
+                :start_time         ,
+                :is_flexible        ,
+                :earliest_start_time,
+                :latest_end_time
             )
         ";
 
@@ -33,9 +39,12 @@ class BreakScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_id", $breakSchedule->getWorkScheduleId(), Helper::getPdoParameterType($breakSchedule->getWorkScheduleId()));
-            $statement->bindValue(":break_type_id"   , $breakSchedule->getBreakTypeId()   , Helper::getPdoParameterType($breakSchedule->getBreakTypeId()   ));
-            $statement->bindValue(":start_time"      , $breakSchedule->getStartTime()     , Helper::getPdoParameterType($breakSchedule->getStartTime()     ));
+            $statement->bindValue(":work_schedule_id"   , $breakSchedule->getWorkScheduleId()   , Helper::getPdoParameterType($breakSchedule->getWorkScheduleId()   ));
+            $statement->bindValue(":break_type_id"      , $breakSchedule->getBreakTypeId()      , Helper::getPdoParameterType($breakSchedule->getBreakTypeId()      ));
+            $statement->bindValue(":start_time"         , $breakSchedule->getStartTime()        , Helper::getPdoParameterType($breakSchedule->getStartTime()        ));
+            $statement->bindValue(":is_flexible"        , $breakSchedule->isFlexible()          , Helper::getPdoParameterType($breakSchedule->isFlexible()          ));
+            $statement->bindValue(":earliest_start_time", $breakSchedule->getEarliestStartTime(), Helper::getPdoParameterType($breakSchedule->getEarliestStartTime()));
+            $statement->bindValue(":latest_end_time"    , $breakSchedule->getLatestEndTime()    , Helper::getPdoParameterType($breakSchedule->getLatestEndTime()    ));
 
             $statement->execute();
 
@@ -54,26 +63,29 @@ class BreakScheduleDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                             => "break_schedule.id               AS id"                   ,
-            "work_schedule_id"               => "break_schedule.work_schedule_id AS work_schedule_id"     ,
+            "id"                             => "break_schedule.id                  AS id"                   ,
+            "work_schedule_id"               => "break_schedule.work_schedule_id    AS work_schedule_id"     ,
 
-            "break_type_id"                  => "break_schedule.break_type_id    AS break_type_id"        ,
-            "break_type_name"                => "break_type.name                 AS break_type_name"      ,
-            "break_type_duration_in_minutes" => "break_type.duration_in_minutes  AS break_type_duration"  ,
-            "break_type_is_paid"             => "break_type.is_paid              AS break_type_is_paid"   ,
-            "break_type_deleted_at"          => "break_type.deleted_at           AS break_type_deleted_at",
+            "break_type_id"                  => "break_schedule.break_type_id       AS break_type_id"        ,
+            "break_type_name"                => "break_type.name                    AS break_type_name"      ,
+            "break_type_duration_in_minutes" => "break_type.duration_in_minutes     AS break_type_duration"  ,
+            "break_type_is_paid"             => "break_type.is_paid                 AS break_type_is_paid"   ,
+            "break_type_deleted_at"          => "break_type.deleted_at              AS break_type_deleted_at",
 
-            "start_time"                     => "break_schedule.start_time       AS start_time"           ,
-            "created_at"                     => "break_schedule.created_at       AS created_at"           ,
-            "updated_at"                     => "break_schedule.updated_at       AS updated_at"           ,
-            "deleted_at"                     => "break_schedule.deleted_at       AS deleted_at"           ,
+            "start_time"                     => "break_schedule.start_time          AS start_time"           ,
+            "is_flexible"                    => "break_schedule.is_flexible         AS is_flexible"          ,
+            "earliest_start_time"            => "break_schedule.earliest_start_time AS earliest_start_time"  ,
+            "latest_end_time"                => "break_schedule.latest_end_time     AS latest_end_time"      ,
+            "created_at"                     => "break_schedule.created_at          AS created_at"           ,
+            "updated_at"                     => "break_schedule.updated_at          AS updated_at"           ,
+            "deleted_at"                     => "break_schedule.deleted_at          AS deleted_at"
         ];
 
         $selectedColumns =
@@ -172,7 +184,7 @@ class BreakScheduleDao
                 break_schedules AS break_schedule
             {$joinClauses}
             WHERE
-            " . implode(" AND ", $whereClauses) . "
+                " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -213,7 +225,10 @@ class BreakScheduleDao
         $query = "
             UPDATE break_schedules
             SET
-                start_time = :start_time
+                start_time          = :start_time         ,
+                is_flexible         = :is_flexible        ,
+                earliest_start_time = :earliest_start_time,
+                latest_end_time     = :latest_end_time
             WHERE
                 id = :break_schedule_id
         ";
@@ -223,8 +238,11 @@ class BreakScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":start_time"       , $breakSchedule->getStartTime(), Helper::getPdoParameterType($breakSchedule->getStartTime()));
-            $statement->bindValue(":break_schedule_id", $breakSchedule->getId()       , Helper::getPdoParameterType($breakSchedule->getId()       ));
+            $statement->bindValue(":start_time"         , $breakSchedule->getStartTime()        , Helper::getPdoParameterType($breakSchedule->getStartTime()        ));
+            $statement->bindValue(":is_flexible"        , $breakSchedule->isFlexible()          , Helper::getPdoParameterType($breakSchedule->isFlexible()          ));
+            $statement->bindValue(":earliest_start_time", $breakSchedule->getEarliestStartTime(), Helper::getPdoParameterType($breakSchedule->getEarliestStartTime()));
+            $statement->bindValue(":latest_end_time"    , $breakSchedule->getLatestEndTime()    , Helper::getPdoParameterType($breakSchedule->getLatestEndTime()    ));
+            $statement->bindValue(":break_schedule_id"  , $breakSchedule->getId()               , Helper::getPdoParameterType($breakSchedule->getId()               ));
 
             $statement->execute();
 

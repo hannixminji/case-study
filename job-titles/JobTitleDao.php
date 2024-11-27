@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../includes/Helper.php'            ;
-require_once __DIR__ . '/../includes/enums/ActionResult.php';
-require_once __DIR__ . '/../includes/enums/ErrorCode.php'   ;
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class JobTitleDao
 {
@@ -15,7 +15,7 @@ class JobTitleDao
 
     public function create(JobTitle $jobTitle): ActionResult
     {
-        $query = '
+        $query = "
             INSERT INTO job_titles (
                 title        ,
                 department_id,
@@ -27,17 +27,17 @@ class JobTitleDao
                 :department_id,
                 :description  ,
                 :status
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':title'        , $jobTitle->getTitle()       , Helper::getPdoParameterType($jobTitle->getTitle()       ));
-            $statement->bindValue(':department_id', $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
-            $statement->bindValue(':description'  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
-            $statement->bindValue(':status'       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
+            $statement->bindValue(":title"        , $jobTitle->getTitle()       , Helper::getPdoParameterType($jobTitle->getTitle()       ));
+            $statement->bindValue(":department_id", $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
+            $statement->bindValue(":description"  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
+            $statement->bindValue(":status"       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
 
             $statement->execute();
 
@@ -48,8 +48,8 @@ class JobTitleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the job title. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while creating the job title. " .
+                      "Exception: " . $exception->getMessage());
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -60,17 +60,19 @@ class JobTitleDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"              => "job_title.id            AS id"             ,
             "title"           => "job_title.title         AS title"          ,
+
             "department_id"   => "job_title.department_id AS department_id"  ,
             "department_name" => "department.name         AS department_name",
+
             "description"     => "job_title.description   AS description"    ,
             "status"          => "job_title.status        AS status"         ,
             "created_at"      => "job_title.created_at    AS created_at"     ,
@@ -208,7 +210,7 @@ class JobTitleDao
 
     public function update(JobTitle $jobTitle): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE job_titles
             SET
                 title         = :title        ,
@@ -217,18 +219,18 @@ class JobTitleDao
                 status        = :status
             WHERE
                 id = :job_title_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':title'        , $jobTitle->getTitle()       , Helper::getPdoParameterType($jobTitle->getTitle()       ));
-            $statement->bindValue(':department_id', $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
-            $statement->bindValue(':description'  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
-            $statement->bindValue(':status'       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
-            $statement->bindValue(':job_title_id' , $jobTitle->getId()          , Helper::getPdoParameterType($jobTitle->getId()          ));
+            $statement->bindValue(":title"        , $jobTitle->getTitle()       , Helper::getPdoParameterType($jobTitle->getTitle()       ));
+            $statement->bindValue(":department_id", $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
+            $statement->bindValue(":description"  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
+            $statement->bindValue(":status"       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
+            $statement->bindValue(":job_title_id" , $jobTitle->getId()          , Helper::getPdoParameterType($jobTitle->getId()          ));
 
             $statement->execute();
 
@@ -239,8 +241,8 @@ class JobTitleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the job title. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while updating the job title. " .
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -257,21 +259,21 @@ class JobTitleDao
 
     private function softDelete(int $jobTitleId): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE job_titles
             SET
-                status     = "Archived"       ,
+                status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :job_title_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':job_title_id', $jobTitleId, Helper::getPdoParameterType($jobTitleId));
+            $statement->bindValue(":job_title_id", $jobTitleId, Helper::getPdoParameterType($jobTitleId));
 
             $statement->execute();
 
@@ -282,8 +284,8 @@ class JobTitleDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the job title. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while deleting the job title. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

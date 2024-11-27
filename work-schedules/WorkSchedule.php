@@ -3,20 +3,18 @@
 class WorkSchedule
 {
     public function __construct(
-        private readonly ?int    $id                 = null,
-        private readonly int     $employeeId               ,
-        private readonly string  $title                    ,
-        private readonly ?string $startTime          = null,
-        private readonly ?string $endTime            = null,
-        private readonly bool    $isFlextime               ,
-        private readonly ?string $flextimeStartTime  = null,
-        private readonly ?string $flextimeEndTime    = null,
-        private readonly ?string $coreHoursStartTime = null,
-        private readonly ?string $coreHoursEndTime   = null,
-        private readonly ?int    $totalHoursPerWeek  = null,
-        private readonly string  $startDate                ,
-        private readonly string  $recurrenceRule           ,
-        private readonly ?string $note               = null
+        private readonly ? int    $id                 = null,
+        private readonly   int    $employeeId               ,
+        private readonly   string $title                    ,
+        private readonly   string $startTime                ,
+        private readonly   string $endTime                  ,
+        private readonly   bool   $isFlextime               ,
+        private readonly ? string $coreHoursStartTime = null,
+        private readonly ? string $coreHoursEndTime   = null,
+        private readonly ? int    $totalHoursPerWeek  = null,
+        private readonly   string $startDate                ,
+        private readonly   string $recurrenceRule           ,
+        private readonly ? string $note               = null
     ) {
     }
 
@@ -35,12 +33,12 @@ class WorkSchedule
         return $this->title;
     }
 
-    public function getStartTime(): ?string
+    public function getStartTime(): string
     {
         return $this->startTime;
     }
 
-    public function getEndTime(): ?string
+    public function getEndTime(): string
     {
         return $this->endTime;
     }
@@ -48,16 +46,6 @@ class WorkSchedule
     public function isFlextime(): bool
     {
         return $this->isFlextime;
-    }
-
-    public function getFlextimeStartTime(): ?string
-    {
-        return $this->flextimeStartTime;
-    }
-
-    public function getFlextimeEndTime(): ?string
-    {
-        return $this->flextimeEndTime;
     }
 
     public function getCoreHoursStartTime(): ?string

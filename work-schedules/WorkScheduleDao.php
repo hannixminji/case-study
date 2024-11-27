@@ -26,8 +26,6 @@ class WorkScheduleDao
                 start_time           ,
                 end_time             ,
                 is_flextime          ,
-                flextime_start_time  ,
-                flextime_end_time    ,
                 core_hours_start_time,
                 core_hours_end_time  ,
                 total_hours_per_week ,
@@ -41,8 +39,6 @@ class WorkScheduleDao
                 :start_time           ,
                 :end_time             ,
                 :is_flextime          ,
-                :flextime_start_time  ,
-                :flextime_end_time    ,
                 :core_hours_start_time,
                 :core_hours_end_time  ,
                 :total_hours_per_week ,
@@ -62,8 +58,6 @@ class WorkScheduleDao
             $statement->bindValue(":start_time"           , $workSchedule->getStartTime()         , Helper::getPdoParameterType($workSchedule->getStartTime()         ));
             $statement->bindValue(":end_time"             , $workSchedule->getEndTime()           , Helper::getPdoParameterType($workSchedule->getEndTime()           ));
             $statement->bindValue(":is_flextime"          , $workSchedule->isFlextime()           , Helper::getPdoParameterType($workSchedule->isFlextime()           ));
-            $statement->bindValue(":flextime_start_time"  , $workSchedule->getFlextimeStartTime() , Helper::getPdoParameterType($workSchedule->getFlextimeStartTime() ));
-            $statement->bindValue(":flextime_end_time"    , $workSchedule->getFlextimeEndTime()   , Helper::getPdoParameterType($workSchedule->getFlextimeEndTime()   ));
             $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
             $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));
@@ -110,8 +104,6 @@ class WorkScheduleDao
             "start_time"               => "work_schedule.start_time            AS start_time"              ,
             "end_time"                 => "work_schedule.end_time              AS end_time"                ,
             "is_flextime"              => "work_schedule.is_flextime           AS is_flextime"             ,
-            "flextime_start_time"      => "work_schedule.flextime_start_time   AS flextime_start_time"     ,
-            "flextime_end_time"        => "work_schedule.flextime_end_time     AS flextime_end_time"       ,
             "core_hours_start_time"    => "work_schedule.core_hours_start_time AS core_hours_start_time"   ,
             "core_hours_end_time"      => "work_schedule.core_hours_end_time   AS core_hours_end_time"     ,
             "total_hours_per_week"     => "work_schedule.total_hours_per_week  AS total_hours_per_week"    ,
@@ -346,8 +338,6 @@ class WorkScheduleDao
                 start_time            = :start_time           ,
                 end_time              = :end_time             ,
                 is_flextime           = :is_flextime          ,
-                flextime_start_time   = :flextime_start_time  ,
-                flextime_end_time     = :flextime_end_time    ,
                 core_hours_start_time = :core_hours_start_time,
                 core_hours_end_time   = :core_hours_end_time  ,
                 total_hours_per_week  = :total_hours_per_week ,
@@ -368,8 +358,6 @@ class WorkScheduleDao
             $statement->bindValue(":start_time"           , $workSchedule->getStartTime()         , Helper::getPdoParameterType($workSchedule->getStartTime()         ));
             $statement->bindValue(":end_time"             , $workSchedule->getEndTime()           , Helper::getPdoParameterType($workSchedule->getEndTime()           ));
             $statement->bindValue(":is_flextime"          , $workSchedule->isFlextime()           , Helper::getPdoParameterType($workSchedule->isFlextime()           ));
-            $statement->bindValue(":flextime_start_time"  , $workSchedule->getFlextimeStartTime() , Helper::getPdoParameterType($workSchedule->getFlextimeStartTime() ));
-            $statement->bindValue(":flextime_end_time"    , $workSchedule->getFlextimeEndTime()   , Helper::getPdoParameterType($workSchedule->getFlextimeEndTime()   ));
             $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
             $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));

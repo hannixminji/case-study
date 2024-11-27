@@ -22,11 +22,11 @@ class EmployeeBreakRepository
     }
 
     public function fetchAllEmployeeBreaks(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->employeeBreakDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
@@ -36,6 +36,7 @@ class EmployeeBreakRepository
         $columns = [
             'id'                       ,
             'break_schedule_id'        ,
+            'break_schedule_start_time',
             'start_time'               ,
             'end_time'                 ,
             'break_duration_in_minutes'
