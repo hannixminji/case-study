@@ -135,7 +135,7 @@ class AttendanceService
             $lateCheckIn = 0;
 
             if ( ! $currentWorkSchedule['is_flextime']) {
-                $gracePeriod = $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
+                $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
@@ -144,12 +144,14 @@ class AttendanceService
                     ];
                 }
 
-                $adjustedStartTime = (new DateTime($currentWorkSchedule['start_time']))
-                    ->modify("+{$gracePeriod} minutes")
-                    ->format('H:i:s');
+                $startTime = new DateTime($currentWorkSchedule['start_time']);
+                $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
 
-                if ($currentTime > $adjustedStartTime) {
-                    $lateCheckIn = ceil((strtotime($currentTime) - strtotime($adjustedStartTime)) / 60);
+                $currentDateTime = new DateTime($currentTime);
+                $currentTimeOnly = $currentDateTime->format('H:i:s');
+
+                if ($currentTimeOnly > $adjustedStartTime->format('H:i:s')) {
+                    $lateCheckIn = ceil(($currentDateTime->getTimestamp() - $adjustedStartTime->getTimestamp()) / 60);
                     $attendanceStatus = 'Late';
                 }
             }
