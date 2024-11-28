@@ -6,7 +6,7 @@ require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
-use RRule\RRule;
+use RRule\RSet;
 
 class WorkScheduleDao
 {
@@ -220,7 +220,7 @@ class WorkScheduleDao
         }
 
         $limitClause = "";
-        if ($limit !== null) {
+        if ($limit !== null && $limit > 0) {
             $limitClause = " LIMIT ?";
             $queryParameters[] = $limit;
         }
@@ -274,58 +274,85 @@ class WorkScheduleDao
         }
     }
 
-    public function getLastInsertId(): ActionResult|int
+    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): ActionResult|array
     {
         try {
-            return (int) $this->pdo->lastInsertId();
+            $recurrenceSet = new RSet();
 
-        } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while retrieving the last inserted ID. " .
+            $datesToExclude = "";
+
+            if (strpos($recurrenceRule, "EXDATE=") !== false) {
+                list($recurrenceRule, $datesToExclude) = explode("EXDATE=", $recurrenceRule);
+                $datesToExclude = rtrim($datesToExclude, ";");
+            }
+
+            $parsedRecurrenceRule = $this->parseRecurrenceRule($recurrenceRule);
+            $recurrenceSet->addRRule($parsedRecurrenceRule);
+
+            if ( ! empty($datesToExclude)) {
+                $excludeDates = explode(",", $datesToExclude);
+
+                foreach ($excludeDates as $excludedDate) {
+                    $recurrenceSet->addExDate($excludedDate);
+                }
+            }
+
+            $startDate = (new DateTime($startDate))->format("Y-m-d");
+            $endDate   = (new DateTime($endDate  ))->format("Y-m-d");
+
+            $dates = [];
+
+            foreach ($recurrenceSet as $occurence) {
+                $date = $occurence->format("Y-m-d");
+
+                if ($date > $endDate) {
+                    return $dates;
+                }
+
+                if ($date >= $startDate && $date <= $endDate) {
+                    $dates[] = $date;
+                }
+            }
+
+            return $dates;
+
+        } catch (InvalidArgumentException $exception) {
+            error_log("Invalid Argument Error: An error occurred while processing the recurrence rule. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+
+        } catch (Exception $exception) {
+            error_log("General Error: An error occurred while processing the recurrence dates. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
     }
 
-    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
+    private function parseRecurrenceRule(string $rule): ActionResult|array
     {
-        $parsedRecurrenceRule = $this->parseRecurrenceRule($recurrenceRule);
+        try {
+            $rule = rtrim($rule, ';');
 
-        $recurrence = new RRule($parsedRecurrenceRule);
+            $parts = explode(';', $rule);
 
-        $startDate = (new DateTime($startDate))->format("Y-m-d");
-        $endDate   = (new DateTime($endDate  ))->format("Y-m-d");
+            $parsedRule = [];
 
-        $dates = [];
+            foreach ($parts as $part) {
+                [$key, $value] = explode('=', $part, 2);
 
-        foreach ($recurrence as $occurence) {
-            $date = $occurence->format("Y-m-d");
-
-            if ($date > $endDate) {
-                return $dates;
+                $parsedRule[$key] = $value;
             }
 
-            if ($date >= $startDate) {
-                $dates[] = $date;
-            }
+            return $parsedRule;
+
+        } catch (Exception $exception) {
+            error_log("Parsing Error: An error occurred while parsing the recurrence rule. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
         }
-
-        return $dates;
-    }
-
-    private function parseRecurrenceRule(string $rule): array
-    {
-        $parts = explode(";", $rule);
-
-        $parsedRule = [];
-
-        foreach ($parts as $part) {
-            [$key, $value] = explode("=", $part, 2);
-
-            $parsedRule[$key] = $value;
-        }
-
-        return $parsedRule;
     }
 
     public function update(WorkSchedule $workSchedule): ActionResult
@@ -364,6 +391,7 @@ class WorkScheduleDao
             $statement->bindValue(":start_date"           , $workSchedule->getStartDate()         , Helper::getPdoParameterType($workSchedule->getStartDate()         ));
             $statement->bindValue(":recurrence_rule"      , $workSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()    ));
             $statement->bindValue(":note"                 , $workSchedule->getNote()              , Helper::getPdoParameterType($workSchedule->getNote()              ));
+            $statement->bindValue(":work_schedule_id"     , $workSchedule->getId()                , Helper::getPdoParameterType($workSchedule->getId()                ));
 
             $statement->execute();
 

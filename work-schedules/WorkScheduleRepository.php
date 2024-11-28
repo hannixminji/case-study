@@ -36,11 +36,6 @@ class WorkScheduleRepository
         return $this->workScheduleDao->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
     }
 
-    public function getLastInsertedWorkScheduleId(): ActionResult|int
-    {
-        return $this->workScheduleDao->getLastInsertId();
-    }
-
     public function getEmployeeWorkSchedules(
         int    $employeeId,
         string $startDate ,
@@ -104,7 +99,7 @@ class WorkScheduleRepository
         $workSchedules = [];
 
         $start = new DateTime($startDate);
-        $end   = (new DateTime($endDate))
+        $end = (new DateTime($endDate))
             ->modify('+1 day');
 
         $interval = new DateInterval('P1D');
@@ -119,8 +114,14 @@ class WorkScheduleRepository
 
             $recurrenceDates = $this->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
 
+            if ($recurrenceDates === ActionResult::FAILURE) {
+                return ActionResult::FAILURE;
+            }
+
             foreach ($recurrenceDates as $recurrenceDate) {
-                $workSchedules[$recurrenceDate][] = $workSchedule;
+                if (isset($workSchedules[$recurrenceDate])) {
+                    $workSchedules[$recurrenceDate][] = $workSchedule;
+                }
             }
         }
 

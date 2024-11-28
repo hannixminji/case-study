@@ -369,3 +369,245 @@ try {
                 }
 
             }
+
+
+
+
+
+
+
+
+
+
+<?php
+require 'vendor/autoload.php';
+use RRule\RSet;
+use RRule\RRule;
+
+
+class RecurrenceService
+{
+    private $exclusionDates = [];
+
+    // This method adds a recurrence rule to the RSet
+    public function addRecurrenceRuleToRSet(RSet $rset)
+    {
+        $rset->addRRule(array(
+            'FREQ' => 'YEARLY',
+            'COUNT' => 3,
+            'BYDAY' => 'TU',
+            'DTSTART' => date_create('1997-09-02 09:00')
+        ));
+    }
+
+    // This method adds an exclusion date to the RSet
+    public function addExclusionDateToRSet(RSet $rset, $date)
+    {
+        $rset->addExDate($date);
+    }
+
+    // This method returns all recurrence dates between the start and end dates, excluding any dates in the exclusion list
+    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
+    {
+        try {
+            $parsedRecurrenceRule = $this->parseRecurrenceRule($recurrenceRule);
+
+            $recurrence = new RRule($parsedRecurrenceRule);
+
+            $startDate = (new DateTime($startDate))->format("Y-m-d");
+            $endDate   = (new DateTime($endDate))->format("Y-m-d");
+
+            $dates = [];
+
+            // Get exclusion dates from the set
+            $exclusionDates = $this->getExclusionDates();
+
+            foreach ($recurrence as $occurence) {
+                $date = $occurence->format("Y-m-d");
+
+                // Skip the date if it's in the exclusion list
+                if (in_array($date, $exclusionDates)) {
+                    continue;
+                }
+
+                // If the date is beyond the end date, return the dates up until then
+                if ($date > $endDate) {
+                    return $dates;
+                }
+
+                // If the date is within the valid range, add it to the list
+                if ($date >= $startDate) {
+                    $dates[] = $date;
+                }
+            }
+
+            return $dates;
+
+        } catch (InvalidArgumentException $exception) {
+            error_log("Invalid Argument Error: " . $exception->getMessage());
+            return [];
+
+        } catch (Exception $exception) {
+            error_log("General Error: " . $exception->getMessage());
+            return [];
+        }
+    }
+
+    // This method parses the recurrence rule string into an array of parameters
+    private function parseRecurrenceRule(string $rule): array
+    {
+        try {
+            $rule = rtrim($rule, ";");
+
+            $parts = explode(";", $rule);
+
+            $parsedRule = [];
+
+            foreach ($parts as $part) {
+                [$key, $value] = explode("=", $part, 2);
+                $parsedRule[$key] = $value;
+            }
+
+            return $parsedRule;
+
+        } catch (Exception $exception) {
+            error_log("Parsing Error: An error occurred while parsing the recurrence rule. " . $exception->getMessage());
+            return [];
+        }
+    }
+
+    // This method returns the exclusion dates (for now, it’s just a placeholder)
+    private function getExclusionDates(): array
+    {
+        return $this->exclusionDates;
+    }
+
+    // This method allows adding exclusion dates to the class
+    public function addExclusionDate(string $date)
+    {
+        $this->exclusionDates[] = $date;
+    }
+}
+
+// Example usage:
+
+$rset = new RSet();
+$recurrenceService = new RecurrenceService();
+
+// Add recurrence rule
+$recurrenceService->addRecurrenceRuleToRSet($rset);
+
+// Add exclusion date
+$recurrenceService->addExclusionDate('1997-09-04'); // Add 1997-09-04 to exclusion list
+
+// Add exclusion date to RSet
+$recurrenceService->addExclusionDateToRSet($rset, '1997-09-04 09:00');
+
+// Get recurrence dates
+$recurrenceRule = "FREQ=YEARLY;COUNT=3;BYDAY=TU;DTSTART=1997-09-02T090000";
+$startDate = '1997-09-01';
+$endDate = '1997-09-10';
+
+$recurrenceDates = $recurrenceService->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
+
+// Print the recurrence dates
+foreach ($recurrenceDates as $occurrence) {
+    echo $occurrence . "\n";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+require 'vendor/autoload.php';
+
+use RRule\RSet;
+
+function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
+{
+    try {
+        $rset = new RSet();
+        $exdates = '';
+
+        if (preg_match('/EXDATE=([^;]+)/', $recurrenceRule, $matches)) {
+            $exdates = $matches[1];
+            $recurrenceRule = str_replace("EXDATE={$exdates};", '', $recurrenceRule);
+        }
+
+        $parsedRule = parseRecurrenceRule($recurrenceRule);
+        $rset->addRRule($parsedRule);
+
+        if ($exdates) {
+            $excludeDates = explode(",", $exdates);
+            foreach ($excludeDates as $exDate) {
+                $rset->addExDate($exDate);
+            }
+        }
+
+        $startDate = (new DateTime($startDate))->format("Y-m-d");
+        $endDate = (new DateTime($endDate))->format("Y-m-d");
+
+        $dates = [];
+        foreach ($rset as $date) {
+            $dateFormatted = $date->format("Y-m-d");
+
+            if ($dateFormatted > $endDate) {
+                return $dates;
+            }
+
+            if ($dateFormatted >= $startDate && $dateFormatted <= $endDate) {
+                $dates[] = $dateFormatted;
+            }
+        }
+
+        return $dates;
+
+    } catch (InvalidArgumentException $exception) {
+        error_log("Invalid Argument Error: An error occurred while processing the recurrence rule. " .
+                  "Exception: {$exception->getMessage()}");
+
+        return [];
+
+    } catch (Exception $exception) {
+        error_log("General Error: An error occurred while processing the recurrence dates. " .
+                  "Exception: {$exception->getMessage()}");
+
+        return [];
+    }
+}
+
+function parseRecurrenceRule(string $rule): array
+{
+    $rule = rtrim($rule, ";");
+    $parts = explode(";", $rule);
+    $parsedRule = [];
+
+    foreach ($parts as $part) {
+        [$key, $value] = explode("=", $part, 2);
+        $parsedRule[$key] = $value;
+    }
+
+    return $parsedRule;
+}
+
+$recurrenceRule = "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,WE;EXDATE=2024-11-04,2024-11-06;";
+$startDate = "2024-11-01";
+$endDate = "2024-11-30";
+
+$dates = getRecurrenceDates($recurrenceRule, $startDate, $endDate);
+echo '<pre>';
+print_r($dates);
+echo '<pre>';
+

@@ -73,6 +73,11 @@ class WorkSchedule
         return $this->recurrenceRule;
     }
 
+    public function setRecurrenceRule(string $recurrenceRule): void
+    {
+        $this->recurrenceRule = $recurrenceRule;
+    }
+
     public function getNote(): ?string
     {
         return $this->note;

@@ -315,7 +315,6 @@ class AttendanceService
                                         $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
                                     }
                                 }
-                                break;
                             }
                         }
                     }
@@ -339,7 +338,7 @@ class AttendanceService
 
             $checkOutTime          = $currentTime;
             $workScheduleStartTime = (new DateTime($lastAttendanceRecord['work_schedule_start_time']))->format('H:i:s');
-            $workScheduleEndTime   = (new DateTime($lastAttendanceRecord['work_schedule_end_time']))->format('H:i:s');
+            $workScheduleEndTime   = (new DateTime($lastAttendanceRecord['work_schedule_end_time'  ]))->format('H:i:s');
 
             $checkOutTime          = new DateTime($checkOutTime);
             $workScheduleStartTime = new DateTime($workScheduleStartTime);
