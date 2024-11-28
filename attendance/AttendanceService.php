@@ -162,7 +162,14 @@ class AttendanceService
                 attendanceStatus: $attendanceStatus
             );
 
-            $this->attendanceRepository->checkIn($attendance);
+            $result = $this->attendanceRepository->checkIn($attendance);
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
 
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
@@ -319,6 +326,8 @@ class AttendanceService
                 }
             }
 
+            $attendanceStatus = $lastAttendanceRecord['attendance_status'];
+
             $totalBreakDurationInMinutes = $unpaidBreakDurationInMinutes + $paidBreakDurationInMinutes;
 
             $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
@@ -326,9 +335,51 @@ class AttendanceService
             $totalWorkDuration = $checkInTime->diff($checkOutTime);
             $totalHoursWorked = ($totalWorkDuration->h * 60 + $totalWorkDuration->i - $unpaidBreakDurationInMinutes) / 60;
 
-            $workScheduleEndTime = $lastAttendanceRecord['work_schedule_end_time'];
-            $workScheduleEndTime = (new DateTime($workScheduleEndTime))->format('H:i:s');
+            $checkOutTime          = $currentTime;
+            $workScheduleStartTime = (new DateTime($lastAttendanceRecord['work_schedule_start_time']))->format('H:i:s');
+            $workScheduleEndTime   = (new DateTime($lastAttendanceRecord['work_schedule_end_time']))->format('H:i:s');
 
+            $checkOutTime          = new DateTime($checkOutTime);
+            $workScheduleStartTime = new DateTime($workScheduleStartTime);
+            $workScheduleEndTime   = new DateTime($workScheduleEndTime);
+
+            $earlyCheckOutMinutes = 0;
+            $overtimeHours = 0;
+
+            if ($workScheduleEndTime < $workScheduleStartTime) {
+                $workScheduleEndTime->modify('+1 day');
+            }
+
+            if ($checkOutTime < $workScheduleEndTime) {
+                $diff = $checkOutTime->diff($workScheduleEndTime);
+                $earlyCheckOutMinutes = $diff->h * 60 + $diff->i;
+                $attendanceStatus = 'Undertime';
+            } else {
+                $overtimeDuration = $checkOutTime->diff($workScheduleEndTime);
+                $overtimeHours = $overtimeDuration->h + ($overtimeDuration->i / 60);
+            }
+
+            $attendance = new Attendance(
+                id                         : $lastAttendanceRecord['id'],
+                workScheduleId             : $lastAttendanceRecord['work_schedule_id'],
+                date                       : $lastAttendanceRecord['date'],
+                checkInTime                : $lastAttendanceRecord['check_in_time'],
+                checkOutTime               : $currentDateTime->format('Y-m-d H:i:s'),
+                totalBreakDurationInMinutes: $totalBreakDurationInMinutes,
+                totalHoursWorked           : $totalHoursWorked,
+                earlyCheckOut              : $earlyCheckOutMinutes,
+                overtimeHours              : $overtimeHours,
+                attendanceStatus           : $attendanceStatus
+            );
+
+            $result = $this->attendanceRepository->checkOut($attendance);
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
         }
 
         if ($isCheckIn) {

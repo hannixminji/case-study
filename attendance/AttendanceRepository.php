@@ -41,7 +41,8 @@ class AttendanceRepository
             'work_schedule_is_flexible'        ,
             'date'                             ,
             'check_in_time'                    ,
-            'check_out_time'
+            'check_out_time'                   ,
+            'attendance_status'
         ];
 
         $filterCriteria = [
