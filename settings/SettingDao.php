@@ -103,8 +103,7 @@ class SettingDao
                 " . implode(", ", $selectedColumns) . "
             FROM
                 settings AS setting
-            WHERE
-                " . implode(" AND ", $whereClauses) . "
+            " . ( ! empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "") . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}

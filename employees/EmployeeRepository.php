@@ -6,9 +6,9 @@ class EmployeeRepository
 {
     private readonly EmployeeDao $employeeDao;
 
-    public function __construct(PDO $pdo)
+    public function __construct(EmployeeDao $employeeDao)
     {
-        $this->employeeDao = new EmployeeDao($pdo);
+        $this->employeeDao = $employeeDao;
     }
 
     public function createEmployee(Employee $employee): ActionResult

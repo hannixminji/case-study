@@ -85,7 +85,7 @@ function parseRecurrenceRule(string $rule): ActionResult|array
     }
 }
 
-$recurrenceRule = "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE;EXDATE=2024-11-04,2024-11-06;";
+$recurrenceRule = "FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE,TH,FR,SA,SU;EXDATE=2024-11-04,2024-11-06;";
 $startDate = "2024-11-01";
 $endDate = "2024-11-30";
 

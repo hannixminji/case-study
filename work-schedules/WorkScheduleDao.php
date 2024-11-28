@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/vendor/autoload.php"               ;
+require_once __DIR__ . "/../vendor/autoload.php"            ;
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
@@ -282,6 +282,7 @@ class WorkScheduleDao
             $datesToExclude = "";
 
             if (strpos($recurrenceRule, "EXDATE=") !== false) {
+
                 list($recurrenceRule, $datesToExclude) = explode("EXDATE=", $recurrenceRule);
                 $datesToExclude = rtrim($datesToExclude, ";");
             }

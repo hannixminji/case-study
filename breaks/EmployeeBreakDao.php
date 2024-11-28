@@ -239,6 +239,7 @@ class EmployeeBreakDao
                 " . implode(", ", $selectedColumns) . "
             FROM
                 employee_breaks AS employee_break
+            {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "

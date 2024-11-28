@@ -28,7 +28,7 @@ class AttendanceDao
                 :date             ,
                 :check_in_time    ,
                 :late_check_in    ,
-                :attendance_status,
+                :attendance_status
             )
         ";
 
@@ -114,9 +114,9 @@ class AttendanceDao
             "id"                                => "attendance.id                              AS id"                               ,
 
             "work_schedule_id"                  => "attendance.work_schedule_id                AS work_schedule_id"                 ,
-            "work_schedule_start_time"          => "",
-            "work_schedule_end_time"            => "",
-            "work_schedule_is_flexible"         => "work_schedule.is_flexible                  AS work_schedule_is_flexible"        ,
+            "work_schedule_start_time"          => "work_schedule.start_time                   AS work_schedule_start_time"         ,
+            "work_schedule_end_time"            => "work_schedule.end_time                     AS work_schedule_end_time"           ,
+            "work_schedule_is_flextime"         => "work_schedule.is_flextime                  AS work_schedule_is_flextime"        ,
 
             "employee_id"                       => "work_schedule.employee_id                  AS employee_id"                      ,
             "employee_code"                     => "employee.code                              AS employee_code"                    ,
@@ -154,7 +154,9 @@ class AttendanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("work_schedule_is_flexible", $selectedColumns) ||
+        if (array_key_exists("work_schedule_start_time" , $selectedColumns) ||
+            array_key_exists("work_schedule_end_time"   , $selectedColumns) ||
+            array_key_exists("work_schedule_is_flextime", $selectedColumns) ||
 
             array_key_exists("employee_id"              , $selectedColumns) ||
             array_key_exists("employee_code"            , $selectedColumns) ||
@@ -174,7 +176,6 @@ class AttendanceDao
                     attendance.work_schedule_id = work_schedule.id
             ";
         }
-
 
         if (array_key_exists("employee_code"     , $selectedColumns) ||
             array_key_exists("employee_full_name", $selectedColumns) ||
@@ -280,9 +281,9 @@ class AttendanceDao
             SELECT SQL_CALC_FOUND_ROWS
                 " . implode(", ", $selectedColumns) . "
             FROM
-                attendances AS attendance
-            WHERE
-                " . implode(" AND ", $whereClauses) . "
+                attendance
+            {$joinClauses}
+            " . (empty($whereClauses) ? "" : "WHERE " . implode(" AND ", $whereClauses)) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}

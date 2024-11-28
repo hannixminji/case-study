@@ -21,8 +21,6 @@ try {
         $options
     );
 
-    $pdo->exec('SET time_zone = "Asia/Manila"');
-
 } catch (PDOException $exception) {
     error_log('Database Connection Error: Unable to connect to the database. ' .
               'Exception Message: ' . $exception->getMessage());

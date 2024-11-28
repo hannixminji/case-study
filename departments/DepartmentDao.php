@@ -61,11 +61,11 @@ class DepartmentDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                        => "department.id                 AS id"                         ,

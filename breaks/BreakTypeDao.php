@@ -17,16 +17,16 @@ class BreakTypeDao
     {
         $query = "
             INSERT INTO break_types (
-                name                          ,
-                duration_in_minutes           ,
-                is_paid                       ,
-                require_break_in_and_break_out
+                name                             ,
+                duration_in_minutes              ,
+                is_paid                          ,
+                is_require_break_in_and_break_out
             )
             VALUES (
-                :name                          ,
-                :duration_in_minutes           ,
-                :is_paid                       ,
-                :require_break_in_and_break_out
+                :name                             ,
+                :duration_in_minutes              ,
+                :is_paid                          ,
+                :is_require_break_in_and_break_out
             )
         ";
 
@@ -35,10 +35,10 @@ class BreakTypeDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"                          , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
-            $statement->bindValue(":duration_in_minutes"           , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
-            $statement->bindValue(":is_paid"                       , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
-            $statement->bindValue(":require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
+            $statement->bindValue(":name"                             , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
+            $statement->bindValue(":duration_in_minutes"              , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
+            $statement->bindValue(":is_paid"                          , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
+            $statement->bindValue(":is_require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
 
             $statement->execute();
 
@@ -68,14 +68,14 @@ class BreakTypeDao
         ?int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                             => "break_type.id                             AS id"                            ,
-            "name"                           => "break_type.name                           AS name"                          ,
-            "duration_in_minutes"            => "break_type.duration_in_minutes            AS duration_in_minutes"           ,
-            "is_paid"                        => "break_type.is_paid                        AS is_paid"                       ,
-            "require_break_in_and_break_out" => "break_type.require_break_in_and_break_out AS require_break_in_and_break_out",
-            "created_at"                     => "break_type.created_at                     AS created_at"                    ,
-            "updated_at"                     => "break_type.updated_at                     AS updated_at"                    ,
-            "deleted_at"                     => "break_type.deleted_at                     AS deleted_at"
+            "id"                                => "break_type.id                                AS id"                               ,
+            "name"                              => "break_type.name                              AS name"                             ,
+            "duration_in_minutes"               => "break_type.duration_in_minutes               AS duration_in_minutes"              ,
+            "is_paid"                           => "break_type.is_paid                           AS is_paid"                          ,
+            "is_require_break_in_and_break_out" => "break_type.is_require_break_in_and_break_out AS is_require_break_in_and_break_out",
+            "created_at"                        => "break_type.created_at                        AS created_at"                       ,
+            "updated_at"                        => "break_type.updated_at                        AS updated_at"                       ,
+            "deleted_at"                        => "break_type.deleted_at                        AS deleted_at"
         ];
 
         $selectedColumns =
@@ -196,10 +196,10 @@ class BreakTypeDao
         $query = "
             UPDATE break_types
             SET
-                name                           = :name                          ,
-                duration_in_minutes            = :duration_in_minutes           ,
-                is_paid                        = :is_paid                       ,
-                require_break_in_and_break_out = :require_break_in_and_break_out
+                name                              = :name                             ,
+                duration_in_minutes               = :duration_in_minutes              ,
+                is_paid                           = :is_paid                          ,
+                is_require_break_in_and_break_out = :is_require_break_in_and_break_out
 
             WHERE
                 id = :break_type_id
@@ -210,11 +210,11 @@ class BreakTypeDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"                          , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
-            $statement->bindValue(":duration_in_minutes"           , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
-            $statement->bindValue(":is_paid"                       , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
-            $statement->bindValue(":break_type_id"                 , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
-            $statement->bindValue(":require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
+            $statement->bindValue(":name"                             , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
+            $statement->bindValue(":duration_in_minutes"              , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
+            $statement->bindValue(":is_paid"                          , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
+            $statement->bindValue(":break_type_id"                    , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
+            $statement->bindValue(":is_require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
 
             $statement->execute();
 

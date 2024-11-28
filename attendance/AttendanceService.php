@@ -44,7 +44,7 @@ class AttendanceService
 
         if ($employeeId === ActionResult::FAILURE) {
             return [
-                'status'  => 'error',
+                'status'  => 'error1',
                 'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
@@ -53,14 +53,14 @@ class AttendanceService
 
         if ($isOnLeave === ActionResult::FAILURE) {
             return [
-                'status'  => 'error',
+                'status'  => 'error2',
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
         }
 
         if ($isOnLeave) {
             return [
-                'status'  => 'error',
+                'status'  => 'error3',
                 'message' => 'You are currently on leave. You cannot check in or check out.'
             ];
         }
@@ -69,9 +69,13 @@ class AttendanceService
 
         if ($lastAttendanceRecord === ActionResult::FAILURE) {
             return [
-                'status'  => 'error',
+                'status'  => 'error4',
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
+        }
+
+        if ( ! empty($lastAttendanceRecord)) {
+            $lastAttendanceRecord = $lastAttendanceRecord[0];
         }
 
         $currentDateTime = new DateTime($currentDateTime );
@@ -90,7 +94,7 @@ class AttendanceService
 
             if ($workSchedules === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error5',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -106,7 +110,7 @@ class AttendanceService
 
             if (empty($currentWorkSchedule)) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error6',
                     'message' => 'Your scheduled work has already ended.'
                 ];
             }
@@ -115,7 +119,7 @@ class AttendanceService
 
             if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
                 return [
-                    'status' => 'error',
+                    'status' => 'error7',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -126,7 +130,7 @@ class AttendanceService
 
             if ($currentTime < $earliestCheckInTime) {
                 return [
-                    'status' => 'error',
+                    'status' => 'error8',
                     'message' => 'You are not allowed to check in early.'
                 ];
             }
@@ -139,7 +143,7 @@ class AttendanceService
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
-                        'status' => 'error',
+                        'status' => 'error9',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
@@ -147,7 +151,6 @@ class AttendanceService
                 $startTime = new DateTime($currentWorkSchedule['start_time']);
                 $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
 
-                $currentDateTime = new DateTime($currentTime);
                 $currentTimeOnly = $currentDateTime->format('H:i:s');
 
                 if ($currentTimeOnly > $adjustedStartTime->format('H:i:s')) {
@@ -157,18 +160,26 @@ class AttendanceService
             }
 
             $attendance = new Attendance(
-                workScheduleId  : $currentWorkSchedule['id']                     ,
-                date            : $currentDate                                   ,
-                checkInTime     : $currentDateTime->format('Y-m-d H:i:s'),
-                lateCheckIn     : $lateCheckIn                                   ,
-                attendanceStatus: $attendanceStatus
+                id               : null,
+                workScheduleId   : $currentWorkSchedule['id'],
+                date             : $currentDate,
+                checkInTime      : $currentDateTime->format('Y-m-d H:i:s'),
+                checkOutTime     : null,
+                totalBreakDurationInMinutes: null,
+                totalHoursWorked : null,
+                lateCheckIn      : $lateCheckIn,
+                earlyCheckOut    : null,
+                overtimeHours    : null,
+                isOvertimeApproved: null,
+                attendanceStatus : $attendanceStatus,
+                remarks          : null
             );
 
             $result = $this->attendanceRepository->checkIn($attendance);
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error10',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -180,7 +191,7 @@ class AttendanceService
                 'id'                            ,
                 'start_time'                    ,
                 'break_type_duration_in_minutes',
-                'is_flexible'                   ,
+                'is_flextime'                   ,
                 'earliest_start_time'           ,
                 'latest_end_time'               ,
                 'break_type_is_paid'
@@ -202,7 +213,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error11',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -211,6 +222,7 @@ class AttendanceService
 
             $employeeBreakColumns = [
                 'id'                               ,
+                'employee_id'                      ,
                 'break_schedule_id'                ,
                 'break_schedule_start_time'        ,
                 'start_time'                       ,
@@ -221,8 +233,8 @@ class AttendanceService
 
             $filterCriteria = [
                 [
-                    'column'   => 'employee_break.employee_id',
-                    'operator' => '='                          ,
+                    'column'   => 'work_schedule.employee_id',
+                    'operator' => '='                        ,
                     'value'    => $employeeId
                 ]
             ];
@@ -246,7 +258,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error12',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -271,7 +283,7 @@ class AttendanceService
 
                         if ($result === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error13',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -280,7 +292,7 @@ class AttendanceService
 
                         if ($lastBreakRecord === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error14',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -294,7 +306,7 @@ class AttendanceService
 
                         if ($result === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error15',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -332,17 +344,17 @@ class AttendanceService
             $totalBreakDurationInMinutes = $unpaidBreakDurationInMinutes + $paidBreakDurationInMinutes;
 
             $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
-            $checkOutTime = $currentDateTime;
+            $checkOutTime = new DateTime($currentDateTime->format('Y-m-d H:i:s'));
             $totalWorkDuration = $checkInTime->diff($checkOutTime);
-            $totalHoursWorked = ($totalWorkDuration->h * 60 + $totalWorkDuration->i - $unpaidBreakDurationInMinutes) / 60;
 
-            $checkOutTime          = $currentTime;
-            $workScheduleStartTime = (new DateTime($lastAttendanceRecord['work_schedule_start_time']))->format('H:i:s');
-            $workScheduleEndTime   = (new DateTime($lastAttendanceRecord['work_schedule_end_time'  ]))->format('H:i:s');
+            $totalMinutesWorked = ($totalWorkDuration->days * 24 * 60) + ($totalWorkDuration->h * 60) + $totalWorkDuration->i;
+            $totalMinutesWorked -= $unpaidBreakDurationInMinutes;
 
-            $checkOutTime          = new DateTime($checkOutTime);
-            $workScheduleStartTime = new DateTime($workScheduleStartTime);
-            $workScheduleEndTime   = new DateTime($workScheduleEndTime);
+            $totalHoursWorked = $totalMinutesWorked / 60;
+            $totalHoursWorked = round($totalHoursWorked, 2);
+
+            $workScheduleStartTime = new DateTime((new DateTime($lastAttendanceRecord['work_schedule_start_time']))->format('H:i:s'));
+            $workScheduleEndTime = new DateTime((new DateTime($lastAttendanceRecord['work_schedule_end_time']))->format('H:i:s'));
 
             $earlyCheckOutMinutes = 0;
             $overtimeHours = 0;
@@ -352,12 +364,11 @@ class AttendanceService
             }
 
             if ($checkOutTime < $workScheduleEndTime) {
-                $diff = $checkOutTime->diff($workScheduleEndTime);
-                $earlyCheckOutMinutes = $diff->h * 60 + $diff->i;
-                $attendanceStatus = 'Undertime';
-            } else {
-                $overtimeDuration = $checkOutTime->diff($workScheduleEndTime);
-                $overtimeHours = $overtimeDuration->h + ($overtimeDuration->i / 60);
+                $earlyCheckOutDuration = $workScheduleEndTime->diff($checkOutTime);
+                $earlyCheckOutMinutes = ($earlyCheckOutDuration->h * 60) + $earlyCheckOutDuration->i;
+                if ($earlyCheckOutMinutes !== 0) {
+                    $attendanceStatus = 'Undertime';
+                }
             }
 
             $attendance = new Attendance(
@@ -365,19 +376,22 @@ class AttendanceService
                 workScheduleId             : $lastAttendanceRecord['work_schedule_id'],
                 date                       : $lastAttendanceRecord['date'],
                 checkInTime                : $lastAttendanceRecord['check_in_time'],
-                checkOutTime               : $currentDateTime->format('Y-m-d H:i:s'),
+                checkOutTime               : $checkOutTime->format('Y-m-d H:i:s'),
                 totalBreakDurationInMinutes: $totalBreakDurationInMinutes,
                 totalHoursWorked           : $totalHoursWorked,
+                lateCheckIn                : $lastAttendanceRecord['late_check_in'],
                 earlyCheckOut              : $earlyCheckOutMinutes,
                 overtimeHours              : $overtimeHours,
-                attendanceStatus           : $attendanceStatus
+                isOvertimeApproved         : false,
+                attendanceStatus           : $attendanceStatus,
+                remarks                    : null
             );
 
             $result = $this->attendanceRepository->checkOut($attendance);
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error16',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }

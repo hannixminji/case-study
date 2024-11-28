@@ -38,16 +38,18 @@ class AttendanceRepository
             'work_schedule_id'                 ,
             'work_schedule_start_time'         ,
             'work_schedule_end_time'           ,
-            'work_schedule_is_flexible'        ,
+            'work_schedule_is_flextime'        ,
+            'employee_id'                      ,
             'date'                             ,
             'check_in_time'                    ,
             'check_out_time'                   ,
+            'late_check_in'                    ,
             'attendance_status'
         ];
 
         $filterCriteria = [
             [
-                'column'   => 'attendance.employee_id',
+                'column'   => 'work_schedule.employee_id',
                 'operator' => '=',
                 'value'    => $employeeId
             ]
@@ -75,7 +77,7 @@ class AttendanceRepository
             return ActionResult::FAILURE;
         }
 
-        return $result['result_set'][0];
+        return $result['result_set'];
     }
 
     public function updateAttendance(Attendance $attendance): ActionResult
