@@ -111,7 +111,7 @@ class AttendanceService
                 ];
             }
 
-            $minutesCanCheckInBeforeShift = $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
+            $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
             if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
                 return [
