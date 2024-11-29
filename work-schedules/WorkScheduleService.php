@@ -1,9 +1,7 @@
 <?php
 
 require_once __DIR__ . '/WorkSchedule.php'                            ;
-
 require_once __DIR__ . '/WorkScheduleRepository.php'                  ;
-
 require_once __DIR__ . '/../includes/enums/WorkScheduleEditOption.php';
 
 class WorkScheduleService

@@ -55,6 +55,9 @@ $currentDateTime = '2024-11-27 06:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
+
+Eto yung sa break in at out, kada tap matatawag toh $employeeBreakService->handleRfidTap($rfidUid, $currentDateTime);
+
 $currentDateTime = '2024-11-26 22:00:00';
 
 $response = $employeeBreakService->handleRfidTap($rfidUid, $currentDateTime);
