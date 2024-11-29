@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/AttendanceService.php';
 require_once __DIR__ . '/../database/database.php';
+require_once __DIR__ . '/../breaks/EmployeeBreakService.php';
 
 $attendanceDao    = new AttendanceDao($pdo);
 $employeeDao      = new EmployeeDao($pdo);
@@ -29,15 +30,35 @@ $attendanceService = new AttendanceService(
     $employeeBreakRepository
 );
 
+$employeeBreakService = new EmployeeBreakService(
+    $employeeBreakRepository,
+    $employeeRepository,
+    $attendanceRepository,
+    $breakScheduleRepository
+);
+
 $rfidUid = '123456789';
-$currentDateTime = '2024-11-25 22:00:00';
+
+$currentDateTime = '2024-11-26 22:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
-$currentDateTime = '2024-11-26 00:00:00';
+$currentDateTime = '2024-11-27 06:00:00';
+
+$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+/*
+
+
+
+
+$currentDateTime = '2024-11-27 06:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
+$currentDateTime = '2024-11-26 22:00:00';
+
+$response = $employeeBreakService->handleRfidTap($rfidUid, $currentDateTime);
+*/
 echo '<pre>';
 print_r($response);
 echo '<pre>';

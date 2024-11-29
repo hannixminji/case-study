@@ -32,7 +32,7 @@ class EmployeeBreakService
 
         if ($employeeId === ActionResult::FAILURE) {
             return [
-                'status'  => 'error',
+                'status'  => 'error1',
                 'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
@@ -41,16 +41,20 @@ class EmployeeBreakService
 
         if ($lastAttendanceRecord === ActionResult::FAILURE) {
             return [
-                'status'  => 'error',
+                'status'  => 'error2',
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
+        }
+
+        if ( ! empty($lastAttendanceRecord)) {
+            $lastAttendanceRecord = $lastAttendanceRecord[0];
         }
 
         if ( empty($lastAttendanceRecord) ||
             ($lastAttendanceRecord['check_in_time' ] !== null  &&
              $lastAttendanceRecord['check_out_time'] !== null)) {
             return [
-                'status'  => 'error',
+                'status'  => 'error3',
                 'message' => 'You cannot take a break without checking in first.',
             ];
         }
@@ -84,9 +88,13 @@ class EmployeeBreakService
 
             if ($lastBreakRecord === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error4',
                     'message' => 'An unexpected error occurred. Please try again later.',
                 ];
+            }
+
+            if ( ! empty($lastBreakRecord)) {
+                $lastBreakRecord = $lastBreakRecord[0];
             }
 
             if ( empty($lastBreakRecord) ||
@@ -98,12 +106,13 @@ class EmployeeBreakService
                 $workScheduleId = (int) $lastAttendanceRecord['work_schedule_id'];
 
                 $columns = [
-                    'id'                            ,
-                    'start_time'                    ,
-                    'break_type_duration_in_minutes',
-                    'is_flexible'                   ,
-                    'earliest_start_time'           ,
-                    'latest_end_time'
+                    'id'                               ,
+                    'start_time'                       ,
+                    'break_type_duration_in_minutes'   ,
+                    'is_flexible'                      ,
+                    'earliest_start_time'              ,
+                    'latest_end_time'                  ,
+                    'is_require_break_in_and_break_out'
                 ];
 
                 $filterCriteria = [
@@ -119,10 +128,11 @@ class EmployeeBreakService
                 ];
 
                 $breakSchedules = $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria);
+                $breakSchedules = $breakSchedules['result_set'];
 
                 if ($breakSchedules === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error',
+                        'status'  => 'error5',
                         'message' => 'An unexpected error occurred. Please try again later.',
                     ];
                 }
@@ -145,7 +155,7 @@ class EmployeeBreakService
 
                 if ( ! $currentBreakSchedule['is_require_break_in_and_break_out']) {
                     return [
-                        'status'  => 'error',
+                        'status'  => 'warning',
                         'message' => 'Break-in and break-out times are not required for this schedule.',
                     ];
                 }
@@ -162,22 +172,28 @@ class EmployeeBreakService
                 }
 
                 if ($currentTime < $breakScheduleStartTime) {
+                    $formattedStartTime = (new DateTime($breakScheduleStartTime))->format('g:i A');
+                    $formattedEndTime = (new DateTime($breakScheduleEndTime))->format('g:i A');
+
                     return [
                         'status'  => 'error',
-                        'message' => "The break time has not started yet. Your scheduled break is from $breakScheduleStartTime to $breakScheduleEndTime.",
+                        'message' => "The break time has not started yet. Your scheduled break is from $formattedStartTime to $formattedEndTime.",
                     ];
                 }
 
                 $employeeBreak = new EmployeeBreak(
-                    breakScheduleId: $currentBreakSchedule['id'],
-                    startTime      : $currentTime
+                    id                    : null                       ,
+                    breakScheduleId       : $currentBreakSchedule['id'],
+                    startTime             : $currentDateTime->format('Y-m-d H:i:s'),
+                    endTime               : null                       ,
+                    breakDurationInMinutes: 0
                 );
 
                 $result = $this->employeeBreakRepository->breakIn($employeeBreak);
 
                 if ($result === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error',
+                        'status'  => 'error6',
                         'message' => 'An unexpected error occurred. Please try again later.',
                     ];
                 }
@@ -192,7 +208,7 @@ class EmployeeBreakService
                     id                    : $lastBreakRecord['id'               ],
                     breakScheduleId       : $lastBreakRecord['break_schedule_id'],
                     startTime             : $lastBreakRecord['start_time'       ],
-                    endTime               : $currentTime                         ,
+                    endTime               : $currentDateTime->format('Y-m-d H:i:s'),
                     breakDurationInMinutes: $breakDurationInMinutes
                 );
 
@@ -200,7 +216,7 @@ class EmployeeBreakService
 
                 if ($result === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error',
+                        'status'  => 'error7',
                         'message' => 'An unexpected error occurred. Please try again later.',
                     ];
                 }
@@ -235,6 +251,8 @@ class EmployeeBreakService
                     ->modify('+' . $breakSchedule['break_type_duration_in_minutes'] . ' minutes')
                     ->format('H:i:s');
 
+                $breakSchedule['end_time'] = $endTime;
+
                 if ($endTime < $startTime) {
                     if ($currentTime >= $startTime || $currentTime <= $endTime) {
                         $currentBreakSchedule = $breakSchedule;
@@ -247,7 +265,7 @@ class EmployeeBreakService
                     }
                 }
 
-                if (empty($nextBreakSchedule) && $currentTime < $breakSchedule['start_time']) {
+                if (empty($nextBreakSchedule) && $currentTime < $startTime) {
                     $nextBreakSchedule = $breakSchedule;
                 }
 
@@ -275,12 +293,6 @@ class EmployeeBreakService
 
         if (empty($currentBreakSchedule) && ! empty($nextBreakSchedule)) {
             $currentBreakSchedule = $nextBreakSchedule;
-
-            if ( ! $currentBreakSchedule['is_flexible']) {
-                $currentBreakSchedule['end_time'] = (new DateTime($currentBreakSchedule['start_time']))
-                    ->modify('+' . $currentBreakSchedule['break_type_duration_in_minutes'] . ' minutes')
-                    ->format('H:i:s');
-            }
         }
 
         return $currentBreakSchedule;

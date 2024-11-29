@@ -70,22 +70,23 @@ class BreakScheduleDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                             => "break_schedule.id                  AS id"                   ,
-            "work_schedule_id"               => "break_schedule.work_schedule_id    AS work_schedule_id"     ,
+            "id"                                => "break_schedule.id                            AS id"                               ,
+            "work_schedule_id"                  => "break_schedule.work_schedule_id              AS work_schedule_id"                 ,
 
-            "break_type_id"                  => "break_schedule.break_type_id       AS break_type_id"        ,
-            "break_type_name"                => "break_type.name                    AS break_type_name"      ,
-            "break_type_duration_in_minutes" => "break_type.duration_in_minutes     AS break_type_duration"  ,
-            "break_type_is_paid"             => "break_type.is_paid                 AS break_type_is_paid"   ,
-            "break_type_deleted_at"          => "break_type.deleted_at              AS break_type_deleted_at",
+            "break_type_id"                     => "break_schedule.break_type_id                 AS break_type_id"                    ,
+            "break_type_name"                   => "break_type.name                              AS break_type_name"                  ,
+            "break_type_duration_in_minutes"    => "break_type.duration_in_minutes               AS break_type_duration_in_minutes"   ,
+            "break_type_is_paid"                => "break_type.is_paid                           AS break_type_is_paid"               ,
+            "is_require_break_in_and_break_out" => "break_type.is_require_break_in_and_break_out AS is_require_break_in_and_break_out",
+            "break_type_deleted_at"             => "break_type.deleted_at                        AS break_type_deleted_at"            ,
 
-            "start_time"                     => "break_schedule.start_time          AS start_time"           ,
-            "is_flexible"                    => "break_schedule.is_flexible         AS is_flexible"          ,
-            "earliest_start_time"            => "break_schedule.earliest_start_time AS earliest_start_time"  ,
-            "latest_end_time"                => "break_schedule.latest_end_time     AS latest_end_time"      ,
-            "created_at"                     => "break_schedule.created_at          AS created_at"           ,
-            "updated_at"                     => "break_schedule.updated_at          AS updated_at"           ,
-            "deleted_at"                     => "break_schedule.deleted_at          AS deleted_at"
+            "start_time"                        => "break_schedule.start_time                    AS start_time"                       ,
+            "is_flexible"                       => "break_schedule.is_flexible                   AS is_flexible"                      ,
+            "earliest_start_time"               => "break_schedule.earliest_start_time           AS earliest_start_time"              ,
+            "latest_end_time"                   => "break_schedule.latest_end_time               AS latest_end_time"                  ,
+            "created_at"                        => "break_schedule.created_at                    AS created_at"                       ,
+            "updated_at"                        => "break_schedule.updated_at                    AS updated_at"                       ,
+            "deleted_at"                        => "break_schedule.deleted_at                    AS deleted_at"
         ];
 
         $selectedColumns =
@@ -98,10 +99,11 @@ class BreakScheduleDao
 
         $joinClauses = "";
 
-        if (array_key_exists("break_type_name"      , $selectedColumns) ||
-            array_key_exists("break_type_duration"  , $selectedColumns) ||
-            array_key_exists("break_type_is_paid"   , $selectedColumns) ||
-            array_key_exists("break_type_deleted_at", $selectedColumns)) {
+        if (array_key_exists("break_type_name"                  , $selectedColumns) ||
+            array_key_exists("break_type_duration_in_minutes"   , $selectedColumns) ||
+            array_key_exists("break_type_is_paid"               , $selectedColumns) ||
+            array_key_exists("is_require_break_in_and_break_out", $selectedColumns) ||
+            array_key_exists("break_type_deleted_at"            , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     break_types AS break_type
@@ -215,7 +217,7 @@ class BreakScheduleDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break schedules. " .
                       "Exception: {$exception->getMessage()}");
-
+            echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

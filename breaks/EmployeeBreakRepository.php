@@ -35,6 +35,7 @@ class EmployeeBreakRepository
     {
         $columns = [
             'id'                               ,
+            'employee_id'                      ,
             'break_schedule_id'                ,
             'break_schedule_start_time'        ,
             'start_time'                       ,
@@ -46,8 +47,8 @@ class EmployeeBreakRepository
 
         $filterCriteria = [
             [
-                'column'   => 'employee_break.employee_id',
-                'operator' => '='                          ,
+                'column'   => 'work_schedule.employee_id',
+                'operator' => '='                        ,
                 'value'    => $employeeId
             ]
         ];
@@ -59,6 +60,10 @@ class EmployeeBreakRepository
             ],
             [
                 'column'    => 'employee_break.start_time',
+                'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'employee_break.id',
                 'direction' => 'DESC'
             ]
         ];
@@ -74,7 +79,7 @@ class EmployeeBreakRepository
             return ActionResult::FAILURE;
         }
 
-        return $result['result_set'][0];
+        return $result['result_set'];
     }
 
     public function fetchTotalBreakDuration(int $workScheduleId, string $startTime, string $endTime): ActionResult|int

@@ -63,6 +63,14 @@ class AttendanceRepository
             [
                 'column'    => 'attendance.check_in_time',
                 'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'attendance.created_at',
+                'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'attendance.id',
+                'direction' => 'DESC'
             ]
         ];
 
