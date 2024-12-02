@@ -41,6 +41,74 @@ class LeaveRequestRepository
         return $this->leaveRequestDao->isEmployeeOnLeave($employeeId);
     }
 
+    public function getLeaveDatesForPeriod(int $employeeId, string $startDate, string $endDate): ActionResult|array
+    {
+        $columns = [
+            'leave_type_is_paid',
+            'start_date'        ,
+            'end_date'          ,
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'leave_request.employee_id',
+                'operator' => '=',
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'leave_request.status',
+                'operator' => '=',
+                'value'    => "'Approved'"
+            ],
+            [
+                'column'   => 'leave_request.start_date',
+                'operator' => '<=',
+                'value'    => $endDate
+            ],
+            [
+                'column'   => 'leave_request.end_date',
+                'operator' => '>=',
+                'value'    => $startDate
+            ]
+        ];
+
+        $leaveRequests = $this->leaveRequestDao->fetchAll($columns, $filterCriteria);
+
+        if ($leaveRequests === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        $leaveRequests = $leaveRequests['result_set'];
+
+        $datesMarkedAsLeave = [];
+
+        $startDate = new DateTime  ($startDate);
+        $endDate   = new DateTime  ($endDate  );
+        $period    = new DatePeriod($startDate, new DateInterval('P1D'), $endDate->modify('+1 day'));
+
+        foreach ($period as $date) {
+            $datesMarkedAsLeave[$date->format('Y-m-d')] = [
+                'is_leave' => false,
+                'is_paid'  => null
+            ];
+        }
+
+        foreach ($leaveRequests as $leaveRequest) {
+            $leaveStartDate = new DateTime  ($leaveRequest['start_date']);
+            $leaveEndDate   = new DateTime  ($leaveRequest['end_date'  ]);
+            $leavePeriod    = new DatePeriod($leaveStartDate, new DateInterval('P1D'), $leaveEndDate->modify('+1 day'));
+
+            foreach ($leavePeriod as $date) {
+                $datesMarkedAsLeave[$date->format('Y-m-d')] = [
+                    'is_leave' => true,
+                    'is_paid'  => $leaveRequest['leave_type_is_paid']
+                ];
+            }
+        }
+
+        return $datesMarkedAsLeave;
+    }
+
     public function deleteLeaveRequest(int $leaveRequestId): ActionResult
     {
         return $this->leaveRequestDao->delete($leaveRequestId);

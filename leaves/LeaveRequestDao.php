@@ -81,6 +81,7 @@ class LeaveRequestDao
             "employee_manager_id"      => "employee.manager_id            AS employee_manager_id"     ,
             "leave_type_id"            => "leave_request.leave_type_id    AS leave_type_id"           ,
             "leave_type_name"          => "leave_type.name                AS leave_type_name"         ,
+            "leave_type_is_paid"       => "leave_type.is_paid             AS leave_type_is_paid"      ,
             "start_date"               => "leave_request.start_date       AS start_date"              ,
             "end_date"                 => "leave_request.end_date         AS end_date"                ,
             "reason"                   => "leave_request.reason           AS reason"                  ,
@@ -152,7 +153,8 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("leave_type_name", $selectedColumns)) {
+        if (array_key_exists("leave_type_name"   , $selectedColumns) ||
+            array_key_exists("leave_type_is_paid", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type

@@ -72,6 +72,7 @@ class DepartmentDao
             "name"                      => "department.name               AS name"                       ,
             "department_head_id"        => "department.department_head_id AS department_head_id"         ,
             "department_head_full_name" => "department_head.full_name     AS department_head_full_name"  ,
+            "description"               => "department.description        AS description"                ,
             "status"                    => "department.status             AS status"                     ,
             "created_at"                => "department.created_at         AS created_at"                 ,
             "updated_at"                => "department.updated_at         AS updated_at"                 ,

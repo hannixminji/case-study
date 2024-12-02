@@ -915,3 +915,321 @@ echo '<pre>';
 
         return round($withholdingTax, 2);
     }
+
+<?php
+
+public function generatePaySlips(PayrollGroup $payrollGroup): array
+	{
+		$columns = [
+			'id'           ,
+			'hourly_rate'  ,
+			'annual_salary'
+		];
+
+		$filterCriteria = [
+			[
+				'column'   => 'employee.access_role',
+				'operator' => '!=',
+				'value'    => "'Admin'"
+			],
+			[
+				'column'   => 'employee.payroll_group_id',
+				'operator' => '=',
+				'value'    => $payrollGroup->getId()
+			],
+		];
+
+		$employees = $this->employeeRepository->fetchAll($columns, $filterCriteria);
+
+		if ($employees === ActionResult::FAILURE) {
+			return [
+				'status'  => 'error',
+				'message' => ''
+			];
+		}
+
+		if (empty($employees)) {
+			return [
+				'status'  => 'error',
+				'message' => ''
+			];
+		}
+
+		$employees = $employees['result_set'];
+
+        $cutoffStartDate = new DateTime($cutoffStartDate);
+        $cutoffEndDate   = new DateTime($cutoffEndDate  );
+
+		foreach ($employees as $employee) {
+		    $employeeId = $employee['id'];
+
+		    $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
+		        $employeeId,
+		        $cutoffStartDate->format('Y-m-d'),
+		        $cutoffEndDate->format('Y-m-d')
+            );
+
+            $columns = [];
+
+            $filterCriteria = [
+                [
+                    'column'   => 'work_schedule.employee_id',
+                    'operator' => '=',
+                    'value'    => $employeeId
+                ],
+                [
+                    'column'   => 'attendance.date',
+                    'operator' => '>=',
+                    'value'    => $cutoffStartDate->format('Y-m-d')
+                ],
+                                [
+                    'column'   => 'attendance.date',
+                    'operator' => '<=',
+                    'value'    =>  $cutoffEndDate->format('Y-m-d')
+                ]
+            ];
+
+            $attendanceRecords = $this->attendanceRepository->fetchAll($columns, $filterCriteria);
+
+            if ($attendanceRecords === ActionResult::FAILURE) {
+    			return [
+    				'status'  => 'error',
+    				'message' => ''
+    			];
+    		}
+		}
+	}
+
+    private function fetchEmployeeAllowances(int $employeeId): ActionResult|array
+    {
+        $columns = [
+            'id'                      ,
+            'allowance_id'            ,
+            'allowance_is_taxable'    ,
+            'allowance_frequency'     ,
+            'allowance_status'        ,
+            'allowance_effective_date',
+            'allowance_end_date'      ,
+            'amount'
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'employee_allowance.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
+                'column'   => 'employee_allowance.employee_id',
+                'operator' => '='
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'allowance.status'
+                'operator' => '='
+                'value'    => "'Active'"
+            ]
+        ];
+
+        $employeeAllowances = $this->employeeAllowanceRepository->fetchAll($columns, $filterCriteria);
+
+        if ($employeeAllowances === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return empty($employeeAllowances)
+            ? []
+            : $employeeAllowances['result_set'];
+    }
+
+
+<?php
+
+    public function generatePaySlips(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate): array|null
+	{
+		$employeeColumns = [
+			'id'           ,
+			'job_title_id' ,
+			'department_id',
+			'hourly_rate'  ,
+			'annual_salary'
+		];
+
+		$filterCriteria = [
+			[
+				'column'   => 'employee.access_role',
+				'operator' => '!=',
+				'value'    => "'Admin'"
+			],
+			[
+				'column'   => 'employee.payroll_group_id',
+				'operator' => '=',
+				'value'    => $payrollGroup->getId()
+			],
+		];
+
+		$employees = $this->employeeRepository->fetchAll($employeeColumns, $filterCriteria);
+
+		if ($employees === ActionResult::FAILURE) {
+			return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+		}
+
+		if (empty($employees) || empty($employees['result_set'])) {
+			return null;
+		}
+
+		$employees = $employees['result_set'];
+
+        $cutoffStartDate = new DateTime($cutoffStartDate);
+        $cutoffEndDate   = new DateTime($cutoffEndDate  );
+
+		foreach ($employees as $employee) {
+		    $employeeId   = $employee['id'           ];
+		    $jobTitleId   = $employee['job_title_id' ];
+		    $departmentId = $employee['department_id'];
+
+		    $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
+		        $employeeId,
+		        $cutoffStartDate->format('Y-m-d'),
+		        $cutoffEndDate->format('Y-m-d')
+            );
+
+            if ($workSchedules === ActionResult::FAILURE) {
+    			return [
+    				'status'  => 'error',
+    				'message' => 'An unexpected error occurred. Please try again later.'
+    			];
+    		}
+
+            if ( ! empty($workSchedules)) {
+                $attendanceColumns = [];
+
+                $filterCriteria = [
+                    [
+                        'column'   => 'work_schedule.employee_id',
+                        'operator' => '=',
+                        'value'    => $employeeId
+                    ],
+                    [
+                        'column'   => 'attendance.date',
+                        'operator' => '>=',
+                        'value'    => $cutoffStartDate->format('Y-m-d')
+                    ],
+                                    [
+                        'column'   => 'attendance.date',
+                        'operator' => '<=',
+                        'value'    =>  $cutoffEndDate->format('Y-m-d')
+                    ]
+                ];
+
+                $attendanceRecords = $this->attendanceRepository->fetchAll($attendanceColumns, $filterCriteria);
+
+                if ($attendanceRecords === ActionResult::FAILURE) {
+        			return [
+        				'status'  => 'error',
+        				'message' => 'An unexpected error occurred. Please try again later.'
+        			];
+        		}
+
+                if ( ! empty($attendanceRecords)) {
+                    $records = [];
+
+                    foreach ($workSchedules as $date => $schedules) {
+                        foreach ($schedules as $workSchedule) {
+                            $isAttendanceRecordFound = false;
+
+                            foreach ($attendanceRecords as $attendanceRecord) {
+                                if ($attendanceRecord['date'] === $date && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
+                                    $isAttendanceRecordFound = true;
+
+                                    $records[$date][] = [
+                                        'work_schedule'     => $workSchedule    ,
+                                        'attendance_record' => $attendanceRecord
+                                    ];
+
+                                    break;
+                                }
+                            }
+
+                            if ( ! $isAttendanceRecordFound) {
+                                $records[$date][] = [
+                                    'work_schedule'     => $workSchedule,
+                                    'attendance_record' => []
+                                ];
+                            }
+                        }
+                    }
+
+                    $overtimeRateAssignment = new OvertimeRateAssignment(
+                        id          : null         ,
+                        departmentId: $departmentId,
+                        jobTitleId  : $jobTitleId  ,
+                        employeeId  : $employeeId
+                    );
+
+                    $overtimeRateAssignmentId = $this->overtimeRateAssignmentRepository->findId($overtimeRateAssignment);
+
+                    if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
+            			return [
+            				'status'  => 'error',
+            				'message' => 'An unexpected error occurred. Please try again later.'
+            			];
+                    }
+
+                    $overtimeRates = $this->overtimeRateRepository->fetchOvertimeRates( (int) $overtimeRateAssignmentId);
+
+                    if ($overtimeRates === ActionResult::FAILURE) {
+            			return [
+            				'status'  => 'error',
+            				'message' => 'An unexpected error occurred. Please try again later.'
+            			];
+                    }
+
+
+                }
+            }
+		}
+	}
+
+    private function fetchEmployeeAllowances(int $employeeId): ActionResult|array
+    {
+        $columns = [
+            'id'                      ,
+            'allowance_id'            ,
+            'allowance_is_taxable'    ,
+            'allowance_frequency'     ,
+            'allowance_status'        ,
+            'allowance_effective_date',
+            'allowance_end_date'      ,
+            'amount'
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'employee_allowance.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
+                'column'   => 'employee_allowance.employee_id',
+                'operator' => '='
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'allowance.status'
+                'operator' => '='
+                'value'    => "'Active'"
+            ]
+        ];
+
+        $employeeAllowances = $this->employeeAllowanceRepository->fetchAll($columns, $filterCriteria);
+
+        if ($employeeAllowances === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return empty($employeeAllowances)
+            ? []
+            : $employeeAllowances['result_set'];
+    }

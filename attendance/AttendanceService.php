@@ -45,7 +45,7 @@ class AttendanceService
 
         if ($employeeId === ActionResult::FAILURE) {
             return [
-                'status'  => 'error1',
+                'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
@@ -54,14 +54,14 @@ class AttendanceService
 
         if ($isOnLeave === ActionResult::FAILURE) {
             return [
-                'status'  => 'error2',
+                'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
         }
 
         if ($isOnLeave) {
             return [
-                'status'  => 'error3',
+                'status'  => 'error',
                 'message' => 'You are currently on leave. You cannot check in or check out.'
             ];
         }
@@ -70,7 +70,7 @@ class AttendanceService
 
         if ($lastAttendanceRecord === ActionResult::FAILURE) {
             return [
-                'status'  => 'error4',
+                'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
         }
@@ -95,7 +95,7 @@ class AttendanceService
 
             if ($workSchedules === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error5',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -111,7 +111,7 @@ class AttendanceService
 
             if (empty($currentWorkSchedule)) {
                 return [
-                    'status'  => 'error6',
+                    'status'  => 'error',
                     'message' => 'Your scheduled work has already ended.'
                 ];
             }
@@ -120,7 +120,7 @@ class AttendanceService
 
             if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
                 return [
-                    'status' => 'error7',
+                    'status' => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -131,7 +131,7 @@ class AttendanceService
 
             if ($currentTime < $earliestCheckInTime) {
                 return [
-                    'status' => 'error8',
+                    'status' => 'error',
                     'message' => 'You are not allowed to check in early.'
                 ];
             }
@@ -144,7 +144,7 @@ class AttendanceService
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
-                        'status' => 'error9',
+                        'status' => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
@@ -180,7 +180,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error10',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -223,7 +223,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error11',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -274,7 +274,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error12',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -302,7 +302,7 @@ class AttendanceService
 
                         if ($result === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error13',
+                                'status'  => 'error',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -311,7 +311,7 @@ class AttendanceService
 
                         if ($lastBreakRecord === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error14',
+                                'status'  => 'error',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -330,13 +330,13 @@ class AttendanceService
 
                         if ($result === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error15',
+                                'status'  => 'error',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
                     } else {
                         foreach ($employeeBreaks as $employeeBreak) {
-                            if ($employeeBreak['break_schedule_id'] === $breakSchedule['id'] && $employeeBreak['start_time'] !== null && $employeeBreak['end_time'] !== null) {
+                            if ($employeeBreak['break_schedule_id'] === $breakSchedule['id'] && ($employeeBreak['start_time'] !== null && $employeeBreak['end_time'] !== null)) {
                                 if ($employeeBreak['break_duration_in_minutes'] > $breakSchedule['break_type_duration_in_minutes']) {
                                     if ( ! $breakSchedule['break_type_is_paid']) {
                                         $unpaidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
@@ -380,19 +380,21 @@ class AttendanceService
             $earlyCheckOutInMinutes = 0;
             $overtimeHours          = 0;
 
-            if ($checkOutTime < $workScheduleEndTime) {
-                $interval = $workScheduleEndTime->diff($checkOutTime);
+            if ( ! $lastAttendanceRecord['work_schedule_is_flextime']) {
+                if ($checkOutTime < $workScheduleEndTime) {
+                    $interval = $workScheduleEndTime->diff($checkOutTime);
 
-                $earlyCheckOutInMinutes = $interval->h * 60 + $interval->i;
+                    $earlyCheckOutInMinutes = $interval->h * 60 + $interval->i;
 
-                $attendanceStatus = 'Undertime';
-            } elseif ($checkOutTime > $workScheduleEndTime) {
-                $interval = $workScheduleEndTime->diff($checkOutTime);
+                    $attendanceStatus = 'Undertime';
+                } elseif ($checkOutTime > $workScheduleEndTime) {
+                    $interval = $workScheduleEndTime->diff($checkOutTime);
 
-                $overtimeHours = ($interval->days * 24) + $interval->h + ($interval->i / 60);
-                $overtimeHours = round($overtimeHours, 2);
+                    $overtimeHours = ($interval->days * 24) + $interval->h + ($interval->i / 60);
+                    $overtimeHours = round($overtimeHours, 2);
 
-                $attendanceStatus = 'Overtime';
+                    $attendanceStatus = 'Overtime';
+                }
             }
 
             $attendance = new Attendance(
