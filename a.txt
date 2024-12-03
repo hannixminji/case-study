@@ -1233,3 +1233,186 @@ public function generatePaySlips(PayrollGroup $payrollGroup): array
             ? []
             : $employeeAllowances['result_set'];
     }
+
+<?php
+
+function getHolidayDatesForPeriod(string $startDate, string $endDate, array $holidays): array
+{
+    $datesMarkedAsHoliday = [];
+
+    $startDateObj = new DateTime($startDate);
+    $endDateObj   = new DateTime($endDate);
+    $period       = new DatePeriod($startDateObj, new DateInterval('P1D'), $endDateObj->modify('+1 day'));
+
+    // Initialize the array with date keys
+    foreach ($period as $date) {
+        $datesMarkedAsHoliday[$date->format('Y-m-d')] = [];
+    }
+
+    foreach ($holidays as $holiday) {
+        $holidayStartDate = new DateTime($holiday['start_date']);
+        $holidayEndDate   = new DateTime($holiday['end_date']);
+        $holidayPeriod    = new DatePeriod($holidayStartDate, new DateInterval('P1D'), $holidayEndDate->modify('+1 day'));
+
+        if ($holiday['is_recurring_annually']) {
+            foreach ($holidayPeriod as $holidayDate) {
+                $monthDay = $holidayDate->format('m-d');
+
+                foreach ($period as $date) {
+                    if ($date->format('m-d') === $monthDay) {
+                        $key = $date->format('Y-m-d');
+                        if (isset($datesMarkedAsHoliday[$key])) {
+                            $datesMarkedAsHoliday[$key][] = $holiday['name'];
+                        }
+                    }
+                }
+            }
+        } else {
+            foreach ($holidayPeriod as $holidayDate) {
+                $key = $holidayDate->format('Y-m-d');
+                if (isset($datesMarkedAsHoliday[$key])) {
+                    $datesMarkedAsHoliday[$key][] = $holiday['name'];
+                }
+            }
+        }
+    }
+
+    return $datesMarkedAsHoliday;
+}
+
+// Example holidays
+$holidays = [
+    [
+        'name' => 'Christmas',
+        'start_date' => '2024-11-25',
+        'end_date'   => '2024-12-27',
+        'is_recurring_annually' => false
+    ],
+    [
+        'name' => 'New Year',
+        'start_date' => '2024-12-25',
+        'end_date'   => '2024-12-25',
+        'is_recurring_annually' => true
+    ],
+    [
+        'name' => 'Independence Day',
+        'start_date' => '2024-07-04',
+        'end_date'   => '2024-07-04',
+        'is_recurring_annually' => true
+    ]
+];
+
+$startDate = '2024-12-24';
+$endDate   = '2024-12-31';
+
+$results = getHolidayDatesForPeriod($startDate, $endDate, $holidays);
+print_r($results);
+
+<?php
+$workSchedules = [
+    '2024-11-13' => [
+        [
+            'id' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'is_flextime' => '',
+            'recurrence_rule' => 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE,TH,FR,SA,SU;'
+        ],
+        [
+            'id' => 2,
+            'start_time' => '12:00:00',
+            'end_time' => '15:00:00',
+            'is_flextime' => '',
+            'recurrence_rule' => 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=TU,WE;'
+        ],
+        [
+            'id' => 3,
+            'start_time' => '15:00:00',
+            'end_time' => '18:00:00',
+            'is_flextime' => '',
+            'recurrence_rule' => 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,WE;'
+        ]
+    ],
+    '2024-11-14' => [
+        [
+            'id' => 1,
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'is_flextime' => '',
+            'recurrence_rule' => 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE,TH,FR,SA,SU;'
+        ]
+    ],
+];
+
+$attendanceRecords = [
+    [
+        'work_schedule_id' => 1,
+        'date' => '2024-11-13',
+    ],
+    [
+        'work_schedule_id' => 2,
+        'date' => '2024-11-13',
+    ],
+    [
+        'work_schedule_id' => 3,
+        'date' => '2024-11-13',
+    ]
+];
+
+$mappedAttendanceRecords = [];
+
+foreach ($workSchedules as $date => $schedules) {
+    foreach ($schedules as $workSchedule) {
+        $attendanceFound = false;
+
+        foreach ($attendanceRecords as $attendanceRecord) {
+            if ($attendanceRecord['date'] === $date && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
+                $attendanceFound = true;
+                $mappedAttendanceRecords[$date][] = [
+                    'work_schedule' => $workSchedule,
+                    'attendance_record' => $attendanceRecord
+                ];
+                break;
+            }
+        }
+
+        if (!$attendanceFound) {
+            $mappedAttendanceRecords[$date][] = [
+                'work_schedule' => $workSchedule,
+                'attendance_record' => []
+            ];
+        }
+    }
+}
+
+echo '<pre>';
+print_r($mappedAttendanceRecords);
+echo '</pre>';
+?>
+
+
+                    $totalDaysPresent        = 0;
+                    $totalDaysAbsent         = 0;
+                    $totalPartialAbsent      = 0;
+                    $totalMinutesLate        = 0;
+                    $totalUndertimeInMinutes = 0;
+                    $totalOvertimeHours      = 0;
+
+                    $isWorkDay = true ;
+                    $isRestDay = false;
+
+                    foreach ($records as $date => $recordEntries) {
+                        $dayOfWeek = (new DateTime($date))->format('l');
+
+                        $isWorkDay = true ;
+                        $isRestDay = false;
+
+                        if ($dayOfWeek === 'Sunday') {
+                            $isWorkDay = false;
+                            $isRestDay = true ;
+                        }
+
+                        foreach ($recordEntries as $record) {
+
+                        }
+                    }

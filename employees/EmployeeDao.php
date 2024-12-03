@@ -48,7 +48,7 @@ class EmployeeDao
                 access_role                    ,
 
                 payroll_group_id               ,
-                base_salary                    ,
+                annual_salary                   ,
                 hourly_rate                    ,
 
                 tin_number                     ,
@@ -98,7 +98,7 @@ class EmployeeDao
                 :access_role                    ,
 
                 :payroll_group_id               ,
-                :base_salary                    ,
+                :annual_salary                  ,
                 :hourly_rate                    ,
 
                 :tin_number                     ,
@@ -154,7 +154,7 @@ class EmployeeDao
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));
-            $statement->bindValue(":base_salary"                    , $employee->getBaseSalary()                  , Helper::getPdoParameterType($employee->getBaseSalary()                  ));
+            $statement->bindValue(":annual_salary"                  , $employee->getAnnualSalary()                , Helper::getPdoParameterType($employee->getAnnualSalary()                ));
             $statement->bindValue(":hourly_rate"                    , $employee->getHourlyRate()                  , Helper::getPdoParameterType($employee->getHourlyRate()                  ));
 
             $statement->bindValue(":tin_number"                     , $employee->getTinNumber()                   , Helper::getPdoParameterType($employee->getTinNumber()                   ));
@@ -197,11 +197,11 @@ class EmployeeDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                              => "employee.id                              AS id"                             ,
@@ -245,7 +245,8 @@ class EmployeeDao
             "access_role"                     => "employee.access_role                     AS access_role"                    ,
 
             "payroll_group_id"                => "employee.payroll_group_id                AS payroll_group_id"               ,
-            "base_salary"                     => "employee.base_salary                     AS base_salary"                    ,
+            "payroll_group_deleted_at"        => "payroll_group.deleted_at                 AS payroll_group_deleted_at"       ,
+            "annual_salary"                   => "employee.annual_salary                   AS annual_salary"                  ,
             "hourly_rate"                     => "employee.hourly_rate                     AS hourly_rate"                    ,
 
             "tin_number"                      => "employee.tin_number                      AS tin_number"                     ,
@@ -319,7 +320,7 @@ class EmployeeDao
             ";
         }
 
-        if (array_key_exists("payroll_group_id", $selectedColumns)) {
+        if (array_key_exists("payroll_group_deleted_at", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     payroll_groups AS payroll_group
@@ -344,6 +345,10 @@ class EmployeeDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+                        break;
+
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
                         break;
 
                     case "BETWEEN":
@@ -474,7 +479,7 @@ class EmployeeDao
                 access_role                     = :access_role                    ,
 
                 payroll_group_id                = :payroll_group_id               ,
-                base_salary                     = :base_salary                    ,
+                annual_salary                   = :annual_salary                  ,
                 hourly_rate                     = :hourly_rate                    ,
 
                 tin_number                      = :tin_number                     ,
@@ -532,7 +537,7 @@ class EmployeeDao
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));
-            $statement->bindValue(":base_salary"                    , $employee->getBaseSalary()                  , Helper::getPdoParameterType($employee->getBaseSalary()                  ));
+            $statement->bindValue(":annual_salary"                  , $employee->getAnnualSalary()                , Helper::getPdoParameterType($employee->getAnnualSalary()                ));
             $statement->bindValue(":hourly_rate"                    , $employee->getHourlyRate()                  , Helper::getPdoParameterType($employee->getHourlyRate()                  ));
 
             $statement->bindValue(":tin_number"                     , $employee->getTinNumber()                   , Helper::getPdoParameterType($employee->getTinNumber()                   ));

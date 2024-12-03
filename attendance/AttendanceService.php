@@ -387,6 +387,7 @@ class AttendanceService
                     $earlyCheckOutInMinutes = $interval->h * 60 + $interval->i;
 
                     $attendanceStatus = 'Undertime';
+
                 } elseif ($checkOutTime > $workScheduleEndTime) {
                     $interval = $workScheduleEndTime->diff($checkOutTime);
 

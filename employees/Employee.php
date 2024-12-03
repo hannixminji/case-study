@@ -3,59 +3,59 @@
 class Employee
 {
     public function __construct(
-        private readonly ? int    $id                              = null,
-        private readonly   string $rfid_uid                              ,
+        private readonly ? int    $id                           = null,
+        private readonly   string $rfidUid                            ,
 
-        private readonly   string $first_name                            ,
-        private readonly ? string $middle_name                     = null,
-        private readonly   string $last_name                             ,
-        private readonly   string $date_of_birth                         ,
-        private readonly   string $gender                                ,
-        private readonly   string $marital_status                        ,
-        private readonly   string $nationality                           ,
-        private readonly ? string $religion                        = null,
-        private readonly   string $phone_number                          ,
-        private readonly   string $email_address                         ,
-        private readonly   string $address                               ,
-        private readonly ? string $profile_picture                 = null,
+        private readonly   string $firstName                          ,
+        private readonly ? string $middleName                   = null,
+        private readonly   string $lastName                           ,
+        private readonly   string $dateOfBirth                        ,
+        private readonly   string $gender                             ,
+        private readonly   string $maritalStatus                      ,
+        private readonly   string $nationality                        ,
+        private readonly ? string $religion                     = null,
+        private readonly   string $phoneNumber                        ,
+        private readonly   string $emailAddress                       ,
+        private readonly   string $address                            ,
+        private readonly ? string $profilePicture               = null,
 
-        private readonly   string $emergency_contact_name                ,
-        private readonly   string $emergency_contact_relationship        ,
-        private readonly   string $emergency_contact_phone_number        ,
-        private readonly ? string $emergency_contact_email_address = null,
-        private readonly ? string $emergency_contact_address       = null,
+        private readonly   string $emergencyContactName               ,
+        private readonly   string $emergencyContactRelationship       ,
+        private readonly   string $emergencyContactPhoneNumber        ,
+        private readonly ? string $emergencyContactEmailAddress = null,
+        private readonly ? string $emergencyContactAddress      = null,
 
-        private readonly   string $employee_code                         ,
-        private readonly   int    $job_title_id                          ,
-        private readonly   int    $department_id                         ,
-        private readonly   string $employment_type                       ,
-        private readonly   string $date_of_hire                          ,
-        private readonly ? int    $supervisor_id                   = null,
-        private readonly ? int    $manager_id                      = null,
-        private readonly   string $access_role                           ,
+        private readonly   string $employeeCode                       ,
+        private readonly   int    $jobTitleId                         ,
+        private readonly   int    $departmentId                       ,
+        private readonly   string $employmentType                     ,
+        private readonly   string $dateOfHire                         ,
+        private readonly ? int    $supervisorId                 = null,
+        private readonly ? int    $managerId                    = null,
+        private readonly   string $accessRole                         ,
 
-        private readonly   int    $payroll_group_id                     ,
-        private readonly ? float  $base_salary                     = null,
-        private readonly ? float  $hourly_rate                     = null,
+        private readonly   int    $payrollGroupId                     ,
+        private readonly ? float  $annualSalary                 = null,
+        private readonly ? float  $hourlyRate                   = null,
 
-        private readonly   string $tin_number                            ,
-        private readonly   string $sss_number                            ,
-        private readonly   string $philhealth_number                     ,
-        private readonly   string $pagibig_fund_number                   ,
+        private readonly   string $tinNumber                          ,
+        private readonly   string $sssNumber                          ,
+        private readonly   string $philhealthNumber                   ,
+        private readonly   string $pagibigFundNumber                  ,
 
-        private readonly   string $bank_name                             ,
-        private readonly   string $bank_branch_name                      ,
-        private readonly   string $bank_account_number                   ,
-        private readonly   string $bank_account_type                     ,
+        private readonly   string $bankName                           ,
+        private readonly   string $bankBranchName                     ,
+        private readonly   string $bankAccountNumber                  ,
+        private readonly   string $bankAccountType                    ,
 
-        private readonly   string $username                              ,
-        private readonly   string $password                              ,
+        private readonly   string $username                           ,
+        private readonly   string $password                           ,
 
-        private readonly ? string $notes                           = null,
+        private readonly ? string $notes                        = null,
 
-        private readonly   string $created_at                            ,
-        private readonly   string $updated_at                            ,
-        private readonly ? string $deleted_at                      = null,
+        private readonly   string $createdAt                          ,
+        private readonly   string $updatedAt                          ,
+        private readonly ? string $deletedAt                    = null
     ) {
     }
 
@@ -64,23 +64,23 @@ class Employee
     }
 
     public function getRfidUid(): string {
-        return $this->rfid_uid;
+        return $this->rfidUid;
     }
 
     public function getFirstName(): string {
-        return $this->first_name;
+        return $this->firstName;
     }
 
     public function getMiddleName(): ?string {
-        return $this->middle_name;
+        return $this->middleName;
     }
 
     public function getLastName(): string {
-        return $this->last_name;
+        return $this->lastName;
     }
 
     public function getDateOfBirth(): string {
-        return $this->date_of_birth;
+        return $this->dateOfBirth;
     }
 
     public function getGender(): string {
@@ -88,7 +88,7 @@ class Employee
     }
 
     public function getMaritalStatus(): string {
-        return $this->marital_status;
+        return $this->maritalStatus;
     }
 
     public function getNationality(): string {
@@ -100,11 +100,11 @@ class Employee
     }
 
     public function getPhoneNumber(): string {
-        return $this->phone_number;
+        return $this->phoneNumber;
     }
 
     public function getEmailAddress(): string {
-        return $this->email_address;
+        return $this->emailAddress;
     }
 
     public function getAddress(): string {
@@ -112,103 +112,103 @@ class Employee
     }
 
     public function getProfilePicture(): ?string {
-        return $this->profile_picture;
+        return $this->profilePicture;
     }
 
     public function getEmergencyContactName(): string {
-        return $this->emergency_contact_name;
+        return $this->emergencyContactName;
     }
 
     public function getEmergencyContactRelationship(): string {
-        return $this->emergency_contact_relationship;
+        return $this->emergencyContactRelationship;
     }
 
     public function getEmergencyContactPhoneNumber(): string {
-        return $this->emergency_contact_phone_number;
+        return $this->emergencyContactPhoneNumber;
     }
 
     public function getEmergencyContactEmailAddress(): ?string {
-        return $this->emergency_contact_email_address;
+        return $this->emergencyContactEmailAddress;
     }
 
     public function getEmergencyContactAddress(): ?string {
-        return $this->emergency_contact_address;
+        return $this->emergencyContactAddress;
     }
 
     public function getEmployeeCode(): string {
-        return $this->employee_code;
+        return $this->employeeCode;
     }
 
     public function getJobTitleId(): int {
-        return $this->job_title_id;
+        return $this->jobTitleId;
     }
 
     public function getDepartmentId(): int {
-        return $this->department_id;
+        return $this->departmentId;
     }
 
     public function getEmploymentType(): string {
-        return $this->employment_type;
+        return $this->employmentType;
     }
 
     public function getDateOfHire(): string {
-        return $this->date_of_hire;
+        return $this->dateOfHire;
     }
 
     public function getSupervisorId(): ?int {
-        return $this->supervisor_id;
+        return $this->supervisorId;
     }
 
     public function getManagerId(): ?int {
-        return $this->manager_id;
+        return $this->managerId;
     }
 
     public function getAccessRole(): string {
-        return $this->access_role;
+        return $this->accessRole;
     }
 
     public function getPayrollGroupId(): int {
-        return $this->payroll_group_id;
+        return $this->payrollGroupId;
     }
 
-    public function getBaseSalary(): ?float {
-        return $this->base_salary;
+    public function getAnnualSalary(): ?float {
+        return $this->annualSalary;
     }
 
     public function getHourlyRate(): ?float {
-        return $this->hourly_rate;
+        return $this->hourlyRate;
     }
 
     public function getTinNumber(): string {
-        return $this->tin_number;
+        return $this->tinNumber;
     }
 
     public function getSssNumber(): string {
-        return $this->sss_number;
+        return $this->sssNumber;
     }
 
     public function getPhilhealthNumber(): string {
-        return $this->philhealth_number;
+        return $this->philhealthNumber;
     }
 
     public function getPagibigFundNumber(): string {
-        return $this->pagibig_fund_number;
+        return $this->pagibigFundNumber;
     }
 
     public function getBankName(): string {
-        return $this->bank_name;
+        return $this->bankName;
     }
 
     public function getBankBranchName(): string {
-        return $this->bank_branch_name;
+        return $this->bankBranchName;
     }
 
     public function getBankAccountNumber(): string {
-        return $this->bank_account_number;
+        return $this->bankAccountNumber;
     }
 
     public function getBankAccountType(): string {
-        return $this->bank_account_type;
+        return $this->bankAccountType;
     }
 
     public function getUsername(): string {
@@ -224,14 +224,14 @@ class Employee
     }
 
     public function getCreatedAt(): string {
-        return $this->created_at;
+        return $this->createdAt;
     }
 
     public function getUpdatedAt(): string {
-        return $this->updated_at;
+        return $this->updatedAt;
     }
 
     public function getDeletedAt(): ?string {
-        return $this->deleted_at;
+        return $this->deletedAt;
     }
 }

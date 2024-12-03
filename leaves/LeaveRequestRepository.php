@@ -82,27 +82,31 @@ class LeaveRequestRepository
 
         $datesMarkedAsLeave = [];
 
-        $startDate = new DateTime  ($startDate);
-        $endDate   = new DateTime  ($endDate  );
-        $period    = new DatePeriod($startDate, new DateInterval('P1D'), $endDate->modify('+1 day'));
+        $startDate  = new DateTime  ($startDate);
+        $endDate    = new DateTime  ($endDate  );
+        $datePeriod = new DatePeriod($startDate, new DateInterval('P1D'), $endDate->modify('+1 day'));
 
-        foreach ($period as $date) {
+        foreach ($datePeriod as $date) {
             $datesMarkedAsLeave[$date->format('Y-m-d')] = [
                 'is_leave' => false,
-                'is_paid'  => null
+                'is_paid'  => false
             ];
         }
 
         foreach ($leaveRequests as $leaveRequest) {
-            $leaveStartDate = new DateTime  ($leaveRequest['start_date']);
-            $leaveEndDate   = new DateTime  ($leaveRequest['end_date'  ]);
-            $leavePeriod    = new DatePeriod($leaveStartDate, new DateInterval('P1D'), $leaveEndDate->modify('+1 day'));
+            $leaveStartDate  = new DateTime  ($leaveRequest['start_date']);
+            $leaveEndDate    = new DateTime  ($leaveRequest['end_date'  ]);
+            $leaveDatePeriod = new DatePeriod($leaveStartDate, new DateInterval('P1D'), $leaveEndDate->modify('+1 day'));
 
-            foreach ($leavePeriod as $date) {
-                $datesMarkedAsLeave[$date->format('Y-m-d')] = [
-                    'is_leave' => true,
-                    'is_paid'  => $leaveRequest['leave_type_is_paid']
-                ];
+            $isPaid = $leaveRequest['leave_type_is_paid'];
+
+            foreach ($leaveDatePeriod as $leaveDate) {
+                if (isset($datesMarkedAsLeave[$leaveDate->format('Y-m-d')])) {
+                    $datesMarkedAsLeave[$leaveDate->format('Y-m-d')] = [
+                        'is_leave' => true,
+                        'is_paid'  => $isPaid
+                    ];
+                }
             }
         }
 

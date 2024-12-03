@@ -27,6 +27,7 @@ class JobTitleDao
                 :department_id,
                 :description  ,
                 :status
+            )
         ";
 
         try {
