@@ -107,6 +107,9 @@ class EmployeeBreakDao
             "work_schedule_id"                  => "break_schedule.work_schedule_id               AS work_schedule_id"                 ,
             "break_type_id"                     => "break_schedule.break_type_id                  AS break_type_id"                    ,
             "break_schedule_start_time"         => "break_schedule.start_time                     AS break_schedule_start_time"        ,
+            "break_schedule_is_flexible"        => "break_schedule.is_flexible                    AS is_flexible"                      ,
+            "break_schedule_earliest_start_time"=> "break_schedule.earliest_start_time            AS break_schedule_earliest_start_time",
+            "break_schedule_latest_end_time"    => "break_schedule.latest_end_time                AS break_schedule_latest_end_time"    ,
 
             "employee_id"                       => "work_schedule.employee_id                     AS employee_id"                      ,
             "work_schedule_start_time"          => "work_schedule.start_time                      AS work_schedule_start_time"         ,
@@ -130,7 +133,9 @@ class EmployeeBreakDao
 
         if (array_key_exists("work_schedule_id"                 , $selectedColumns) ||
             array_key_exists("break_type_id"                    , $selectedColumns) ||
-            array_key_exists("break_schedule_start_time"        , $selectedColumns) ||
+            array_key_exists("break_schedule_is_flexible"        , $selectedColumns) ||
+            array_key_exists("break_schedule_earliest_start_time", $selectedColumns) ||
+            array_key_exists("break_schedule_earliest_end_time"  , $selectedColumns) ||
 
             array_key_exists("employee_id"                      , $selectedColumns) ||
             array_key_exists("work_schedule_start_time"         , $selectedColumns) ||

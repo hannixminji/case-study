@@ -128,7 +128,6 @@ class EmployeeBreakService
                 ];
 
                 $breakSchedules = $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria);
-                $breakSchedules = $breakSchedules['result_set'];
 
                 if ($breakSchedules === ActionResult::FAILURE) {
                     return [
@@ -143,6 +142,8 @@ class EmployeeBreakService
                         'message' => 'No breaks have been scheduled for this schedule.',
                     ];
                 }
+
+                $breakSchedules = $breakSchedules['result_set'];
 
                 $currentBreakSchedule = $this->getCurrentBreakSchedule($breakSchedules, $currentTime);
 

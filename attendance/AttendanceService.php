@@ -152,10 +152,8 @@ class AttendanceService
                 $startTime = new DateTime($currentWorkSchedule['start_time']);
                 $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
 
-                $currentTimeOnly = $currentDateTime->format('H:i:s');
-
-                if ($currentTimeOnly > $adjustedStartTime->format('H:i:s')) {
-                    $lateCheckIn = ceil(($currentDateTime->getTimestamp() - $adjustedStartTime->getTimestamp()) / 60);
+                if ($currentTime > $adjustedStartTime->format('H:i:s')) {
+                    $lateCheckIn = ceil(((new DateTime($currentDateTime->format('H:i:s')))->getTimestamp() - (new DateTime($startTime->format('H:i:s')))->getTimestamp()) / 60);
                     $attendanceStatus = 'Late';
                 }
             }

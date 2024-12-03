@@ -10,6 +10,9 @@ require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php'          
 require_once __DIR__ . '/../holidays/HolidayRepository.php'                     ;
 require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'                  ;
 require_once __DIR__ . '/../allowances/EmployeeAllowanceRepository.php'         ;
+require_once __DIR__ . '/../settings/SettingRepository.php'                     ;
+require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'                 ;
+require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'                 ;
 
 class PayslipService
 {
@@ -21,6 +24,9 @@ class PayslipService
     private readonly HolidayRepository                $holidayRepository               ;
     private readonly LeaveRequestRepository           $leaveRequestRepository          ;
     private readonly EmployeeAllowanceRepository      $employeeAllowanceRepository     ;
+    private readonly SettingRepository                $settingRepository               ;
+    private readonly EmployeeBreakRepository          $employeeBreakRepository         ;
+    private readonly BreakScheduleRepository          $breakScheduleRepository         ;
 
     public function __construct(
         EmployeeRepository               $employeeRepository              ,
@@ -30,7 +36,10 @@ class PayslipService
         OvertimeRateRepository           $overtimeRateRepository          ,
         HolidayRepository                $holidayRepository               ,
         LeaveRequestRepository           $leaveRequestRepository          ,
-        EmployeeAllowanceRepository      $employeeAllowanceRepository
+        EmployeeAllowanceRepository      $employeeAllowanceRepository     ,
+        SettingRepository                $settingRepository               ,
+        EmployeeBreakRepository          $employeeBreakRepository         ,
+        BreakScheduleRepository          $breakScheduleRepository
     ) {
         $this->employeeRepository               = $employeeRepository              ;
         $this->workScheduleRepository           = $workScheduleRepository          ;
@@ -40,6 +49,9 @@ class PayslipService
         $this->holidayRepository                = $holidayRepository               ;
         $this->leaveRequestRepository           = $leaveRequestRepository          ;
         $this->employeeAllowanceRepository      = $employeeAllowanceRepository     ;
+        $this->settingRepository                = $settingRepository               ;
+        $this->employeeBreakRepository          = $employeeBreakRepository         ;
+        $this->breakScheduleRepository          = $breakScheduleRepository         ;
     }
 
     public function generatePaySlips(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate): array|null
@@ -216,14 +228,6 @@ class PayslipService
                         }
                     }
 
-                    $totalDaysPresent        = 0;
-                    $totalDaysAbsent         = 0;
-                    $totalPartialAbsent      = 0;
-                    $totalMinutesLate        = 0;
-                    $totalUndertimeInMinutes = 0;
-                    $totalDaysUnpaidLeave    = 0;
-                    $totalDaysPaidLeave      = 0;
-
                     $hourSummary = [
                         'regular_day' => [
                             'non_holiday' => [
@@ -281,9 +285,9 @@ class PayslipService
 
                     foreach ($records as $date => $recordEntries) {
                         $dayOfWeek = (new DateTime($date))->format('l');
-                        $dayType   = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
 
-                        $isHoliday = empty($datesMarkedAsHoliday[$date]);
+                        $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                         $holidayType = 'non_holiday';
 
                         if ($isHoliday) {
@@ -297,13 +301,132 @@ class PayslipService
                         }
 
                         foreach ($recordEntries as $record) {
-                            $workSchedule     = $record['work_schedule'    ];
+                            $workSchedule = $record['work_schedule'];
                             $attendanceRecord = $record['attendance_record'];
 
-                            $attendanceCheckInTime  = new DateTime($attendanceRecord['check_in_time' ]);
-                            $attendanceCheckOutTime = new DateTime($attendanceRecord['check_out_time']);
+                            $workScheduleStartTime = new DateTime($workSchedule['start_time']);
+                            $workScheduleEndTime = new DateTime($workSchedule['end_time']);
+
+                            $workScheduleStartTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['start_time']))->format('H:i:s'));
+                            $workScheduleEndTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['end_time']))->format('H:i:s'));
+
+                            if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {
+                                $workScheduleEndTime->modify('+1 day');
+                            }
+
+                            $attendanceCheckInTime = new DateTime($attendanceRecord['check_in_time']);
+                            $attendanceCheckOutTime = $attendanceRecord['check_out_time']
+                                ? new DateTime($attendanceRecord['check_out_time'])
+                                : $workScheduleEndTime;
+
+                            if ( ! $workSchedule['is_flextime']) {
+                                if ($attendanceCheckInTime <= $workScheduleStartTime) {
+                                    $attendanceCheckInTime = $workScheduleStartTime;
+                                }
+
+                                $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
+
+                                if ($gracePeriod === ActionResult::FAILURE) {
+                                    return [
+                                        'status' => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $adjustedStartTime = (clone $workScheduleStartTime)->modify("+{$gracePeriod} minutes");
+
+                                if ($attendanceCheckInTime <= $adjustedStartTime) {
+                                    $attendanceCheckInTime = $workScheduleStartTime;
+                                }
+                            }
+
+                            $isOvertimeApproved = $attendanceRecord['is_overtime_approved'];
+
+                            $startMinutes = (int)$attendanceCheckInTime->format('i');
+                            if ($startMinutes > 0) {
+                                $remainingMinutes = 60 - $startMinutes;
+                                $hour = (int)$attendanceCheckInTime->format('H');
+                                $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                if ($isNightShift) {
+                                    if ($attendanceCheckInTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $remainingMinutes / 60;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
+                                    }
+                                } else {
+                                    if ($attendanceCheckInTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['overtime_hours'] += $remainingMinutes / 60;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
+                                    }
+                                }
+
+                                $attendanceCheckInTime->modify('+' . $remainingMinutes . ' minutes');
+                            }
+
+                            $endMinutes = (int)$attendanceCheckOutTime->format('i');
+                            if ($endMinutes > 0) {
+                                $roundedCheckOutTime = clone $attendanceCheckOutTime;
+                                $roundedCheckOutTime->modify('-' . $endMinutes . ' minutes');
+
+                                $hour = (int)$attendanceCheckOutTime->format('H');
+                                $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                if ($isNightShift) {
+                                    if ($roundedCheckOutTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $endMinutes / 60;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
+                                    }
+                                } else {
+                                    if ($roundedCheckOutTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['overtime_hours'] += $endMinutes / 60;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
+                                    }
+                                }
+
+                                $attendanceCheckOutTime = $roundedCheckOutTime;
+                            }
+
+                            $dateInterval = new DateInterval('PT1H');
+                            $datePeriod = new DatePeriod($attendanceCheckInTime, $dateInterval, $attendanceCheckOutTime);
+
+                            foreach ($datePeriod as $currentTime) {
+                                $hour = (int) $currentTime->format('H');
+                                $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                if ($isNightShift) {
+                                    if ($currentTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime']++;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['night_differential']++;
+                                    }
+                                } else {
+                                    if ($currentTime >= $workScheduleEndTime) {
+                                        if ($isOvertimeApproved) {
+                                            $hourSummary[$dayType][$holidayType]['overtime_hours']++;
+                                        }
+                                    } else {
+                                        $hourSummary[$dayType][$holidayType]['regular_hours']++;
+                                    }
+                                }
+                            }
                         }
                     }
+
+
 
                 }
             }
@@ -351,5 +474,67 @@ class PayslipService
         return empty($employeeAllowances)
             ? []
             : $employeeAllowances['result_set'];
+    }
+
+    private function getCurrentBreakSchedule(array $breakSchedules, string $currentTime): array
+    {
+        $currentBreakSchedule = [];
+        $nextBreakSchedule    = [];
+
+        $currentTime = (new DateTime($currentTime))->format('H:i:s');
+
+        foreach ($breakSchedules as $breakSchedule) {
+            if ( ! $breakSchedule['is_flexible']) {
+                $startTime = (new DateTime($breakSchedule['start_time']))->format('H:i:s');
+
+                $endTime = (new DateTime($breakSchedule['start_time']))
+                    ->modify('+' . $breakSchedule['break_type_duration_in_minutes'] . ' minutes')
+                    ->format('H:i:s');
+
+                $breakSchedule['end_time'] = $endTime;
+
+                if ($endTime < $startTime) {
+                    if ($currentTime >= $startTime || $currentTime <= $endTime) {
+                        $currentBreakSchedule = $breakSchedule;
+                        break;
+                    }
+                } else {
+                    if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                        $currentBreakSchedule = $breakSchedule;
+                        break;
+                    }
+                }
+
+                if (empty($nextBreakSchedule) && $currentTime < $startTime) {
+                    $nextBreakSchedule = $breakSchedule;
+                }
+
+            } else {
+                $earliestStartTime = (new DateTime($breakSchedule['earliest_start_time']))->format('H:i:s');
+                $latestEndTime     = (new DateTime($breakSchedule['latest_end_time'    ]))->format('H:i:s');
+
+                if ($latestEndTime < $earliestStartTime) {
+                    if ($currentTime >= $earliestStartTime || $currentTime <= $latestEndTime) {
+                        $currentBreakSchedule = $breakSchedule;
+                        break;
+                    }
+                } else {
+                    if ($currentTime >= $earliestStartTime && $currentTime <= $latestEndTime) {
+                        $currentBreakSchedule = $breakSchedule;
+                        break;
+                    }
+                }
+
+                if (empty($nextBreakSchedule) && $currentTime < $earliestStartTime) {
+                    $nextBreakSchedule = $breakSchedule;
+                }
+            }
+        }
+
+        if (empty($currentBreakSchedule) && ! empty($nextBreakSchedule)) {
+            $currentBreakSchedule = $nextBreakSchedule;
+        }
+
+        return $currentBreakSchedule;
     }
 }
