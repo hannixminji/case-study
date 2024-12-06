@@ -361,11 +361,15 @@ class EmployeeDao
                         break;
                 }
 
-                $whereClauses[] = " {$boolean} ";
+                if (isset($filterCriterion["boolean"])) {
+                    $whereClauses[] = " {$boolean} ";
+                }
             }
         }
 
-        array_pop($whereClauses);
+        if ( ! empty($whereClauses) && in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+            array_pop($whereClauses);
+        }
 
         $orderByClauses = [];
 
