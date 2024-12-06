@@ -201,6 +201,34 @@ class EmployeeBreakService
             } else {
                 $startTime = new DateTime($lastBreakRecord['start_time']);
                 $endTime = new DateTime($currentTime);
+                $breakTypeDurationInMinutes = $lastBreakRecord['break_type_duration_in_minutes'];
+
+                if ( ! $lastBreakRecord['break_schedule_is_flexible']) {
+                    $scheduleStartTime = new DateTime($lastBreakRecord['break_schedule_start_time']);
+
+                    $scheduleEndTime = clone $scheduleStartTime;
+                    $scheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                    $breakDate = $startTime->format('Y-m-d');
+                    $scheduleStartTime = new DateTime($breakDate . ' ' . $scheduleStartTime->format('H:i:s'));
+                    $scheduleEndTime = new DateTime($breakDate . ' ' . $scheduleEndTime->format('H:i:s'));
+
+                    if ($scheduleEndTime->format('H:i:s') < $scheduleStartTime->format('H:i:s')) {
+                        $scheduleEndTime->modify('+1 day');
+                    }
+
+                    $startTime = $scheduleStartTime;
+                    if ($endTime < $scheduleEndTime) {
+                        $endTime = $scheduleEndTime;
+                    }
+                } else {
+                    $expectedEndTime = clone $startTime;
+                    $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                    if ($endTime < $expectedEndTime) {
+                        $endTime = $expectedEndTime;
+                    }
+                }
 
                 $interval = $startTime->diff($endTime);
                 $breakDurationInMinutes = $interval->h * 60 + $interval->i;

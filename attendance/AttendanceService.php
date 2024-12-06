@@ -153,7 +153,7 @@ class AttendanceService
                 $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
 
                 if ($currentTime > $adjustedStartTime->format('H:i:s')) {
-                    $lateCheckIn = ceil(((new DateTime($currentDateTime->format('H:i:s')))->getTimestamp() - (new DateTime($startTime->format('H:i:s')))->getTimestamp()) / 60);
+                    $lateCheckIn = ceil(((new DateTime($currentDateTime->format('H:i:s')))->getTimestamp() - (new DateTime($adjustedStartTime->format('H:i:s')))->getTimestamp()) / 60);
                     $attendanceStatus = 'Late';
                 }
             }
@@ -240,6 +240,11 @@ class AttendanceService
             ];
 
             $filterCriteria = [
+                [
+                    'column'   => 'break_schedule.work_schedule_id',
+                    'operator' => '=',
+                    'value'    => $lastAttendanceRecord['work_schedule_id']
+                ],
                 [
                     'column'   => 'work_schedule.employee_id',
                     'operator' => '='                        ,

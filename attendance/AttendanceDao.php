@@ -119,9 +119,9 @@ class AttendanceDao
             "work_schedule_is_flextime"         => "work_schedule.is_flextime                  AS work_schedule_is_flextime"        ,
 
             "employee_id"                       => "work_schedule.employee_id                  AS employee_id"                      ,
-            "employee_code"                     => "employee.code                              AS employee_code"                    ,
+            "employee_code"                     => "employee.employee_code                     AS employee_code"                    ,
             "employee_full_name"                => "employee.full_name                         AS employee_full_name"               ,
-            "employee_supervisor_id"            => "employee_supervisor_id                     AS employee_supervisor_id"           ,
+            "employee_supervisor_id"            => "employee.supervisor_id                     AS employee_supervisor_id"           ,
             "employee_manager_id"               => "employee.manager_id                        AS employee_manager_id"              ,
             "department_id"                     => "department.id                              AS department_id"                    ,
             "department_name"                   => "department.name                            AS department_name"                  ,
@@ -314,7 +314,7 @@ class AttendanceDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the attendance records. " .
                       "Exception: {$exception->getMessage()}");
-
+echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

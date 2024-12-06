@@ -3,9 +3,9 @@ try {
     $pdo = new PDO('mysql:host=localhost;dbname=payroll', 'root', '');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $employee_id = 1005;  // Example employee_id (can be null)
-    $job_title_id = 102;  // Example job_title_id (can be null)
-    $department_id = 1;   // Example department_id (can be null)
+    $employee_id = null;  // Example employee_id (can be null)
+    $job_title_id = null;  // Example job_title_id (can be null)
+    $department_id = null;   // Example department_id (can be null)
 
     $query = "
     SELECT id

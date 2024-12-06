@@ -2351,3 +2351,459 @@ foreach ($records as $date => $recordEntries) {
 
 print_r($hourSummary);
 
+
+
+                    foreach ($workSchedules as $date => $schedules) {
+                        foreach ($schedules as $workSchedule) {
+                            $isAttendanceRecordFound = false;
+
+                            foreach ($attendanceRecords as $attendanceRecord) {
+                                if ($attendanceRecord['date'] === $date && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
+                                    $isAttendanceRecordFound = true;
+
+                                    $records[$date][] = [
+                                        'work_schedule'     => $workSchedule    ,
+                                        'attendance_record' => $attendanceRecord
+                                    ];
+
+                                    break;
+                                }
+                            }
+
+                            if ( ! $isAttendanceRecordFound) {
+                                $records[$date][] = [
+                                    'work_schedule'     => $workSchedule,
+                                    'attendance_record' => []
+                                ];
+                            }
+                        }
+                    }
+
+    public function findId(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
+    {
+        $a = $overtimeRateAssignment->getEmployeeId();
+        $b = $overtimeRateAssignment->getJobTitleId();
+        $c = $overtimeRateAssignment->getDepartmentId();
+
+        $query = "
+            SELECT
+                id
+            FROM
+                overtime_rate_assignments
+            WHERE
+                (employee_id = $a AND job_title_id = $b AND department_id = $c)
+            OR
+                (employee_id IS NULL        AND job_title_id = $b AND department_id = $c)
+            OR
+                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id = $c)
+            OR
+                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL        )
+            ORDER BY
+                CASE
+                    WHEN employee_id = $a AND job_title_id = $b AND department_id = $c THEN 1
+                    WHEN employee_id IS NULL        AND job_title_id = $b AND department_id = $c THEN 2
+                    WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id = $c THEN 3
+                    WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL          THEN 4
+                    ELSE 5
+                END
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->execute();
+
+            $result = $statement->fetchColumn();
+
+            return $result !== false
+                ? (int) $result
+                : ActionResult::NO_RECORD_FOUND;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the ID. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+                    $totalScheduledHours = 0;
+
+                    $uniqueWorkSchedules = [];
+
+                    foreach ($workSchedules as $date => $schedules) {
+                        $uniqueWorkSchedules = [];
+
+                        foreach ($schedules as $workSchedule) {
+                            $uniqueWorkSchedules[$workSchedule['id']] = $workSchedule;
+                        }
+
+                        foreach ($uniqueWorkSchedules as $uniqueWorkSchedule) {
+                            $startTime = new DateTime($uniqueWorkSchedule['start_time']);
+                            $endTime   = new DateTime($uniqueWorkSchedule['end_time'  ]);
+
+                            $interval = $startTime->diff($endTime);
+                            $totalScheduledHours += $interval->h + ($interval->i / 60);
+                        }
+                    }
+foreach ($defaultBreaks as $break) {
+                                        $breakStartTime = new DateTime($break['start_time']);
+                                        $breakEndTime = new DateTime($break['end_time']);
+
+                                        $dateInterval = new DateInterval('PT1H');
+                                        $breakPeriod = new DatePeriod($breakStartTime, $dateInterval, $breakEndTime);
+                                    }
+
+                                    foreach ($defaultBreaks as $break) {
+                                        $breakStartTime = new DateTime($break['start_time']);
+                                        $breakEndTime = new DateTime($break['end_time']);
+
+                                        $breakDurationInMinutes = $breakStartTime->diff($breakEndTime)->i;
+
+                                        if ($breakEndTime < $breakStartTime) {
+                                            $breakDurationInMinutes += 1440;
+                                        }
+
+                                        $dateInterval = new DateInterval('PT1H');
+                                        $breakPeriod = new DatePeriod($breakStartTime, $dateInterval, $breakEndTime);
+
+                                        foreach ($breakPeriod as $currentBreakTime) {
+                                            $currentDate = $currentBreakTime->format('Y-m-d');
+                                            $hour = (int) $currentBreakTime->format('i');
+
+                                            $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                            $dayOfWeek = (new DateTime($currentDate))->format('l');
+                                            $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                            $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
+                                            $holidayType = 'non_holiday';
+
+                                            if ($isHoliday) {
+                                                if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
+                                                    $holidayType = 'double_holiday';
+                                                } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                                    $holidayType = 'regular_holiday';
+                                                } else {
+                                                    $holidayType = 'special_holiday';
+                                                }
+                                            }
+
+                                            if ($isNightShift) {
+                                                if (isset($hourSummary[$dayType][$holidayType]['night_differential']) && $hourSummary[$dayType][$holidayType]['night_differential'] > 0) {
+                                                    $hourSummary[$dayType][$holidayType]['night_differential'] -= ($breakDurationInMinutes / 60);
+                                                }
+                                            } else {
+                                                if (isset($hourSummary[$dayType][$holidayType]['regular_hours']) && $hourSummary[$dayType][$holidayType]['regular_hours'] > 0) {
+                                                    $hourSummary[$dayType][$holidayType]['regular_hours'] -= ($breakDurationInMinutes / 60);
+                                                }
+                                            }
+                                        }
+                                    }
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+    public function generatePayslips(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate): ?array
+    {
+        $employees = $this->fetchEmployees($payrollGroup->getId());
+
+        if ($employees === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+        if (empty($employees)) {
+            return null;
+        }
+
+        foreach ($employees as $employee) {
+            $this->calculate($employee, $cutoffStartDate, $cutoffEndDate);
+        }
+    }
+
+    private function fetchEmployees(int $payrollGroupId): ActionResult|array
+    {
+        $columns = [
+            'id'           ,
+            'job_title_id' ,
+            'department_id',
+            'annual_salary',
+            'hourly_rate'
+        ];
+
+        $filterCriteria = [
+			[
+				'column'   => 'employee.access_role',
+				'operator' => '!=',
+				'value'    => "'Admin'"
+			],
+			[
+				'column'   => 'employee.payroll_group_id',
+				'operator' => '=',
+				'value'    => $payrollGroupId
+			]
+        ];
+
+        $actionResult = $this->employeeRepository->fetchAllEmployees($columns, $filterCriteria);
+
+        if ($actionResult === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $actionResult['result_set'];
+    }
+
+    private function calculate(array $employee, string $cutoffStartDate, string $cutoffEndDate): array
+    {
+        $cutoffStartDate = new DateTime($cutoffStartDate);
+        $cutoffEndDate   = new DateTime($cutoffEndDate  );
+
+        $formattedCutoffStartDate = $cutoffStartDate->format('Y-m-d');
+        $formattedCutoffEndDate   = $cutoffEndDate  ->format('Y-m-d');
+
+        $employeeId    = $employee['id'            ];
+        $jobTitleId    = $employee['job_title_id'  ];
+        $departmentId  = $employee['department_id' ];
+        $annualySalary = $employee['annualy_salary'];
+        $hourlyRate    = $employee['hourly_rate'   ];
+
+        $employeeWorkSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
+            $employeeId,
+            $formattedCutoffStartDate,
+            $formattedCutoffEndDate
+        );
+
+        if ($employeeWorkSchedules === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+        $employeeAttendanceRecords = $this->fetchEmployeeAttendanceRecords(
+            $employeeId,
+            $formattedCutoffStartDate,
+            $formattedCutoffEndDate
+        );
+
+        if ($employeeAttendanceRecords === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+    }
+
+    private function fetchEmployeeAttendanceRecords(string $cutoffStartDate, string $cutoffEndDate): ActionResult|array
+    {
+        $columns = [
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'work_schedule.employee_id',
+                'operator' => '=',
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '>=',
+                'value'    => $cutoffStartDate
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '<=',
+                'value'    =>  $cutoffEndDate
+            ]
+        ];
+
+        $actionResult = $this->attendanceRepository->fetchAllAttendance($columns, $filterCriteria);
+
+        if ($actionResult === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $actionResult['result_set'];
+    }
+
+
+<?php
+
+    public function generatePayslips(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate): ?array
+    {
+        $employees = $this->fetchEmployees($payrollGroup->getId());
+
+        if ($employees === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+        if (empty($employees)) {
+            return null;
+        }
+
+        foreach ($employees as $employee) {
+            $this->calculate($employee, $cutoffStartDate, $cutoffEndDate);
+        }
+    }
+
+    private function fetchEmployees(int $payrollGroupId): ActionResult|array
+    {
+        $columns = [
+            'id'           ,
+            'job_title_id' ,
+            'department_id',
+            'annual_salary',
+            'hourly_rate'
+        ];
+
+        $filterCriteria = [
+			[
+				'column'   => 'employee.access_role',
+				'operator' => '!=',
+				'value'    => "'Admin'"
+			],
+			[
+				'column'   => 'employee.payroll_group_id',
+				'operator' => '=',
+				'value'    => $payrollGroupId
+			]
+        ];
+
+        $actionResult = $this->employeeRepository->fetchAllEmployees($columns, $filterCriteria);
+
+        if ($actionResult === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $actionResult['result_set'];
+    }
+
+    private function calculate(array $employee, string $cutoffStartDate, string $cutoffEndDate): array
+    {
+        $cutoffStartDate = new DateTime($cutoffStartDate);
+        $cutoffEndDate   = new DateTime($cutoffEndDate  );
+
+        $formattedCutoffStartDate = $cutoffStartDate->format('Y-m-d');
+        $formattedCutoffEndDate   = $cutoffEndDate  ->format('Y-m-d');
+
+        $employeeId    = $employee['id'            ];
+        $jobTitleId    = $employee['job_title_id'  ];
+        $departmentId  = $employee['department_id' ];
+        $annualySalary = $employee['annualy_salary'];
+        $hourlyRate    = $employee['hourly_rate'   ];
+
+        $employeeWorkSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
+            $employeeId,
+            $formattedCutoffStartDate,
+            $formattedCutoffEndDate
+        );
+
+        if ($employeeWorkSchedules === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+        $employeeAttendanceRecords = $this->fetchEmployeeAttendanceRecords(
+            $employeeId,
+            $formattedCutoffStartDate,
+            $formattedCutoffEndDate
+        );
+
+        if ($employeeAttendanceRecords === ActionResult::FAILURE) {
+            return [
+				'status'  => 'error',
+				'message' => 'An unexpected error occurred. Please try again later.'
+			];
+        }
+
+        if ( ! $employeeAttendanceRecords) {
+
+        }
+    }
+
+    private function fetchEmployeeAttendanceRecords(string $cutoffStartDate, string $cutoffEndDate): ActionResult|array
+    {
+        $columns = [
+        ];
+
+        $filterCriteria = [
+            [
+                'column'   => 'work_schedule.employee_id',
+                'operator' => '=',
+                'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '>=',
+                'value'    => $cutoffStartDate
+            ],
+            [
+                'column'   => 'attendance.date',
+                'operator' => '<=',
+                'value'    =>  $cutoffEndDate
+            ]
+        ];
+
+        $actionResult = $this->attendanceRepository->fetchAllAttendance($columns, $filterCriteria);
+
+        if ($actionResult === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        return $actionResult['result_set'];
+    }
+
+    private function getWorkScheduleAttendanceRecords(): array
+    {
+
+        foreach ($employeeWorkSchedules as $dateOfSchedule => $workSchedules) {
+            foreach ($workSchedules as $workSchedule) {
+                $workScheduleAttendanceRecords = [];
+
+                foreach ($employeeAttendanceRecords as $attendanceRecord) {
+                    if ($attendanceRecord['date'] === $dateOfSchedule && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
+                        $workScheduleAttendanceRecords[] = $attendanceRecord;
+                    }
+                }
+
+                if ( ! empty($workScheduleAttendanceRecords)) {
+                    [$dateOfSchedule][] = [
+                        'work_schedule'      => $workSchedule,
+                        'attendance_records' => $workScheduleAttendanceRecords
+                    ];
+                } else {
+                    [$dateOfSchedule][] = [
+                        'work_schedule'      => $workSchedule,
+                        'attendance_records' => []
+                    ];
+                }
+            }
+        }
+    }
+
+
+                                    usort($defaultBreaks, function ($a, $b) {
+                                        $startTimeA = new DateTime($a['start_time']);
+                                        $startTimeB = new DateTime($b['start_time']);
+                                        return $startTimeA <=> $startTimeB;
+                                    });
+

@@ -131,7 +131,7 @@ class OvertimeRateAssignmentDao
                     WHEN employee_id IS NULL        AND job_title_id = :job_title_id AND department_id = :department_id THEN 2
                     WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id = :department_id THEN 3
                     WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL          THEN 4
-                                                                                                                        ELSE 5
+                    ELSE 5
                 END
             LIMIT 1
         ";
@@ -139,9 +139,9 @@ class OvertimeRateAssignmentDao
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":department_id", $overtimeRateAssignment->getDepartmentId(), Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()));
-            $statement->bindValue(":job_title_id" , $overtimeRateAssignment->getJobTitleId()  , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()  ));
             $statement->bindValue(":employee_id"  , $overtimeRateAssignment->getEmployeeId()  , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()  ));
+            $statement->bindValue(":job_title_id" , $overtimeRateAssignment->getJobTitleId()  , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()  ));
+            $statement->bindValue(":department_id", $overtimeRateAssignment->getDepartmentId(), Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()));
 
             $statement->execute();
 
@@ -154,7 +154,7 @@ class OvertimeRateAssignmentDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the ID. " .
                       "Exception: {$exception->getMessage()}");
-
+            echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

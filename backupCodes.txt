@@ -261,7 +261,6 @@ $attendanceColumns = [];
                     ];
 
                     $totalUnpaidBreakInMinutes = 0;
-
                     foreach ($records as $date => $recordEntries) {
                         $actualDate = $date;
                         foreach ($recordEntries as $record) {
@@ -730,14 +729,15 @@ $attendanceColumns = [];
 
                                     print_r($hourSummary);
                                 }
+                            } else {
+                                $workScheduleStartTime = new DateTime($workSchedule['start_time']);
+                                $workScheduleEndTime = new DateTime($workSchedule['end_time']);
+
+
                             }
-
-                            $workScheduleStartTime = new DateTime($workSchedule['start_time']);
-                            $workScheduleEndTime = new DateTime($workSchedule['end_time']);
-
                         }
                     }
-                    echo $totalUnpaidBreakInMinutes;
+                    echo $totalUnpaidBreakInMinutes / 60;
                     echo 'dsdsds';
 
 }

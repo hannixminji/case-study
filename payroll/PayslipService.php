@@ -142,31 +142,28 @@ class PayslipService
         				'message' => 'An unexpected error occurred. Please try again later.'
         			];
         		}
-
+                $attendanceRecords = $attendanceRecords['result_set'];
+                
                 if ( ! empty($attendanceRecords)) {
+                    $attendanceRecords = $attendanceRecords['result_set'];
+
                     $records = [];
 
                     foreach ($workSchedules as $date => $schedules) {
                         foreach ($schedules as $workSchedule) {
-                            $isAttendanceRecordFound = false;
+                            $matchingAttendanceRecords = array_filter($attendanceRecords, function ($attendanceRecord) use ($date, $workSchedule) {
+                                return $attendanceRecord['date'] === $date && $attendanceRecord['work_schedule_id'] === $workSchedule['id'];
+                            });
 
-                            foreach ($attendanceRecords as $attendanceRecord) {
-                                if ($attendanceRecord['date'] === $date && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
-                                    $isAttendanceRecordFound = true;
-
-                                    $records[$date][] = [
-                                        'work_schedule'     => $workSchedule    ,
-                                        'attendance_record' => $attendanceRecord
-                                    ];
-
-                                    break;
-                                }
-                            }
-
-                            if ( ! $isAttendanceRecordFound) {
+                            if (empty($matchingAttendanceRecords)) {
                                 $records[$date][] = [
-                                    'work_schedule'     => $workSchedule,
-                                    'attendance_record' => []
+                                    'work_schedule' => $workSchedule,
+                                    'attendance_records' => []
+                                ];
+                            } else {
+                                $records[$date][] = [
+                                    'work_schedule' => $workSchedule,
+                                    'attendance_records' => array_values($matchingAttendanceRecords)
                                 ];
                             }
                         }
@@ -207,26 +204,6 @@ class PayslipService
                         $cutoffStartDate->format('Y-m-d'),
                         $cutoffEndDate->format('Y-m-d')
                     );
-
-                    $totalScheduledHours = 0;
-
-                    $uniqueWorkSchedules = [];
-
-                    foreach ($workSchedules as $date => $schedules) {
-                        $uniqueWorkSchedules = [];
-
-                        foreach ($schedules as $workSchedule) {
-                            $uniqueWorkSchedules[$workSchedule['id']] = $workSchedule;
-                        }
-
-                        foreach ($uniqueWorkSchedules as $uniqueWorkSchedule) {
-                            $startTime = new DateTime($uniqueWorkSchedule['start_time']);
-                            $endTime   = new DateTime($uniqueWorkSchedule['end_time'  ]);
-
-                            $interval = $startTime->diff($endTime);
-                            $totalScheduledHours += $interval->h + ($interval->i / 60);
-                        }
-                    }
 
                     $hourSummary = [
                         'regular_day' => [
@@ -287,7 +264,7 @@ class PayslipService
                         $dayOfWeek = (new DateTime($date))->format('l');
                         $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
 
-                        $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
+                        $isHoliday = !empty($datesMarkedAsHoliday[$date]);
                         $holidayType = 'non_holiday';
 
                         if ($isHoliday) {
@@ -302,129 +279,218 @@ class PayslipService
 
                         foreach ($recordEntries as $record) {
                             $workSchedule = $record['work_schedule'];
-                            $attendanceRecord = $record['attendance_record'];
+                            $attendanceRecords = $record['attendance_records'];
 
-                            $workScheduleStartTime = new DateTime($workSchedule['start_time']);
-                            $workScheduleEndTime = new DateTime($workSchedule['end_time']);
+                            if ($attendanceRecords) {
+                                foreach ($attendanceRecords as $attendanceRecord) {
+                                    $workScheduleStartTime = new DateTime($workSchedule['start_time']);
+                                    $workScheduleEndTime = new DateTime($workSchedule['end_time']);
+                                    $workScheduleStartTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['start_time']))->format('H:i:s'));
+                                    $workScheduleEndTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['end_time']))->format('H:i:s'));
 
-                            $workScheduleStartTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['start_time']))->format('H:i:s'));
-                            $workScheduleEndTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['end_time']))->format('H:i:s'));
+                                    if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {
+                                        $workScheduleEndTime->modify('+1 day');
+                                    }
 
-                            if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {
-                                $workScheduleEndTime->modify('+1 day');
-                            }
+                                    $attendanceCheckInTime = new DateTime($attendanceRecord['check_in_time']);
+                                    $attendanceCheckOutTime = $attendanceRecord['check_out_time']
+                                        ? new DateTime($attendanceRecord['check_out_time'])
+                                        : $workScheduleEndTime;
 
-                            $attendanceCheckInTime = new DateTime($attendanceRecord['check_in_time']);
-                            $attendanceCheckOutTime = $attendanceRecord['check_out_time']
-                                ? new DateTime($attendanceRecord['check_out_time'])
-                                : $workScheduleEndTime;
+                                    if (!$workSchedule['is_flextime']) {
+                                        if ($attendanceCheckInTime <= $workScheduleStartTime) {
+                                            $attendanceCheckInTime = $workScheduleStartTime;
+                                        }
 
-                            if ( ! $workSchedule['is_flextime']) {
-                                if ($attendanceCheckInTime <= $workScheduleStartTime) {
-                                    $attendanceCheckInTime = $workScheduleStartTime;
-                                }
+                                        $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
-                                $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
+                                        if ($gracePeriod === ActionResult::FAILURE) {
+                                            return [
+                                                'status' => 'error',
+                                                'message' => 'An unexpected error occurred. Please try again later.'
+                                            ];
+                                        }
 
-                                if ($gracePeriod === ActionResult::FAILURE) {
-                                    return [
-                                        'status' => 'error',
-                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                        $adjustedStartTime = (clone $workScheduleStartTime)->modify("+{$gracePeriod} minutes");
+
+                                        if ($attendanceCheckInTime <= $adjustedStartTime) {
+                                            $attendanceCheckInTime = $workScheduleStartTime;
+                                        }
+                                    }
+
+                                    $isOvertimeApproved = $attendanceRecord['is_overtime_approved'];
+
+                                    $startMinutes = (int)$attendanceCheckInTime->format('i');
+                                    if ($startMinutes > 0) {
+                                        $remainingMinutes = 60 - $startMinutes;
+                                        $hour = (int)$attendanceCheckInTime->format('H');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        if ($isNightShift) {
+                                            if ($attendanceCheckInTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $remainingMinutes / 60;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
+                                            }
+                                        } else {
+                                            if ($attendanceCheckInTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['overtime_hours'] += $remainingMinutes / 60;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
+                                            }
+                                        }
+
+                                        $attendanceCheckInTime->modify('+' . $remainingMinutes . ' minutes');
+                                    }
+
+                                    $endMinutes = (int)$attendanceCheckOutTime->format('i');
+                                    if ($endMinutes > 0) {
+                                        $roundedCheckOutTime = clone $attendanceCheckOutTime;
+                                        $roundedCheckOutTime->modify('-' . $endMinutes . ' minutes');
+
+                                        $hour = (int)$attendanceCheckOutTime->format('H');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        if ($isNightShift) {
+                                            if ($roundedCheckOutTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $endMinutes / 60;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
+                                            }
+                                        } else {
+                                            if ($roundedCheckOutTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['overtime_hours'] += $endMinutes / 60;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
+                                            }
+                                        }
+
+                                        $attendanceCheckOutTime = $roundedCheckOutTime;
+                                    }
+
+                                    $dateInterval = new DateInterval('PT1H');
+                                    $datePeriod = new DatePeriod($attendanceCheckInTime, $dateInterval, $attendanceCheckOutTime);
+
+                                    foreach ($datePeriod as $currentTime) {
+                                        $hour = (int) $currentTime->format('H');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        if ($isNightShift) {
+                                            if ($currentTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['night_differential_overtime']++;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['night_differential']++;
+                                            }
+                                        } else {
+                                            if ($currentTime >= $workScheduleEndTime) {
+                                                if ($isOvertimeApproved) {
+                                                    $hourSummary[$dayType][$holidayType]['overtime_hours']++;
+                                                }
+                                            } else {
+                                                $hourSummary[$dayType][$holidayType]['regular_hours']++;
+                                            }
+                                        }
+                                    }
+
+                                    $employeeBreakColumns = [
+                                        'id',
+                                        'break_schedule_id',
+                                        'start_time',
+                                        'end_time',
+                                        'break_duration_in_minutes',
+                                        'work_schedule_id',
+                                        'break_type_id',
+                                        'break_schedule_start_time',
+                                        'break_schedule_is_flexible',
+                                        'break_schedule_earliest_start_time',
+                                        'break_schedule_latest_end_time',
+                                        'break_type_duration_in_minutes',
+                                        'break_type_is_paid'
                                     ];
-                                }
 
-                                $adjustedStartTime = (clone $workScheduleStartTime)->modify("+{$gracePeriod} minutes");
+                                    $filterCriteria = [
+                                        [
+                                            'column'   => 'work_schedule.employee_id',
+                                            'operator' => '=',
+                                            'value'    => $employeeId
+                                        ],
+                                        [
+                                            'column'      => 'employee_break.created_at',
+                                            'operator'    => 'BETWEEN',
+                                            'lower_bound' => $workScheduleStartTime->format('Y-m-d H:i:s'),
+                                            'upper_bound' => $workScheduleEndTime->format('Y-m-d H:i:s')
+                                        ]
+                                    ];
 
-                                if ($attendanceCheckInTime <= $adjustedStartTime) {
-                                    $attendanceCheckInTime = $workScheduleStartTime;
-                                }
-                            }
+                                    $sortCriteria = [
+                                        [
+                                            'column'    => 'break_schedule.start_time',
+                                            'direction' => 'ASC'
+                                        ],
+                                        [
+                                            'column'    => 'break_schedule.earliest_start_time',
+                                            'direction' => 'ASC'
+                                        ]
+                                    ];
 
-                            $isOvertimeApproved = $attendanceRecord['is_overtime_approved'];
+                                    $result = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                                        columns       : $employeeBreakColumns,
+                                        filterCriteria: $filterCriteria,
+                                        sortCriteria  : $sortCriteria
+                                    );
 
-                            $startMinutes = (int)$attendanceCheckInTime->format('i');
-                            if ($startMinutes > 0) {
-                                $remainingMinutes = 60 - $startMinutes;
-                                $hour = (int)$attendanceCheckInTime->format('H');
-                                $isNightShift = ($hour >= 22 || $hour < 6);
-
-                                if ($isNightShift) {
-                                    if ($attendanceCheckInTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $remainingMinutes / 60;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
+                                    if ($result === ActionResult::FAILURE) {
+                                        return [
+                                            'status'  => 'error',
+                                            'message' => 'An unexpected error occurred. Please try again later.'
+                                        ];
                                     }
-                                } else {
-                                    if ($attendanceCheckInTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['overtime_hours'] += $remainingMinutes / 60;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
-                                    }
-                                }
 
-                                $attendanceCheckInTime->modify('+' . $remainingMinutes . ' minutes');
-                            }
+                                    $employeeBreaks = $result['result_set'];
 
-                            $endMinutes = (int)$attendanceCheckOutTime->format('i');
-                            if ($endMinutes > 0) {
-                                $roundedCheckOutTime = clone $attendanceCheckOutTime;
-                                $roundedCheckOutTime->modify('-' . $endMinutes . ' minutes');
 
-                                $hour = (int)$attendanceCheckOutTime->format('H');
-                                $isNightShift = ($hour >= 22 || $hour < 6);
 
-                                if ($isNightShift) {
-                                    if ($roundedCheckOutTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $endMinutes / 60;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
-                                    }
-                                } else {
-                                    if ($roundedCheckOutTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['overtime_hours'] += $endMinutes / 60;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
-                                    }
-                                }
 
-                                $attendanceCheckOutTime = $roundedCheckOutTime;
-                            }
 
-                            $dateInterval = new DateInterval('PT1H');
-                            $datePeriod = new DatePeriod($attendanceCheckInTime, $dateInterval, $attendanceCheckOutTime);
 
-                            foreach ($datePeriod as $currentTime) {
-                                $hour = (int) $currentTime->format('H');
-                                $isNightShift = ($hour >= 22 || $hour < 6);
 
-                                if ($isNightShift) {
-                                    if ($currentTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['night_differential_overtime']++;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['night_differential']++;
-                                    }
-                                } else {
-                                    if ($currentTime >= $workScheduleEndTime) {
-                                        if ($isOvertimeApproved) {
-                                            $hourSummary[$dayType][$holidayType]['overtime_hours']++;
-                                        }
-                                    } else {
-                                        $hourSummary[$dayType][$holidayType]['regular_hours']++;
-                                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 }
                             }
                         }
                     }
+
+
+
 
 
 

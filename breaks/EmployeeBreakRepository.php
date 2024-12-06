@@ -35,13 +35,16 @@ class EmployeeBreakRepository
     {
         $columns = [
             'id'                               ,
-            'employee_id'                      ,
             'break_schedule_id'                ,
-            'break_schedule_start_time'        ,
             'start_time'                       ,
             'end_time'                         ,
             'break_duration_in_minutes'        ,
-            'is_paid'                          ,
+            'work_schedule_id'                 ,
+            'break_schedule_start_time'        ,
+            'break_schedule_is_flexible'       ,
+            'employee_id'                      ,
+            'break_type_duration_in_minutes'   ,
+            'break_type_is_paid'               ,
             'is_require_break_in_and_break_out',
         ];
 
@@ -80,6 +83,15 @@ class EmployeeBreakRepository
         }
 
         return $result['result_set'];
+    }
+
+    public function fetchOrderedEmployeeBreaks(
+        int    $workScheduleId,
+        int    $employeeId    ,
+        string $startDate     ,
+        string $endDate
+    ): ActionResult|array {
+        return $this->employeeBreakDao->fetchOrderedEmployeeBreaks($workScheduleId, $employeeId, $startDate, $endDate);
     }
 
     public function fetchTotalBreakDuration(int $workScheduleId, string $startTime, string $endTime): ActionResult|int

@@ -282,6 +282,68 @@ class EmployeeBreakDao
         }
     }
 
+    public function fetchOrderedEmployeeBreaks(int $workScheduleId, int $employeeId, string $startDate, string $endDate): ActionResult|array
+    {
+        $query = "
+            SELECT
+                employee_break.id AS id,
+                employee_break.break_schedule_id         AS break_schedule_id                 ,
+                employee_break.start_time                AS start_time                        ,
+                employee_break.end_time                  AS end_time                          ,
+                employee_break.break_duration_in_minutes AS break_duration_in_minutes         ,
+                employee_break.created_at                AS created_at                        ,
+                break_schedule.work_schedule_id          AS work_schedule_id                  ,
+                break_schedule.break_type_id             AS break_type_id                     ,
+                break_schedule.start_time                AS break_schedule_start_time         ,
+                break_schedule.is_flexible               AS is_flexible                       ,
+                break_schedule.earliest_start_time       AS break_schedule_earliest_start_time,
+                break_schedule.latest_end_time           AS break_schedule_latest_end_time    ,
+                work_schedule.employee_id                AS employee_id                       ,
+                break_type.duration_in_minutes           AS break_type_duration_in_minutes    ,
+                break_type.is_paid                       AS break_type_is_paid
+            FROM
+                employee_breaks AS employee_break
+            LEFT JOIN
+                break_schedules AS break_schedule
+                ON employee_break.break_schedule_id = break_schedule.id
+            LEFT JOIN
+                work_schedules AS work_schedule
+                ON break_schedule.work_schedule_id = work_schedule.id
+            LEFT JOIN
+                break_types AS break_type
+                ON break_schedule.break_type_id = break_type.id
+            WHERE
+                break_schedule.work_schedule_id = :work_schedule_id
+                AND work_schedule.employee_id = :employee_id
+                AND employee_break.created_at BETWEEN :start_date AND :end_date
+            ORDER BY
+                CASE
+                    WHEN break_schedule.start_time IS NULL THEN break_schedule.earliest_start_time
+                    ELSE break_schedule.start_time
+                END ASC,
+                break_schedule.earliest_start_time ASC
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+            
+            $statement->bindValue(':work_schedule_id', $workScheduleId, Helper::getPdoParameterType($workScheduleId));
+            $statement->bindValue(':employee_id'     , $employeeId    , Helper::getPdoParameterType($employeeId    ));
+            $statement->bindValue(':start_date'      , $startDate     , Helper::getPdoParameterType($startDate     ));
+            $statement->bindValue(':end_date'        , $endDate       , Helper::getPdoParameterType($endDate       ));
+
+            $statement->execute();
+
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the ordered employee breaks. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function update(EmployeeBreak $employeeBreak): ActionResult
     {
         $query = "
