@@ -62,20 +62,18 @@ $filterCriteria = [
     [
         'column'   => 'employee.access_role',
         'operator' => '!=',
-        'value'    => "'Admin'",
-        'boolean' => 'OR'
+        'value'    => "'Admin'"
     ],
     [
         'column'   => 'employee.payroll_group_id',
         'operator' => '=',
-        'value'    => 1,
-        'boolean' => 'OR'
+        'value'    => 1
     ],
 ];
 
 $employees = $employeeRepository->fetchAllEmployees($employeeColumns, $filterCriteria);
 $employees = $employees['result_set'];
-print_r($employees);
+
 foreach ($employees as $employee) {
     $employeeId   = $employee['id'           ];
     $jobTitleId   = $employee['job_title_id' ];
