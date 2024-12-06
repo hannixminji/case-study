@@ -210,6 +210,7 @@ class EmployeeDao
             "first_name"                      => "employee.first_name                      AS first_name"                     ,
             "middle_name"                     => "employee.middle_name                     AS middle_name"                    ,
             "last_name"                       => "employee.last_name                       AS last_name"                      ,
+            "full_name"                       => "employee.full_name                       AS full_name"                      ,
             "date_of_birth"                   => "employee.date_of_birth                   AS date_of_birth"                  ,
             "gender"                          => "employee.gender                          AS gender"                         ,
             "marital_status"                  => "employee.marital_status                  AS marital_status"                 ,
@@ -337,7 +338,7 @@ class EmployeeDao
             $whereClauses[] = "employee.deleted_at is NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
                 $boolean  = isset($filterCriterion["boolean"])
                     ? strtoupper($filterCriterion["boolean"])
@@ -369,7 +370,7 @@ class EmployeeDao
             }
         }
 
-        if ( ! empty($whereClauses) && in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
             array_pop($whereClauses);
         }
 
@@ -417,13 +418,12 @@ class EmployeeDao
                 employees AS employee
             {$joinClauses}
             WHERE
-            " . implode(" ", $whereClauses) . "
+                " . implode(" ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
-        echo '<pre>';
-        echo $query;
+
         try {
             $statement = $this->pdo->prepare($query);
 
@@ -449,7 +449,7 @@ class EmployeeDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the employees. " .
                       "Exception: {$exception->getMessage()}");
-            echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }
