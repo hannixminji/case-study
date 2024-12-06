@@ -615,6 +615,32 @@ class EmployeeDao
         }
     }
 
+    public function countTotalRecords(): ActionResult|int
+    {
+        $query = "
+            SELECT
+                COUNT(*)
+            FROM
+                employees
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->execute();
+
+            $result = $statement->fetchColumn();
+
+            return (int) $result;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while counting the records. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function delete(int $employeeId): ActionResult
     {
         return $this->softDelete($employeeId);

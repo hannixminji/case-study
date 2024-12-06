@@ -59,6 +59,11 @@ class EmployeeRepository
         return $this->employeeDao->changePassword($employeeId, $newHashedPassword);
     }
 
+    public function countTotalRecords(): ActionResult|int
+    {
+        return $this->employeeDao->countTotalRecords();
+    }
+
     public function deleteEmployee(int $employeeId): ActionResult
     {
         return $this->employeeDao->delete($employeeId);

@@ -59,6 +59,11 @@ class EmployeeService
         return $this->employeeRepository->changePassword($employeeId, $newHashedPassword);
     }
 
+    public function countTotalRecords(): ActionResult|int
+    {
+        return $this->employeeRepository->countTotalRecords();
+    }
+
     public function deleteEmployee(int $employeeId): ActionResult
     {
         return $this->employeeRepository->deleteEmployee($employeeId);
