@@ -2807,3 +2807,167 @@ foreach ($defaultBreaks as $break) {
                                         return $startTimeA <=> $startTimeB;
                                     });
 
+
+
+
+
+<?php
+
+$employeeBreaks = [
+    [
+        'id' => 47,
+        'break_schedule_id' => 1,
+        'start_time' => '2024-11-26 23:00:00',
+        'end_time' => '2024-11-27 00:00:00',
+        'break_duration_in_minutes' => 60,
+        'created_at' => '2024-11-26 23:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => '2024-11-26 23:00:00',
+        'is_flexible' => 0,
+        'break_schedule_earliest_start_time' => null,
+        'break_schedule_latest_end_time' => null,
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ],
+    [
+        'id' => 49,
+        'break_schedule_id' => 15,
+        'start_time' => '2024-11-27 02:00:00',
+        'end_time' => '2024-11-27 02:05:00',
+        'break_duration_in_minutes' => 60,
+        'created_at' => '2024-11-27 02:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => null,
+        'is_flexible' => 1,
+        'break_schedule_earliest_start_time' => '2024-11-26 23:30:00',
+        'break_schedule_latest_end_time' => '2024-11-27 03:00:00',
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ],
+    [
+        'id' => 50,
+        'break_schedule_id' => 15,
+        'start_time' => '2024-11-27 02:05:00',
+        'end_time' => '2024-11-27 02:10:00',
+        'break_duration_in_minutes' => 5,
+        'created_at' => '2024-11-27 02:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => null,
+        'is_flexible' => 1,
+        'break_schedule_earliest_start_time' => '2024-11-26 23:30:00',
+        'break_schedule_latest_end_time' => '2024-11-27 03:00:00',
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ],
+    [
+        'id' => 48,
+        'break_schedule_id' => 14,
+        'start_time' => '2024-11-27 01:00:00',
+        'end_time' => '2024-11-27 01:30:00',
+        'break_duration_in_minutes' => 60,
+        'created_at' => '2024-11-27 01:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => '2024-11-27 01:00:00',
+        'is_flexible' => 0,
+        'break_schedule_earliest_start_time' => null,
+        'break_schedule_latest_end_time' => null,
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ],
+    [
+        'id' => 51,
+        'break_schedule_id' => 14,
+        'start_time' => '2024-11-27 01:35:00',
+        'end_time' => '2024-11-27 01:55:00',
+        'break_duration_in_minutes' => 60,
+        'created_at' => '2024-11-27 01:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => '2024-11-27 01:00:00',
+        'is_flexible' => 0,
+        'break_schedule_earliest_start_time' => null,
+        'break_schedule_latest_end_time' => null,
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ],
+    [
+        'id' => 52,
+        'break_schedule_id' => 16,
+        'start_time' => null,
+        'end_time' => null,
+        'break_duration_in_minutes' => 0,
+        'created_at' => '2024-11-27 01:00:00',
+        'work_schedule_id' => 1,
+        'break_type_id' => 1,
+        'break_schedule_start_time' => '2024-11-27 01:00:00',
+        'is_flexible' => 0,
+        'break_schedule_earliest_start_time' => null,
+        'break_schedule_latest_end_time' => null,
+        'employee_id' => 6,
+        'break_type_duration_in_minutes' => 60,
+        'break_type_is_paid' => 0,
+    ]
+];
+
+$groupedBreaks = [];
+foreach ($employeeBreaks as $break) {
+    $breakScheduleId = $break['break_schedule_id'];
+    if ( ! isset($groupedBreaks[$breakScheduleId])) {
+        $groupedBreaks[$breakScheduleId] = [];
+    }
+    $groupedBreaks[$breakScheduleId][] = $break;
+}
+
+$mergedBreaks = [];
+foreach ($groupedBreaks as $breakScheduleId => $breaks) {
+    $isFlexible = $breaks[0]['is_flexible'];
+    $breakScheduleStartTime = $breaks[0]['break_schedule_start_time'];
+    $breakTypeDurationInMinutes = $breaks[0]['break_type_duration_in_minutes'];
+
+    if ($breaks[0]['start_time'] !== null && $breaks[0]['end_time'] !== null) {
+        $firstStartTime = new DateTime($breaks[0]['start_time']);
+        $lastEndTime = new DateTime($breaks[0]['end_time']);
+
+        foreach ($breaks as $break) {
+            if ($break['end_time'] !== null) {
+                $currentEndTime = new DateTime($break['end_time']);
+
+                if ($currentEndTime > $lastEndTime) {
+                    $lastEndTime = $currentEndTime;
+                }
+            }
+        }
+
+        if ( ! $isFlexible && $breakScheduleStartTime) {
+            $firstStartTime = new DateTime($breakScheduleStartTime);
+        }
+
+        $expectedEndTime = clone $firstStartTime;
+        $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+        if ($lastEndTime < $expectedEndTime) {
+            $lastEndTime = $expectedEndTime;
+        }
+
+        $mergedBreak = $breaks[0];
+        $mergedBreak['start_time'] = $firstStartTime->format('Y-m-d H:i:s');
+        $mergedBreak['end_time'] = $lastEndTime->format('Y-m-d H:i:s');
+        $mergedBreaks[] = $mergedBreak;
+    } else {
+        $mergedBreaks[] = $breaks[0];
+    }
+}
+
+echo "Merged Breaks:\n";
+print_r($mergedBreaks);
+
+

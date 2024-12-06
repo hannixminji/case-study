@@ -337,8 +337,11 @@ class EmployeeDao
             $whereClauses[] = "employee.deleted_at is NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
+                $column   = $filterCriterion["column"];
                 $operator = $filterCriterion["operator"];
+                $boolean  = isset($filterCriterion["boolean"])
+                    ? strtoupper($filterCriterion["boolean"])
+                    : 'AND';
 
                 switch ($operator) {
                     case "="   :
@@ -356,12 +359,13 @@ class EmployeeDao
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
                         break;
-
-                    default:
-                        // Do nothing
                 }
+
+                $whereClauses[] = " {$boolean} ";
             }
         }
+
+        array_pop($whereClauses);
 
         $orderByClauses = [];
 
@@ -407,7 +411,7 @@ class EmployeeDao
                 employees AS employee
             {$joinClauses}
             WHERE
-                " . implode(" AND ", $whereClauses) . "
+            " . implode(" ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}

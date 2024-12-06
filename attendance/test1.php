@@ -249,7 +249,6 @@ $attendanceColumns = [];
                                 $workScheduleEndTime->modify('+1 day');
                             }
 
-
                             if ($attendanceRecords) {
                                 $result = $employeeBreakRepository->fetchOrderedEmployeeBreaks(
                                     (int) $workSchedule['id'],
@@ -268,7 +267,56 @@ $attendanceColumns = [];
                                 $employeeBreaks = $result;
                                 $defaultBreaks = [];
 
+                                $groupedBreaks = [];
                                 foreach ($employeeBreaks as $break) {
+                                    $breakScheduleId = $break['break_schedule_id'];
+                                    if ( ! isset($groupedBreaks[$breakScheduleId])) {
+                                        $groupedBreaks[$breakScheduleId] = [];
+                                    }
+                                    $groupedBreaks[$breakScheduleId][] = $break;
+                                }
+
+                                $mergedBreaks = [];
+                                foreach ($groupedBreaks as $breakScheduleId => $breaks) {
+                                    $isFlexible = $breaks[0]['is_flexible'];
+                                    $breakScheduleStartTime = $breaks[0]['break_schedule_start_time'];
+                                    $breakTypeDurationInMinutes = $breaks[0]['break_type_duration_in_minutes'];
+
+                                    if ($breaks[0]['start_time'] !== null && $breaks[0]['end_time'] !== null) {
+                                        $firstStartTime = new DateTime($breaks[0]['start_time']);
+                                        $lastEndTime = new DateTime($breaks[0]['end_time']);
+
+                                        foreach ($breaks as $break) {
+                                            if ($break['end_time'] !== null) {
+                                                $currentEndTime = new DateTime($break['end_time']);
+
+                                                if ($currentEndTime > $lastEndTime) {
+                                                    $lastEndTime = $currentEndTime;
+                                                }
+                                            }
+                                        }
+
+                                        if ( ! $isFlexible && $breakScheduleStartTime) {
+                                            $firstStartTime = new DateTime($breakScheduleStartTime);
+                                        }
+
+                                        $expectedEndTime = clone $firstStartTime;
+                                        $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                        if ($lastEndTime < $expectedEndTime) {
+                                            $lastEndTime = $expectedEndTime;
+                                        }
+
+                                        $mergedBreak = $breaks[0];
+                                        $mergedBreak['start_time'] = $firstStartTime->format('Y-m-d H:i:s');
+                                        $mergedBreak['end_time'] = $lastEndTime->format('Y-m-d H:i:s');
+                                        $mergedBreaks[] = $mergedBreak;
+                                    } else {
+                                        $mergedBreaks[] = $breaks[0];
+                                    }
+                                }
+
+                                foreach ($mergedBreaks as $break) {
                                     if ($break['start_time'] !== null && $break['end_time'] !== null) {
                                         if ( ! $break['is_flexible']) {
                                             $breakStartTime = new DateTime($break['start_time']);
@@ -477,9 +525,9 @@ $attendanceColumns = [];
                                                 }
 
                                                 if ($isNightShift) {
-                                                    $hourSummary[$dayType][$holidayType]['night_differential'] -= $remainingMinutes / 60;
+                                                    $hourSummary[$dayType][$holidayType]['night_differential'] -= $endMinutes / 60;
                                                 } else {
-                                                    $hourSummary[$dayType][$holidayType]['regular_hours'] -= $remainingMinutes / 60;
+                                                    $hourSummary[$dayType][$holidayType]['regular_hours'] -= $endMinutes / 60;
                                                 }
 
                                                 $breakEndTime = $roundedBreakEndTime;
@@ -700,10 +748,8 @@ $attendanceColumns = [];
                             }
                         }
                     }
+                    
                     print_r($hourSummary);
-
-
-
 }
 
 /*
