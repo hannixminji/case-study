@@ -62,18 +62,20 @@ $filterCriteria = [
     [
         'column'   => 'employee.access_role',
         'operator' => '!=',
-        'value'    => "'Admin'"
+        'value'    => "'Admin'",
+        'boolean' => 'OR'
     ],
     [
         'column'   => 'employee.payroll_group_id',
         'operator' => '=',
-        'value'    => 1
+        'value'    => 1,
+        'boolean' => 'OR'
     ],
 ];
 
 $employees = $employeeRepository->fetchAllEmployees($employeeColumns, $filterCriteria);
 $employees = $employees['result_set'];
-
+print_r($employees);
 foreach ($employees as $employee) {
     $employeeId   = $employee['id'           ];
     $jobTitleId   = $employee['job_title_id' ];
@@ -86,6 +88,12 @@ foreach ($employees as $employee) {
     );
 
     if ($workSchedules === ActionResult::FAILURE) {
+        return [
+            'status'  => 'error',
+            'message' => 'An unexpected error occurred. Please try again later.'
+        ];
+    }
+    if ($workSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
         return [
             'status'  => 'error',
             'message' => 'An unexpected error occurred. Please try again later.'
@@ -748,7 +756,7 @@ $attendanceColumns = [];
                             }
                         }
                     }
-                    
+
                     print_r($hourSummary);
 }
 
