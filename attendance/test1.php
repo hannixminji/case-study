@@ -92,6 +92,7 @@ foreach ($employees as $employee) {
         ];
     }
     if ($workSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
+        echo '================================================';
         return [
             'status'  => 'error',
             'message' => 'An unexpected error occurred. Please try again later.'
