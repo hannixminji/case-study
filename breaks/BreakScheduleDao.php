@@ -262,6 +262,53 @@ class BreakScheduleDao
         }
     }
 
+    public function fetchOrderedBreakSchedules(int $workScheduleId): ActionResult|array
+    {
+        $query = "
+            SELECT
+                break_schedule.id                 ,
+                break_type.duration_in_minutes    ,
+                break_type.is_paid                ,
+                break_type.deleted_at             ,
+                break_schedule.start_time         ,
+                break_schedule.is_flexible        ,
+                break_schedule.earliest_start_time,
+                break_schedule.latest_end_time
+            FROM
+                break_schedules AS break_schedule
+            LEFT JOIN
+                break_types AS break_type
+            ON
+                break_schedule.break_type_id = break_type.id
+            WHERE
+                break_schedule.work_schedule_id = :work_schedule_id
+                AND break_type.deleted_at IS NULL
+                AND break_schedule.deleted_at IS NULL
+            ORDER BY
+                CASE
+                    WHEN break_schedule.start_time IS NULL THEN break_schedule.earliest_start_time
+                    ELSE break_schedule.start_time
+                END ASC,
+                break_schedule.earliest_start_time ASC
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(':work_schedule_id', $workScheduleId, Helper::getPdoParameterType($workScheduleId));
+
+            $statement->execute();
+
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the ordered break schedules. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function deleteByWorkScheduleId(int $workScheduleId): ActionResult
     {
         $query = "

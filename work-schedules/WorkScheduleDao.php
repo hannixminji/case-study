@@ -29,6 +29,7 @@ class WorkScheduleDao
                 core_hours_start_time,
                 core_hours_end_time  ,
                 total_hours_per_week ,
+                total_work_hours     ,
                 start_date           ,
                 recurrence_rule      ,
                 note
@@ -42,6 +43,7 @@ class WorkScheduleDao
                 :core_hours_start_time,
                 :core_hours_end_time  ,
                 :total_hours_per_week ,
+                :total_work_hours     ,
                 :start_date           ,
                 :recurrence_rule      ,
                 :note
@@ -61,6 +63,7 @@ class WorkScheduleDao
             $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
             $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));
+            $statement->bindValue(":total_work_hours"     , $workSchedule->getTotalWorkHours()    , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()    ));
             $statement->bindValue(":start_date"           , $workSchedule->getStartDate()         , Helper::getPdoParameterType($workSchedule->getStartDate()         ));
             $statement->bindValue(":recurrence_rule"      , $workSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()    ));
             $statement->bindValue(":note"                 , $workSchedule->getNote()              , Helper::getPdoParameterType($workSchedule->getNote()              ));
@@ -107,6 +110,7 @@ class WorkScheduleDao
             "core_hours_start_time"    => "work_schedule.core_hours_start_time AS core_hours_start_time"   ,
             "core_hours_end_time"      => "work_schedule.core_hours_end_time   AS core_hours_end_time"     ,
             "total_hours_per_week"     => "work_schedule.total_hours_per_week  AS total_hours_per_week"    ,
+            "total_work_hours"         => "work_schedule.total_work_hours      AS total_work_hours"        ,
             "start_date"               => "work_schedule.start_date            AS start_date"              ,
             "recurrence_rule"          => "work_schedule.recurrence_rule       AS recurrence_rule"         ,
             "note"                     => "work_schedule.note                  AS note"                    ,
@@ -369,6 +373,7 @@ class WorkScheduleDao
                 core_hours_start_time = :core_hours_start_time,
                 core_hours_end_time   = :core_hours_end_time  ,
                 total_hours_per_week  = :total_hours_per_week ,
+                total_work_hours      = :total_work_hours     ,
                 start_date            = :start_date           ,
                 recurrence_rule       = :recurrence_rule      ,
                 note                  = :note
@@ -389,6 +394,7 @@ class WorkScheduleDao
             $statement->bindValue(":core_hours_start_time", $workSchedule->getCoreHoursStartTime(), Helper::getPdoParameterType($workSchedule->getCoreHoursStartTime()));
             $statement->bindValue(":core_hours_end_time"  , $workSchedule->getCoreHoursEndTime()  , Helper::getPdoParameterType($workSchedule->getCoreHoursEndTime()  ));
             $statement->bindValue(":total_hours_per_week" , $workSchedule->getTotalHoursPerWeek() , Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek() ));
+            $statement->bindValue(":total_work_hours"     , $workSchedule->getTotalWorkHours()    , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()    ));
             $statement->bindValue(":start_date"           , $workSchedule->getStartDate()         , Helper::getPdoParameterType($workSchedule->getStartDate()         ));
             $statement->bindValue(":recurrence_rule"      , $workSchedule->getRecurrenceRule()    , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()    ));
             $statement->bindValue(":note"                 , $workSchedule->getNote()              , Helper::getPdoParameterType($workSchedule->getNote()              ));

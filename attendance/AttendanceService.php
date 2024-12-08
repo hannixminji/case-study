@@ -43,6 +43,10 @@ class AttendanceService
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
+        $currentDateTime = new DateTime($currentDateTime );
+        $currentDate     = $currentDateTime->format('Y-m-d');
+        $currentTime     = $currentDateTime->format('H:i:s');
+
         if ($employeeId === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
@@ -50,7 +54,7 @@ class AttendanceService
             ];
         }
 
-        $isOnLeave = $this->leaveRequestRepository->isEmployeeOnLeave($employeeId);
+        $isOnLeave = $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $currentDate, $currentDate);
 
         if ($isOnLeave === ActionResult::FAILURE) {
             return [
@@ -58,6 +62,8 @@ class AttendanceService
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
         }
+
+        $isOnLeave = $isOnLeave[$currentDate]['is_leave'];
 
         if ($isOnLeave) {
             return [
@@ -78,10 +84,6 @@ class AttendanceService
         if ( ! empty($lastAttendanceRecord)) {
             $lastAttendanceRecord = $lastAttendanceRecord[0];
         }
-
-        $currentDateTime = new DateTime($currentDateTime );
-        $currentDate     = $currentDateTime->format('Y-m-d');
-        $currentTime     = $currentDateTime->format('H:i:s');
 
         $isCheckIn = false;
 
@@ -292,6 +294,11 @@ class AttendanceService
             foreach ($breakSchedules as $breakSchedule) {
                 if ($breakSchedule['is_require_break_in_and_break_out']) {
                     if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
+                        if ($breakSchedule['break_type_is_paid']) {
+                            $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                        } else {
+                            $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                        }
 
                         $employeeBreak = new EmployeeBreak(
                             id                    : null                ,
@@ -354,6 +361,12 @@ class AttendanceService
                                         $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
                                     }
                                 }
+                            } elseif ($employeeBreak['break_schedule_id'] === $breakSchedule['id'] && ($employeeBreak['start_time'] !== null && $employeeBreak['end_time'] === null)) {
+                                if ($breakSchedule['break_type_is_paid']) {
+                                    $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                } else {
+                                    $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                }
                             }
                         }
                     }
@@ -384,17 +397,13 @@ class AttendanceService
             $overtimeHours          = 0;
 
             if ( ! $lastAttendanceRecord['work_schedule_is_flextime']) {
-                if ($checkOutTime < $workScheduleEndTime) {
-                    $interval = $workScheduleEndTime->diff($checkOutTime);
-
-                    $earlyCheckOutInMinutes = $interval->h * 60 + $interval->i;
+                if ($totalHoursWorked < $lastAttendanceRecord['work_schedule_total_work_hours']) {
+                    $earlyCheckOutInMinutes = ($lastAttendanceRecord['work_schedule_total_work_hours'] - $totalHoursWorked) * 60;
 
                     $attendanceStatus = 'Undertime';
 
-                } elseif ($checkOutTime > $workScheduleEndTime) {
-                    $interval = $workScheduleEndTime->diff($checkOutTime);
-
-                    $overtimeHours = ($interval->days * 24) + $interval->h + ($interval->i / 60);
+                } elseif ($totalHoursWorked > $lastAttendanceRecord['work_schedule_total_work_hours']) {
+                    $overtimeHours = $totalHoursWorked - $lastAttendanceRecord['work_schedule_total_work_hours'];
                     $overtimeHours = round($overtimeHours, 2);
 
                     $attendanceStatus = 'Overtime';

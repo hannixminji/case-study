@@ -12,6 +12,7 @@ class WorkSchedule
         private readonly ? string $coreHoursStartTime = null,
         private readonly ? string $coreHoursEndTime   = null,
         private readonly ? int    $totalHoursPerWeek  = null,
+        private readonly   int    $totalWorkHours           ,
         private readonly   string $startDate                ,
         private readonly   string $recurrenceRule           ,
         private readonly ? string $note               = null
@@ -61,6 +62,11 @@ class WorkSchedule
     public function getTotalHoursPerWeek(): ?int
     {
         return $this->totalHoursPerWeek;
+    }
+
+    public function getTotalWorkHours(): int
+    {
+        return $this->totalWorkHours;
     }
 
     public function getStartDate(): string

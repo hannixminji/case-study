@@ -318,7 +318,8 @@ class EmployeeBreakDao
                 AND employee_break.created_at BETWEEN :start_date AND :end_date
             ORDER BY
                 CASE
-                    WHEN break_schedule.start_time IS NULL THEN break_schedule.earliest_start_time
+                    WHEN employee_break.start_time IS NOT NULL THEN employee_break.start_time
+                    WHEN break_schedule.start_time IS NULL     THEN break_schedule.earliest_start_time
                     ELSE break_schedule.start_time
                 END ASC,
                 break_schedule.earliest_start_time ASC
@@ -326,7 +327,7 @@ class EmployeeBreakDao
 
         try {
             $statement = $this->pdo->prepare($query);
-            
+
             $statement->bindValue(':work_schedule_id', $workScheduleId, Helper::getPdoParameterType($workScheduleId));
             $statement->bindValue(':employee_id'     , $employeeId    , Helper::getPdoParameterType($employeeId    ));
             $statement->bindValue(':start_date'      , $startDate     , Helper::getPdoParameterType($startDate     ));

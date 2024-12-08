@@ -45,10 +45,12 @@ class WorkScheduleRepository
         $endDate   = (new DateTime($endDate  ))->format('Y-m-d');
 
         $columns = [
-            'id'             ,
-            'start_time'     ,
-            'end_time'       ,
-            'is_flextime'    ,
+            'id'                  ,
+            'start_time'          ,
+            'end_time'            ,
+            'is_flextime'         ,
+            'total_hours_per_week',
+            'total_work_hours'    ,
             'recurrence_rule'
         ];
 

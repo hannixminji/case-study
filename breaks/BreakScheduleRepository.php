@@ -31,6 +31,11 @@ class BreakScheduleRepository
         return $this->$breakSchedule->update($breakSchedule);
     }
 
+    public function fetchOrderedBreakSchedules(int $workScheduleId): ActionResult|array
+    {
+        return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId);
+    }
+
     public function deleteBreakSchedule(int $breakScheduleId): ActionResult
     {
         return $this->breakScheduleDao->delete($breakScheduleId);

@@ -117,6 +117,7 @@ class AttendanceDao
             "work_schedule_start_time"          => "work_schedule.start_time                   AS work_schedule_start_time"         ,
             "work_schedule_end_time"            => "work_schedule.end_time                     AS work_schedule_end_time"           ,
             "work_schedule_is_flextime"         => "work_schedule.is_flextime                  AS work_schedule_is_flextime"        ,
+            "work_schedule_total_work_hours"    => "work_schedule.total_work_hours             AS work_schedule_total_work_hours"   ,
 
             "employee_id"                       => "work_schedule.employee_id                  AS employee_id"                      ,
             "employee_code"                     => "employee.employee_code                     AS employee_code"                    ,
@@ -154,21 +155,22 @@ class AttendanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("work_schedule_start_time" , $selectedColumns) ||
-            array_key_exists("work_schedule_end_time"   , $selectedColumns) ||
-            array_key_exists("work_schedule_is_flextime", $selectedColumns) ||
+        if (array_key_exists("work_schedule_start_time"      , $selectedColumns) ||
+            array_key_exists("work_schedule_end_time"        , $selectedColumns) ||
+            array_key_exists("work_schedule_is_flextime"     , $selectedColumns) ||
+            array_key_exists("work_schedule_total_work_hours", $selectedColumns) ||
 
-            array_key_exists("employee_id"              , $selectedColumns) ||
-            array_key_exists("employee_code"            , $selectedColumns) ||
-            array_key_exists("employee_full_name"       , $selectedColumns) ||
-            array_key_exists("employee_supervisor_id"   , $selectedColumns) ||
-            array_key_exists("employee_manager_id"      , $selectedColumns) ||
+            array_key_exists("employee_id"                   , $selectedColumns) ||
+            array_key_exists("employee_code"                 , $selectedColumns) ||
+            array_key_exists("employee_full_name"            , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"        , $selectedColumns) ||
+            array_key_exists("employee_manager_id"           , $selectedColumns) ||
 
-            array_key_exists("department_id"            , $selectedColumns) ||
-            array_key_exists("department_name"          , $selectedColumns) ||
+            array_key_exists("department_id"                 , $selectedColumns) ||
+            array_key_exists("department_name"               , $selectedColumns) ||
 
-            array_key_exists("job_title_id"             , $selectedColumns) ||
-            array_key_exists("job_title"                , $selectedColumns)) {
+            array_key_exists("job_title_id"                  , $selectedColumns) ||
+            array_key_exists("job_title"                     , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     work_schedules AS work_schedule

@@ -39,6 +39,7 @@ class AttendanceRepository
             'work_schedule_start_time'         ,
             'work_schedule_end_time'           ,
             'work_schedule_is_flextime'        ,
+            'work_schedule_total_work_hours'   ,
             'employee_id'                      ,
             'date'                             ,
             'check_in_time'                    ,

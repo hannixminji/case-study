@@ -2971,3 +2971,17 @@ echo "Merged Breaks:\n";
 print_r($mergedBreaks);
 
 
+ORDER BY
+                CASE
+                    WHEN break_schedule.start_time IS NULL THEN break_schedule.earliest_start_time
+                    ELSE break_schedule.start_time
+                END ASC,
+                break_schedule.earliest_start_time ASC,
+                employee_break.start_time ASC
+
+
+                                            if ( ! $break['break_type_is_paid']) {
+                                                $interval = (new DateTime($break['end_time']))->diff(new DateTime($break['start_time']));
+                                                $totalUnpaidBreakInMinutes += ($interval->h * 60) + $interval->i;
+                                            }
+
