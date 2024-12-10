@@ -50,12 +50,13 @@ $employeeBreakService = new EmployeeBreakService(
 
 $rfidUid = '123456789';
 
-$currentDateTime = '2024-11-28 22:00:00';
+$currentDateTime = '2024-11-26 12:30:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
-$currentDateTime = '2024-11-29 06:00:00';
+$currentDateTime = '2024-11-26 17:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+
 
 print_r($response);

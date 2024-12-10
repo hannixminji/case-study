@@ -58,7 +58,7 @@ class LeaveRequestRepository
             [
                 'column'   => 'leave_request.status',
                 'operator' => '=',
-                'value'    => "'Approved'"
+                'value'    => "Approved"
             ],
             [
                 'column'   => 'leave_request.start_date',

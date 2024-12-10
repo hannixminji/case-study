@@ -28,25 +28,8 @@ class WorkScheduleService
         return $this->workScheduleRepository->fetchAllWorkSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule, WorkScheduleEditOption $editOption): ActionResult
+    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
     {
-        switch ($editOption) {
-            case WorkScheduleEditOption::EDIT_THIS_ONLY    :
-                $clonedWorkSchedule = clone $workSchedule;
-                $clonedWorkSchedule->setRecurrenceRule("FREQ=DAILY;INTERVAL=1;DSTART={}");
-
-                break;
-
-            case WorkScheduleEditOption::EDIT_ALL_FUTURE   :
-                break;
-
-            case WorkScheduleEditOption::EDIT_ALL_SCHEDULES:
-                break;
-
-            default:
-                // Do nothing
-        }
-
         return $this->workScheduleRepository->updateWorkSchedule($workSchedule);
     }
 

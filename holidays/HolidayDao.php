@@ -111,6 +111,8 @@ class HolidayDao
 
                 switch ($operator) {
                     case "="   :
+                    case ">="  :
+                    case "<="  :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];

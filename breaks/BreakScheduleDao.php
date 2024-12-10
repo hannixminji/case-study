@@ -266,14 +266,14 @@ class BreakScheduleDao
     {
         $query = "
             SELECT
-                break_schedule.id                 ,
-                break_type.duration_in_minutes    ,
-                break_type.is_paid                ,
-                break_type.deleted_at             ,
-                break_schedule.start_time         ,
-                break_schedule.is_flexible        ,
-                break_schedule.earliest_start_time,
-                break_schedule.latest_end_time
+                break_schedule.id                  As id                            ,
+                break_type.duration_in_minutes     AS break_type_duration_in_minutes,
+                break_type.is_paid                 As break_type_is_paid            ,
+                break_type.deleted_at              AS break_type_deleted_at         ,
+                break_schedule.start_time          AS start_time                    ,
+                break_schedule.is_flexible         AS is_flexible                   ,
+                break_schedule.earliest_start_time AS earliest_start_time           ,
+                break_schedule.latest_end_time     As latest_end_time
             FROM
                 break_schedules AS break_schedule
             LEFT JOIN

@@ -179,14 +179,17 @@ class AttendanceDao
             ";
         }
 
-        if (array_key_exists("employee_code"     , $selectedColumns) ||
-            array_key_exists("employee_full_name", $selectedColumns) ||
+        if (array_key_exists("employee_id"           , $selectedColumns) ||
+            array_key_exists("employee_code"         , $selectedColumns) ||
+            array_key_exists("employee_full_name"    , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id", $selectedColumns) ||
+            array_key_exists("employee_manager_id"   , $selectedColumns) ||
 
-            array_key_exists("department_id"     , $selectedColumns) ||
-            array_key_exists("department_name"   , $selectedColumns) ||
+            array_key_exists("department_id"         , $selectedColumns) ||
+            array_key_exists("department_name"       , $selectedColumns) ||
 
-            array_key_exists("job_title_id"      , $selectedColumns) ||
-            array_key_exists("job_title"         , $selectedColumns)) {
+            array_key_exists("job_title_id"          , $selectedColumns) ||
+            array_key_exists("job_title"             , $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     employees AS employee
@@ -316,7 +319,7 @@ class AttendanceDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the attendance records. " .
                       "Exception: {$exception->getMessage()}");
-echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }

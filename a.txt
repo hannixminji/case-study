@@ -2985,3 +2985,116 @@ ORDER BY
                                                 $totalUnpaidBreakInMinutes += ($interval->h * 60) + $interval->i;
                                             }
 
+
+
+$breakSchedules = $breakScheduleRepository->fetchOrderedBreakSchedules($workSchedule['id']);
+
+                                    if ($breakSchedules === ActionResult::FAILURE) {
+                                        return [
+                                            'status' => 'error',
+                                            'message' => 'An unexpected error occurred. Please try again later.'
+                                        ];
+                                    }
+
+                                    if ( ! empty($breakSchedules)) {
+
+                                    }
+
+                                if (($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid']) || ( ! empty($datesMarkedAsHoliday[$date]))) {
+                                    $startMinutes = (int) $workScheduleStartTime->format('i');
+                                    $cloneWorkScheduleStartTime = clone $workScheduleStartTime;
+                                    if ($startMinutes > 0) {
+                                        $remainingMinutes = 60 - $startMinutes;
+                                        $hour = (int) $workScheduleStartTime->format('H');
+                                        $date = $workScheduleStartTime->format('Y-m-d');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        $dayOfWeek = (new DateTime($date))->format('l');
+                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                        $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
+                                        $holidayType = 'non_holiday';
+
+                                        if ($isHoliday) {
+                                            if (count($datesMarkedAsHoliday[$date]) > 1) {
+                                                $holidayType = 'double_holiday';
+                                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                $holidayType = 'regular_holiday';
+                                            }
+                                        }
+
+                                        if ($isNightShift) {
+                                            $hourSummary1[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
+                                        } else {
+                                            $hourSummary1[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
+                                        }
+
+                                        $cloneWorkScheduleStartTime->modify('+' . $remainingMinutes . ' minutes');
+                                    }
+
+                                    $endMinutes = (int) $workScheduleEndTime->format('i');
+                                    $roundedWorkScheduleEndTime = clone $workScheduleEndTime;
+                                    $roundedWorkScheduleEndTime->modify('-' . $endMinutes . ' minutes');
+
+                                    $dateInterval = new DateInterval('PT1H');
+                                    $datePeriod = new DatePeriod($cloneWorkScheduleStartTime, $dateInterval, $roundedWorkScheduleEndTime);
+
+                                    foreach ($datePeriod as $currentTime) {
+                                        $currentDate = $currentTime->format('Y-m-d');
+                                        $hour = (int) $currentTime->format('H');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        $dayOfWeek = (new DateTime($currentDate))->format('l');
+                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                        $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
+                                        $holidayType = 'non_holiday';
+
+                                        if ($isHoliday) {
+                                            if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
+                                                $holidayType = 'double_holiday';
+                                            } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                                $holidayType = 'regular_holiday';
+                                            }
+                                        }
+
+                                        if ($isNightShift) {
+                                            $hourSummary1[$dayType][$holidayType]['night_differential']++;
+                                        } else {
+                                            $hourSummary1[$dayType][$holidayType]['regular_hours']++;
+                                        }
+                                    }
+
+                                    if ($endMinutes > 0) {
+                                        $date = $workScheduleEndTime->format('Y-m-d');
+
+                                        $hour = (int) $workScheduleEndTime->format('H');
+                                        $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                        $dayOfWeek = (new DateTime($date))->format('l');
+                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                        $isHoliday = !empty($datesMarkedAsHoliday[$date]);
+                                        $holidayType = 'non_holiday';
+
+                                        if ($isHoliday) {
+                                            if (count($datesMarkedAsHoliday[$date]) > 1) {
+                                                $holidayType = 'double_holiday';
+                                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                $holidayType = 'regular_holiday';
+                                            }
+                                        }
+
+                                        if ($isNightShift) {
+                                            $hourSummary1[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
+                                        } else {
+                                            $hourSummary1[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
+                                        }
+                                    }
+
+
+
+
+
+
+                                }

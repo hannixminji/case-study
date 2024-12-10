@@ -45,7 +45,7 @@ class HolidayRepository
             [
                 'column'   => 'holiday.status',
                 'operator' => '=',
-                'value'    => "'Active'"
+                'value'    => "Active"
             ],
             [
                 'column'   => 'holiday.start_date',
@@ -56,11 +56,6 @@ class HolidayRepository
                 'column'   => 'holiday.end_date',
                 'operator' => '>=',
                 'value'    => $startDate
-            ],
-            [
-                'column'   => 'holiday.status',
-                'operator' => '=',
-                'value'    => "'Active'"
             ]
         ];
 

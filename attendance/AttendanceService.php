@@ -201,7 +201,7 @@ class AttendanceService
                 'start_time'                       ,
                 'break_type_duration_in_minutes'   ,
                 'is_require_break_in_and_break_out',
-                'is_flextime'                      ,
+                'is_flexible'                      ,
                 'earliest_start_time'              ,
                 'latest_end_time'                  ,
                 'break_type_is_paid'
@@ -231,13 +231,15 @@ class AttendanceService
             $breakSchedules = $result['result_set'];
 
             $employeeBreakColumns = [
-                'id'                               ,
-                'employee_id'                      ,
-                'break_schedule_id'                ,
-                'break_schedule_start_time'        ,
-                'start_time'                       ,
-                'end_time'                         ,
-                'break_duration_in_minutes'        ,
+                'id'                                ,
+                'employee_id'                       ,
+                'break_schedule_id'                 ,
+                'break_schedule_start_time'         ,
+                'break_schedule_is_flexible'        ,
+                'break_schedule_earliest_start_time',
+                'start_time'                        ,
+                'end_time'                          ,
+                'break_duration_in_minutes'         ,
                 'is_require_break_in_and_break_out'
             ];
 
@@ -294,10 +296,43 @@ class AttendanceService
             foreach ($breakSchedules as $breakSchedule) {
                 if ($breakSchedule['is_require_break_in_and_break_out']) {
                     if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
-                        if ($breakSchedule['break_type_is_paid']) {
-                            $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                        $breakScheduleStartTime = null;
+                        if ($breakSchedule['is_flexible']) {
+                            $breakScheduleStartTime = $breakSchedule['earliest_start_time'];
                         } else {
-                            $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                            $breakScheduleStartTime = $breakSchedule['start_time'];
+                        }
+
+                        $breakScheduleStartTime = new DateTime($breakScheduleStartTime);
+                        $breakScheduleEndTime = clone $breakScheduleStartTime;
+                        $breakScheduleEndTime->modify("+{$breakSchedule['break_type_duration_in_minutes']} minutes");
+
+                        $breakScheduleStartTime = new DateTime($lastAttendanceDate->format('Y-m-d') . ' ' . $breakScheduleStartTime->format('H:i:s'));
+                        $breakScheduleEndTime   = new DateTime($lastAttendanceDate->format('Y-m-d') . ' ' . $breakScheduleEndTime  ->format('H:i:s'));
+
+                        if ($breakScheduleStartTime < $workScheduleStartTime) {
+                            $breakScheduleStartTime->modify('+1 day');
+                        }
+
+                        if ($breakScheduleEndTime < $workScheduleStartTime) {
+                            $breakScheduleEndTime->modify('+1 day');
+                        }
+
+                        if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
+                            $breakScheduleEndTime->modify('+1 day');
+                        }
+
+                        $checkOutTime = new DateTime($currentDateTime->format('Y-m-d H:i:s'));
+
+                        $actualEndTime = ($checkOutTime < $breakScheduleEndTime) ? $checkOutTime : $breakScheduleEndTime;
+
+                        $actualBreakDurationInMinutes = $breakScheduleStartTime->diff($actualEndTime);
+                        $actualBreakDurationInMinutes = $actualBreakDurationInMinutes->h * 60 + $actualBreakDurationInMinutes->i;
+
+                        if ($breakSchedule['break_type_is_paid']) {
+                            $paidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                        } else {
+                            $unpaidBreakDurationInMinutes += $actualBreakDurationInMinutes;
                         }
 
                         $employeeBreak = new EmployeeBreak(
@@ -362,10 +397,25 @@ class AttendanceService
                                     }
                                 }
                             } elseif ($employeeBreak['break_schedule_id'] === $breakSchedule['id'] && ($employeeBreak['start_time'] !== null && $employeeBreak['end_time'] === null)) {
+                                $breakStartTime = new DateTime($employeeBreak['start_time']);
+                                $checkOutTime = new DateTime($currentDateTime->format('Y-m-d H:i:s'));
+
+                                $breakScheduledEndTime = clone $breakStartTime;
+                                $breakScheduledEndTime->modify("+{$breakSchedule['break_type_duration_in_minutes']} minutes");
+
+                                if ($breakScheduledEndTime->format('H:i:s') < $breakStartTime->format('H:i:s')) {
+                                    $breakScheduledEndTime->modify('+1 day');
+                                }
+
+                                $actualEndTime = ($checkOutTime < $breakScheduledEndTime) ? $checkOutTime : $breakScheduledEndTime;
+
+                                $actualBreakDurationInMinutes = $breakStartTime->diff($actualEndTime);
+                                $actualBreakDurationInMinutes = $actualBreakDurationInMinutes->h * 60 + $actualBreakDurationInMinutes->i;
+
                                 if ($breakSchedule['break_type_is_paid']) {
-                                    $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                    $paidBreakDurationInMinutes += $actualBreakDurationInMinutes;
                                 } else {
-                                    $unpaidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                    $unpaidBreakDurationInMinutes += $actualBreakDurationInMinutes;
                                 }
                             }
                         }
