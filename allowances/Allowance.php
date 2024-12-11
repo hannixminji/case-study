@@ -9,9 +9,7 @@ class Allowance
         private readonly   bool   $isTaxable           ,
         private readonly   string $frequency           ,
         private readonly ? string $description   = null,
-        private readonly   string $status              ,
-        private readonly   string $effectiveDate       ,
-        private readonly ? string $endDate       = null
+        private readonly   string $status
     ) {
     }
 
@@ -48,15 +46,5 @@ class Allowance
     public function getStatus(): string
     {
         return $this->status;
-    }
-
-    public function getEffectiveDate(): string
-    {
-        return $this->effectiveDate;
-    }
-
-    public function getEndDate(): ?string
-    {
-        return $this->endDate;
     }
 }

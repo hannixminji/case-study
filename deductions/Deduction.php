@@ -10,9 +10,7 @@ class Deduction
         private readonly bool    $isPreTax     ,
         private readonly string  $frequency    ,
         private readonly ?string $description  ,
-        private readonly string  $status       ,
-        private readonly string  $effectiveDate,
-        private readonly ?string $endDate      ,
+        private readonly string  $status
     ) {
     }
 
@@ -54,15 +52,5 @@ class Deduction
     public function getStatus(): string
     {
         return $this->status;
-    }
-
-    public function getEffectiveDate(): string
-    {
-        return $this->effectiveDate;
-    }
-
-    public function getEndDate(): ?string
-    {
-        return $this->endDate;
     }
 }

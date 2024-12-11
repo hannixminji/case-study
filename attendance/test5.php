@@ -284,6 +284,342 @@ foreach ($employees as $employee) {
 
                             if ($attendanceRecords) {
                                 $isFirstRecord = true;
+
+                                $tempAttendanceCheckInTime = $attendanceRecords[0]['check_in_time'];
+                                $tempAttendanceCheckOutTime = $attendanceRecords[count($attendanceRecords) - 1]['check_out_time'];
+
+                                if ($tempAttendanceCheckOutTime === null) {
+                                    $tempAttendanceCheckOutTime = $workScheduleEndTime->format('Y-m-d H:i:s');
+                                }
+
+                                $result = $employeeBreakRepository->fetchOrderedEmployeeBreaks(
+                                    $workSchedule['id'],
+                                    $employeeId,
+                                    $tempAttendanceCheckInTime,
+                                    $tempAttendanceCheckOutTime
+                                );
+
+                                if ($result === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $employeeBreaks = $result;
+
+                                if ( ! empty($employeeBreaks)) {
+                                    $defaultBreaks = [];
+
+                                    $groupedBreaks = [];
+                                    foreach ($employeeBreaks as $break) {
+                                        $breakScheduleId = $break['break_schedule_id'];
+                                        if ( ! isset($groupedBreaks[$breakScheduleId])) {
+                                            $groupedBreaks[$breakScheduleId] = [];
+                                        }
+                                        $groupedBreaks[$breakScheduleId][] = $break;
+                                    }
+
+                                    $mergedBreaks = [];
+                                    foreach ($groupedBreaks as $breakScheduleId => $breaks) {
+                                        $firstBreak = $breaks[0];
+
+                                        if ($firstBreak['start_time'] !== null) {
+                                            $mergedBreak = $firstBreak;
+
+                                            $startTime = new DateTime($firstBreak['start_time']);
+
+                                            foreach ($breaks as $break) {
+                                                $currentStartTime = new DateTime($break['start_time']);
+                                                if ($currentStartTime < $startTime) {
+                                                    $startTime = $currentStartTime;
+                                                }
+                                            }
+
+                                            $mergedBreak['start_time'] = $startTime->format('Y-m-d H:i:s');
+
+                                            $endTime = null;
+                                            foreach ($breaks as $break) {
+                                                if ($break['end_time'] !== null) {
+                                                    $currentEndTime = new DateTime($break['end_time']);
+                                                    if ($endTime === null || $currentEndTime > $endTime) {
+                                                        $endTime = $currentEndTime;
+                                                    }
+                                                }
+                                            }
+
+                                            $mergedBreak['end_time'] = $endTime->format('Y-m-d H:i:s');
+
+                                            $mergedBreaks[] = $mergedBreak;
+                                        } else {
+                                            $mergedBreaks[] = $firstBreak;
+                                        }
+                                    }
+
+                                    foreach ($mergedBreaks as $break) {
+                                        if ($break['start_time'] !== null && $break['end_time'] !== null) {
+                                            if ( ! $break['is_flexible']) {
+                                                $breakStartTime = new DateTime($break['start_time']);
+
+                                                $breakScheduleStartTime = new DateTime($break['break_schedule_start_time']);
+                                                $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
+
+                                                $breakScheduleEndTime = clone $breakScheduleStartTime;
+                                                $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                                $breakDate = $breakStartTime->format('Y-m-d');
+                                                $breakScheduleStartTime = new DateTime($breakDate . ' ' . $breakScheduleStartTime->format('H:i:s'));
+                                                $breakScheduleEndTime = new DateTime($breakDate . ' ' . $breakScheduleEndTime->format('H:i:s'));
+
+                                                if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
+                                                    $breakScheduleEndTime->modify('+1 day');
+                                                }
+
+                                                $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
+                                                $endTime = new DateTime($break['end_time']);
+                                                if ($endTime < $breakScheduleEndTime && new DateTime($tempAttendanceCheckOutTime) >= $breakScheduleEndTime) {
+                                                    $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
+                                                } elseif ($endTime < $breakScheduleEndTime && new DateTime($tempAttendanceCheckOutTime) < $breakScheduleEndTime) {
+                                                    $break['end_time'] = $tempAttendanceCheckOutTime;
+                                                }
+
+                                            } else {
+                                                $breakStartTime = new DateTime($break['start_time']);
+                                                $breakEndTime = new DateTime($break['end_time']);
+                                                $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
+
+                                                $expectedEndTime = clone $breakStartTime;
+                                                $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                                if ($breakEndTime < $expectedEndTime && new DateTime($tempAttendanceCheckOutTime) >= $expectedEndTime) {
+                                                    $break['end_time'] = $expectedEndTime->format('Y-m-d H:i:s');
+                                                } elseif ($breakEndTime < $expectedEndTime && new DateTime($tempAttendanceCheckOutTime) < $expectedEndTime) {
+                                                    $break['end_time'] = $tempAttendanceCheckOutTime;
+                                                }
+                                            }
+
+                                            if ($tempAttendanceCheckInTime <= $break['start_time'] && $tempAttendanceCheckOutTime >= $break['start_time']) {
+                                                $defaultBreaks[] = [
+                                                    'start_time' => $break['start_time'],
+                                                    'end_time' => $break['end_time'],
+                                                    'is_paid' => $break['break_type_is_paid'],
+                                                    'break_type_duration_in_minutes' => $break['break_type_duration_in_minutes']
+                                                ];
+                                            }
+
+                                        } elseif ($break['start_time'] === null || $break['end_time'] === null) {
+                                            if ( ! $break['is_flexible']) {
+                                                $breakScheduleStartTime = new DateTime($break['break_schedule_start_time']);
+                                                $breakScheduleEndTime = clone $breakScheduleStartTime;
+                                                $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
+
+                                                $breakScheduleStartTime = new DateTime($workScheduleStartTimeDate->format('Y-m-d') . ' ' . $breakScheduleStartTime->format('H:i:s'));
+                                                $breakScheduleEndTime = clone $breakScheduleStartTime;
+                                                $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                                if ($breakScheduleStartTime < $workScheduleStartTime) {
+                                                    $breakScheduleStartTime->modify('+1 day');
+                                                }
+
+                                                if ($breakScheduleEndTime < $workScheduleStartTime) {
+                                                    $breakScheduleEndTime->modify('+1 day');
+                                                }
+
+                                                if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
+                                                    $breakScheduleEndTime->modify('+1 day');
+                                                }
+
+                                                $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
+                                                $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
+
+                                            } else {
+                                                $breakScheduleStartTime = new DateTime($break['break_schedule_earliest_start_time']);
+                                                $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
+
+                                                $breakScheduleStartTime = new DateTime($workScheduleStartTimeDate->format('Y-m-d') . ' ' . $breakScheduleStartTime->format('H:i:s'));
+                                                $breakScheduleEndTime = clone $breakScheduleStartTime;
+                                                $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                                if ($breakScheduleStartTime < $workScheduleStartTime) {
+                                                    $breakScheduleStartTime->modify('+1 day');
+                                                }
+
+                                                if ($breakScheduleEndTime < $workScheduleStartTime) {
+                                                    $breakScheduleEndTime->modify('+1 day');
+                                                }
+
+                                                if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
+                                                    $breakScheduleEndTime->modify('+1 day');
+                                                }
+
+                                                $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
+                                                $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
+                                            }
+
+                                            if ($break['end_time'] > $tempAttendanceCheckOutTime) {
+                                                $break['end_time'] = $tempAttendanceCheckOutTime;
+                                            }
+
+                                            if ($tempAttendanceCheckInTime <= $break['start_time'] && $tempAttendanceCheckOutTime >= $break['start_time']) {
+                                                $defaultBreaks[] = [
+                                                    'start_time' => $break['start_time'],
+                                                    'end_time' => $break['end_time'],
+                                                    'is_paid' => $break['break_type_is_paid'],
+                                                    'break_type_duration_in_minutes' => $break['break_type_duration_in_minutes']
+                                                ];
+                                            }
+                                        }
+                                    }
+
+                                    usort($defaultBreaks, function ($a, $b) {
+                                        $startTimeA = new DateTime($a['start_time']);
+                                        $startTimeB = new DateTime($b['start_time']);
+                                        return $startTimeA <=> $startTimeB;
+                                    });
+
+                                    foreach ($defaultBreaks as $break) {
+                                        if ( ! $break['is_paid']) {
+                                            $breakStartTime = new DateTime($break['start_time']);
+                                            $breakEndTime = new DateTime($break['end_time']);
+
+                                            $expectedEndTime = clone $breakStartTime;
+                                            $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                                            if ($breakStartTime->format('H') === $breakEndTime->format('H')) {
+                                                $interval = $breakStartTime->diff($breakEndTime);
+                                                $breakDuration = $interval->i;
+
+                                                $hour = (int) $breakStartTime->format('H');
+                                                $date = $breakStartTime->format('Y-m-d');
+                                                $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                                $dayOfWeek = (new DateTime($date))->format('l');
+                                                $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                                $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
+                                                $holidayType = 'non_holiday';
+
+                                                if ($isHoliday) {
+                                                    if (count($datesMarkedAsHoliday[$date]) > 1) {
+                                                        $holidayType = 'double_holiday';
+                                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                        $holidayType = 'regular_holiday';
+                                                    } else {
+                                                        $holidayType = 'special_holiday';
+                                                    }
+                                                }
+
+                                                $hoursWorked -= $breakDuration / 60;
+
+                                                if ($isNightShift) {
+                                                    $hourSummary[$dayType][$holidayType]['night_differential'] -= $breakDuration / 60;
+                                                } else {
+                                                    $hourSummary[$dayType][$holidayType]['regular_hours'] -= $breakDuration / 60;
+                                                }
+                                            } else {
+                                                $startMinutes = (int) $breakStartTime->format('i');
+                                                if ($startMinutes > 0) {
+                                                    $remainingMinutes = 60 - $startMinutes;
+                                                    $hour = (int) $breakStartTime->format('H');
+                                                    $date = $breakStartTime->format('Y-m-d');
+                                                    $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                                    $dayOfWeek = (new DateTime($date))->format('l');
+                                                    $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                                    $isHoliday = !empty($datesMarkedAsHoliday[$date]);
+                                                    $holidayType = 'non_holiday';
+
+                                                    if ($isHoliday) {
+                                                        if (count($datesMarkedAsHoliday[$date]) > 1) {
+                                                            $holidayType = 'double_holiday';
+                                                        } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                            $holidayType = 'regular_holiday';
+                                                        } else {
+                                                            $holidayType = 'special_holiday';
+                                                        }
+                                                    }
+
+                                                    $hoursWorked -= $remainingMinutes / 60;
+                                                    if ($isNightShift) {
+                                                        $hourSummary[$dayType][$holidayType]['night_differential'] -= $remainingMinutes / 60;
+                                                    } else {
+                                                        $hourSummary[$dayType][$holidayType]['regular_hours'] -= $remainingMinutes / 60;
+                                                    }
+
+                                                    $breakStartTime->modify('+' . $remainingMinutes . ' minutes');
+                                                }
+
+                                                $endMinutes = (int) $breakEndTime->format('i');
+                                                if ($endMinutes > 0) {
+                                                    $roundedBreakEndTime = clone $breakEndTime;
+                                                    $roundedBreakEndTime->modify('-' . $endMinutes . ' minutes');
+                                                    $date = $breakEndTime->format('Y-m-d');
+                                                    $hour = (int) $breakEndTime->format('H');
+                                                    $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                                    $dayOfWeek = (new DateTime($date))->format('l');
+                                                    $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                                    $isHoliday = !empty($datesMarkedAsHoliday[$date]);
+                                                    $holidayType = 'non_holiday';
+
+                                                    if ($isHoliday) {
+                                                        if (count($datesMarkedAsHoliday[$date]) > 1) {
+                                                            $holidayType = 'double_holiday';
+                                                        } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                            $holidayType = 'regular_holiday';
+                                                        } else {
+                                                            $holidayType = 'special_holiday';
+                                                        }
+                                                    }
+
+                                                    $hoursWorked -= $endMinutes / 60;
+                                                    if ($isNightShift) {
+                                                        $hourSummary[$dayType][$holidayType]['night_differential'] -= $endMinutes / 60;
+                                                    } else {
+                                                        $hourSummary[$dayType][$holidayType]['regular_hours'] -= $endMinutes / 60;
+                                                    }
+
+                                                    $breakEndTime = $roundedBreakEndTime;
+                                                }
+
+                                                $dateInterval = new DateInterval('PT1H');
+                                                $datePeriod = new DatePeriod($breakStartTime, $dateInterval, $breakEndTime);
+
+                                                foreach ($datePeriod as $currentTime) {
+                                                    $currentDate = $currentTime->format('Y-m-d');
+                                                    $hour = (int) $currentTime->format('H');
+                                                    $isNightShift = ($hour >= 22 || $hour < 6);
+
+                                                    $dayOfWeek = (new DateTime($currentDate))->format('l');
+                                                    $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
+
+                                                    $isHoliday = !empty($datesMarkedAsHoliday[$currentDate]);
+                                                    $holidayType = 'non_holiday';
+
+                                                    if ($isHoliday) {
+                                                        if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
+                                                            $holidayType = 'double_holiday';
+                                                        } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                                            $holidayType = 'regular_holiday';
+                                                        } else {
+                                                            $holidayType = 'special_holiday';
+                                                        }
+                                                    }
+
+                                                    $hoursWorked--;
+                                                    if ($isNightShift) {
+                                                        $hourSummary[$dayType][$holidayType]['night_differential']--;
+                                                    } else {
+                                                        $hourSummary[$dayType][$holidayType]['regular_hours']--;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 foreach ($attendanceRecords as $attendanceRecord) {
                                     $workScheduleStartTime = new DateTime($workSchedule['start_time']);
                                     $workScheduleEndTime = new DateTime($workSchedule['end_time']);
@@ -328,355 +664,6 @@ foreach ($employees as $employee) {
 
                                     echo $attendanceCheckInTime->format('Y-m-d H:i:s') . '<br>';
                                     echo $attendanceCheckOutTime->format('Y-m-d H:i:s') . '<br><br>';
-
-                                    $result = $employeeBreakRepository->fetchOrderedEmployeeBreaks(
-                                        $workSchedule['id'],
-                                        $employeeId,
-                                        $attendanceCheckInTime->format('Y-m-d H:i:s'),
-                                        $attendanceCheckOutTime->format('Y-m-d H:i:s')
-                                    );
-
-                                    if ($result === ActionResult::FAILURE) {
-                                        return [
-                                            'status'  => 'error',
-                                            'message' => 'An unexpected error occurred. Please try again later.'
-                                        ];
-                                    }
-
-                                    $employeeBreaks = $result;
-
-                                    if ( ! empty($employeeBreaks)) {
-                                        $defaultBreaks = [];
-
-                                        $groupedBreaks = [];
-                                        foreach ($employeeBreaks as $break) {
-                                            $breakScheduleId = $break['break_schedule_id'];
-                                            if ( ! isset($groupedBreaks[$breakScheduleId])) {
-                                                $groupedBreaks[$breakScheduleId] = [];
-                                            }
-                                            $groupedBreaks[$breakScheduleId][] = $break;
-                                        }
-
-                                        foreach ($groupedBreaks as &$breaks) {
-                                            usort($breaks, function ($a, $b) {
-                                                $aStart = $a['start_time'] ?? $a['break_schedule_start_time'] ?? $a['break_schedule_earliest_start_time'];
-                                                $bStart = $b['start_time'] ?? $b['break_schedule_start_time'] ?? $b['break_schedule_earliest_start_time'];
-
-                                                return strtotime($aStart) <=> strtotime($bStart);
-                                            });
-                                        }
-
-                                        $mergedBreaks = [];
-                                        foreach ($groupedBreaks as $breakScheduleId => $breaks) {
-                                            $isFlexible = $breaks[0]['is_flexible'];
-                                            $breakScheduleStartTime = $breaks[0]['break_schedule_start_time'];
-                                            $breakTypeDurationInMinutes = $breaks[0]['break_type_duration_in_minutes'];
-
-                                            if ($breaks[0]['start_time'] !== null && $breaks[0]['end_time'] !== null) {
-                                                $firstStartTime = new DateTime($breaks[0]['start_time']);
-                                                $lastEndTime = new DateTime($breaks[0]['end_time']);
-
-                                                foreach ($breaks as $break) {
-                                                    if ($break['end_time'] !== null) {
-                                                        $currentEndTime = new DateTime($break['end_time']);
-
-                                                        if ($currentEndTime > $lastEndTime) {
-                                                            $lastEndTime = $currentEndTime;
-                                                        }
-                                                    }
-                                                }
-
-                                                if ( ! $isFlexible && $breakScheduleStartTime && empty($firstStartTime)) {
-                                                    $firstStartTime = new DateTime($breakScheduleStartTime);
-                                                }
-
-                                                $expectedEndTime = clone $firstStartTime;
-                                                $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                if ($lastEndTime < $expectedEndTime) {
-                                                    $lastEndTime = $expectedEndTime;
-                                                }
-
-                                                $mergedBreak = $breaks[0];
-                                                $mergedBreak['start_time'] = $firstStartTime->format('Y-m-d H:i:s');
-                                                $mergedBreak['end_time'] = $lastEndTime->format('Y-m-d H:i:s');
-                                                $mergedBreaks[] = $mergedBreak;
-                                            } else {
-                                                $mergedBreaks[] = $breaks[0];
-                                            }
-                                        }
-
-                                        foreach ($employeeBreaks as $break) {
-                                            if ($break['start_time'] !== null && $break['end_time'] !== null) {
-                                                if ( ! $break['is_flexible']) {
-                                                    $breakStartTime = new DateTime($break['start_time']);
-
-                                                    $breakScheduleStartTime = new DateTime($break['break_schedule_start_time']);
-                                                    $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
-
-                                                    $breakScheduleEndTime = clone $breakScheduleStartTime;
-                                                    $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                    $breakDate = $breakStartTime->format('Y-m-d');
-                                                    $breakScheduleStartTime = new DateTime($breakDate . ' ' . $breakScheduleStartTime->format('H:i:s'));
-                                                    $breakScheduleEndTime = new DateTime($breakDate . ' ' . $breakScheduleEndTime->format('H:i:s'));
-
-                                                    if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
-                                                        $breakScheduleEndTime->modify('+1 day');
-                                                    }
-
-                                                    $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
-                                                    $endTime = new DateTime($break['end_time']);
-                                                    if ($endTime < $breakScheduleEndTime && new DateTime($attendanceRecord['check_out_time']) >= $breakScheduleEndTime) {
-                                                        $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
-                                                    } elseif ($endTime < $breakScheduleEndTime && new DateTime($attendanceRecord['check_out_time']) < $breakScheduleEndTime) {
-                                                        $break['end_time'] = (new DateTime($attendanceRecord['check_out_time']))->format('Y-m-d H:i:s');
-                                                    }
-
-                                                } else {
-                                                    $breakStartTime = new DateTime($break['start_time']);
-                                                    $breakEndTime = new DateTime($break['end_time']);
-                                                    $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
-
-                                                    $expectedEndTime = clone $breakStartTime;
-                                                    $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                    if ($breakEndTime < $expectedEndTime && new DateTime($attendanceRecord['check_out_time']) >= $breakScheduleEndTime) {
-                                                        $break['end_time'] = $expectedEndTime->format('Y-m-d H:i:s');
-                                                    } elseif ($endTime < $breakScheduleEndTime && new DateTime($attendanceRecord['check_out_time']) <= $breakScheduleEndTime) {
-                                                        $break['end_time'] = (new DateTime($attendanceRecord['check_out_time']))->format('Y-m-d H:i:s');
-                                                    }
-                                                }
-
-                                                // TODO: Fixed the attendance that overlaps with breaks
-                                                // TODO: Adjust the break
-                                                $attendanceEndTime = new DateTime($attendanceRecord['check_out_time']);
-                                                if ($attendanceRecord['check_in_time'] <= $break['start_time'] && $attendanceEndTime->format('Y-m-d H:i:s') >= $break['start_time']) {
-                                                    $defaultBreaks[] = [
-                                                        'start_time' => $break['start_time'],
-                                                        'end_time' => $break['end_time'],
-                                                        'is_paid' => $break['break_type_is_paid'],
-                                                        'break_type_duration_in_minutes' => $break['break_type_duration_in_minutes']
-                                                    ];
-                                                }
-
-                                            } elseif ($break['start_time'] === null || $break['end_time'] === null) {
-                                                if ( ! $break['is_flexible']) {
-                                                    $breakScheduleStartTime = new DateTime($break['break_schedule_start_time']);
-                                                    $breakScheduleEndTime = new DateTime($break['break_schedule_start_time']);
-                                                    $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
-
-                                                    $breakScheduleStartTime = new DateTime($workScheduleStartTimeDate->format('Y-m-d') . ' ' . $breakScheduleStartTime->format('H:i:s'));
-                                                    $breakScheduleEndTime = clone $breakScheduleStartTime;
-                                                    $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                    if ($breakScheduleStartTime < $workScheduleStartTime) {
-                                                        $breakScheduleStartTime->modify('+1 day');
-                                                    }
-
-                                                    if ($breakScheduleEndTime < $workScheduleStartTime) {
-                                                        $breakScheduleEndTime->modify('+1 day');
-                                                    }
-
-                                                    if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
-                                                        $breakScheduleEndTime->modify('+1 day');
-                                                    }
-
-                                                    $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
-                                                    $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
-
-                                                } else {
-                                                    $breakScheduleStartTime = new DateTime($break['break_schedule_earliest_start_time']);
-                                                    $breakTypeDurationInMinutes = $break['break_type_duration_in_minutes'];
-
-                                                    $breakScheduleStartTime = new DateTime($workScheduleStartTimeDate->format('Y-m-d') . ' ' . $breakScheduleStartTime->format('H:i:s'));
-                                                    $breakScheduleEndTime = clone $breakScheduleStartTime;
-                                                    $breakScheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                    if ($breakScheduleStartTime < $workScheduleStartTime) {
-                                                        $breakScheduleStartTime->modify('+1 day');
-                                                    }
-
-                                                    if ($breakScheduleEndTime < $workScheduleStartTime) {
-                                                        $breakScheduleEndTime->modify('+1 day');
-                                                    }
-
-                                                    if ($breakScheduleEndTime->format('H:i:s') < $breakScheduleStartTime->format('H:i:s')) {
-                                                        $breakScheduleEndTime->modify('+1 day');
-                                                    }
-
-                                                    $break['start_time'] = $breakScheduleStartTime->format('Y-m-d H:i:s');
-                                                    $break['end_time'] = $breakScheduleEndTime->format('Y-m-d H:i:s');
-                                                }
-
-                                                $startTime = new DateTime($break['start_time']);
-                                                $endTime = new DateTime($break['end_time']);
-                                                $attendanceEndTime = new DateTime($attendanceRecord['check_out_time']);
-
-                                                //  && $startTime->format('Y-m-d H:i:s') < $attendanceEndTime->format('Y-m-d H:i:s')
-                                                if ($endTime->format('Y-m-d H:i:s') > $attendanceEndTime->format('Y-m-d H:i:s')) {
-                                                    $break['end_time'] = $attendanceEndTime->format('Y-m-d H:i:s');
-                                                }
-
-                                                if ($attendanceRecord['check_in_time'] <= $break['start_time'] && $attendanceEndTime->format('Y-m-d H:i:s') >= $break['start_time']) {
-                                                    $defaultBreaks[] = [
-                                                        'start_time' => $break['start_time'],
-                                                        'end_time' => $break['end_time'],
-                                                        'is_paid' => $break['break_type_is_paid'],
-                                                        'break_type_duration_in_minutes' => $break['break_type_duration_in_minutes']
-                                                    ];
-                                                }
-                                            }
-                                        }
-
-                                        usort($defaultBreaks, function ($a, $b) {
-                                            $startTimeA = new DateTime($a['start_time']);
-                                            $startTimeB = new DateTime($b['start_time']);
-                                            return $startTimeA <=> $startTimeB;
-                                        });
-
-                                        foreach ($defaultBreaks as $break) {
-                                            if ( ! $break['is_paid']) {
-                                                $breakStartTime = new DateTime($break['start_time']);
-                                                $breakEndTime = new DateTime($break['end_time']);
-
-                                                $expectedEndTime = clone $breakStartTime;
-                                                $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
-
-                                                if ($breakStartTime->format('H') === $breakEndTime->format('H')) {
-                                                    $interval = $breakStartTime->diff($breakEndTime);
-                                                    $breakDuration = $interval->i;
-
-                                                    $hour = (int) $breakStartTime->format('H');
-                                                    $date = $breakStartTime->format('Y-m-d');
-                                                    $isNightShift = ($hour >= 22 || $hour < 6);
-
-                                                    $dayOfWeek = (new DateTime($date))->format('l');
-                                                    $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
-
-                                                    $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
-                                                    $holidayType = 'non_holiday';
-
-                                                    if ($isHoliday) {
-                                                        if (count($datesMarkedAsHoliday[$date]) > 1) {
-                                                            $holidayType = 'double_holiday';
-                                                        } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
-                                                            $holidayType = 'regular_holiday';
-                                                        } else {
-                                                            $holidayType = 'special_holiday';
-                                                        }
-                                                    }
-
-                                                    $hoursWorked -= $breakDuration / 60;
-
-                                                    if ($isNightShift) {
-                                                        $hourSummary[$dayType][$holidayType]['night_differential'] -= $breakDuration / 60;
-                                                    } else {
-                                                        $hourSummary[$dayType][$holidayType]['regular_hours'] -= $breakDuration / 60;
-                                                    }
-                                                } else {
-                                                    $startMinutes = (int) $breakStartTime->format('i');
-                                                    if ($startMinutes > 0) {
-                                                        $remainingMinutes = 60 - $startMinutes;
-                                                        $hour = (int) $breakStartTime->format('H');
-                                                        $date = $breakStartTime->format('Y-m-d');
-                                                        $isNightShift = ($hour >= 22 || $hour < 6);
-
-                                                        $dayOfWeek = (new DateTime($date))->format('l');
-                                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
-
-                                                        $isHoliday = !empty($datesMarkedAsHoliday[$date]);
-                                                        $holidayType = 'non_holiday';
-
-                                                        if ($isHoliday) {
-                                                            if (count($datesMarkedAsHoliday[$date]) > 1) {
-                                                                $holidayType = 'double_holiday';
-                                                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
-                                                                $holidayType = 'regular_holiday';
-                                                            } else {
-                                                                $holidayType = 'special_holiday';
-                                                            }
-                                                        }
-
-                                                        $hoursWorked -= $remainingMinutes / 60;
-                                                        if ($isNightShift) {
-                                                            $hourSummary[$dayType][$holidayType]['night_differential'] -= $remainingMinutes / 60;
-                                                        } else {
-                                                            $hourSummary[$dayType][$holidayType]['regular_hours'] -= $remainingMinutes / 60;
-                                                        }
-
-                                                        $breakStartTime->modify('+' . $remainingMinutes . ' minutes');
-                                                    }
-
-                                                    $endMinutes = (int) $breakEndTime->format('i');
-                                                    if ($endMinutes > 0) {
-                                                        $roundedBreakEndTime = clone $breakEndTime;
-                                                        $roundedBreakEndTime->modify('-' . $endMinutes . ' minutes');
-                                                        $date = $breakEndTime->format('Y-m-d');
-                                                        $hour = (int) $breakEndTime->format('H');
-                                                        $isNightShift = ($hour >= 22 || $hour < 6);
-
-                                                        $dayOfWeek = (new DateTime($date))->format('l');
-                                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
-
-                                                        $isHoliday = !empty($datesMarkedAsHoliday[$date]);
-                                                        $holidayType = 'non_holiday';
-
-                                                        if ($isHoliday) {
-                                                            if (count($datesMarkedAsHoliday[$date]) > 1) {
-                                                                $holidayType = 'double_holiday';
-                                                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
-                                                                $holidayType = 'regular_holiday';
-                                                            } else {
-                                                                $holidayType = 'special_holiday';
-                                                            }
-                                                        }
-
-                                                        $hoursWorked -= $endMinutes / 60;
-                                                        if ($isNightShift) {
-                                                            $hourSummary[$dayType][$holidayType]['night_differential'] -= $endMinutes / 60;
-                                                        } else {
-                                                            $hourSummary[$dayType][$holidayType]['regular_hours'] -= $endMinutes / 60;
-                                                        }
-
-                                                        $breakEndTime = $roundedBreakEndTime;
-                                                    }
-
-                                                    $dateInterval = new DateInterval('PT1H');
-                                                    $datePeriod = new DatePeriod($breakStartTime, $dateInterval, $breakEndTime);
-
-                                                    foreach ($datePeriod as $currentTime) {
-                                                        $currentDate = $currentTime->format('Y-m-d');
-                                                        $hour = (int) $currentTime->format('H');
-                                                        $isNightShift = ($hour >= 22 || $hour < 6);
-
-                                                        $dayOfWeek = (new DateTime($currentDate))->format('l');
-                                                        $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
-
-                                                        $isHoliday = !empty($datesMarkedAsHoliday[$currentDate]);
-                                                        $holidayType = 'non_holiday';
-
-                                                        if ($isHoliday) {
-                                                            if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
-                                                                $holidayType = 'double_holiday';
-                                                            } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
-                                                                $holidayType = 'regular_holiday';
-                                                            } else {
-                                                                $holidayType = 'special_holiday';
-                                                            }
-                                                        }
-
-                                                        $hoursWorked--;
-                                                        if ($isNightShift) {
-                                                            $hourSummary[$dayType][$holidayType]['night_differential']--;
-                                                        } else {
-                                                            $hourSummary[$dayType][$holidayType]['regular_hours']--;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
 
                                     $isOvertimeApproved = $attendanceRecord['is_overtime_approved'];
                                     $isOvertimeApproved = 1;
@@ -1175,8 +1162,6 @@ $currentDateTime = '2024-11-27 06:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
-
-Eto yung sa break in at out, kada tap matatawag toh $employeeBreakService->handleRfidTap($rfidUid, $currentDateTime);
 
 $currentDateTime = '2024-11-26 22:00:00';
 

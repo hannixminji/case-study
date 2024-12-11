@@ -13,7 +13,7 @@ class EmployeeDeductionDao
         $this->pdo = $pdo;
     }
 
-    public function assignDeductionToEmployee(EmployeeDeduction $employeeDeduction): ActionResult
+    public function create(EmployeeDeduction $employeeDeduction): ActionResult
     {
         $query = "
             INSERT INTO employee_deductions (

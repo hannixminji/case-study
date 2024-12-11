@@ -23,9 +23,7 @@ class DeductionDao
                 is_pre_tax    ,
                 frequency     ,
                 description   ,
-                status        ,
-                effective_date,
-                end_date
+                status
             )
             VALUES (
                 :name          ,
@@ -34,9 +32,7 @@ class DeductionDao
                 :is_pre_tax    ,
                 :frequency     ,
                 :description   ,
-                :status        ,
-                :effective_date,
-                :end_date
+                :status
             )
         ";
 
@@ -45,15 +41,13 @@ class DeductionDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"          , $deduction->getName()         , Helper::getPdoParameterType($deduction->getName()         ));
-            $statement->bindValue(":amount_type"   , $deduction->getAmountType()   , Helper::getPdoParameterType($deduction->getAmountType()   ));
-            $statement->bindValue(":amount"        , $deduction->getAmount()       , Helper::getPdoParameterType($deduction->getAmount()       ));
-            $statement->bindValue(":is_pre_tax"    , $deduction->getIsPreTax()     , Helper::getPdoParameterType($deduction->getIsPreTax()     ));
-            $statement->bindValue(":frequency"     , $deduction->getFrequency()    , Helper::getPdoParameterType($deduction->getFrequency()    ));
-            $statement->bindValue(":description"   , $deduction->getDescription()  , Helper::getPdoParameterType($deduction->getDescription()  ));
-            $statement->bindValue(":status"        , $deduction->getStatus()       , Helper::getPdoParameterType($deduction->getStatus()       ));
-            $statement->bindValue(":effective_date", $deduction->getEffectiveDate(), Helper::getPdoParameterType($deduction->getEffectiveDate()));
-            $statement->bindValue(":end_date"      , $deduction->getEndDate()      , Helper::getPdoParameterType($deduction->getEndDate()      ));
+            $statement->bindValue(":name"       , $deduction->getName()       , Helper::getPdoParameterType($deduction->getName()       ));
+            $statement->bindValue(":amount_type", $deduction->getAmountType() , Helper::getPdoParameterType($deduction->getAmountType() ));
+            $statement->bindValue(":amount"     , $deduction->getAmount()     , Helper::getPdoParameterType($deduction->getAmount()     ));
+            $statement->bindValue(":is_pre_tax" , $deduction->getIsPreTax()   , Helper::getPdoParameterType($deduction->getIsPreTax()   ));
+            $statement->bindValue(":frequency"  , $deduction->getFrequency()  , Helper::getPdoParameterType($deduction->getFrequency()  ));
+            $statement->bindValue(":description", $deduction->getDescription(), Helper::getPdoParameterType($deduction->getDescription()));
+            $statement->bindValue(":status"     , $deduction->getStatus()     , Helper::getPdoParameterType($deduction->getStatus()     ));
 
             $statement->execute();
 
@@ -76,11 +70,11 @@ class DeductionDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"             => "deduction.id             AS id"            ,
@@ -91,8 +85,6 @@ class DeductionDao
             "frequency"      => "deduction.frequency      AS frequency"     ,
             "description"    => "deduction.description    AS description"   ,
             "status"         => "deduction.status         AS status"        ,
-            "effective_date" => "deduction.effective_date AS effective_date",
-            "end_date"       => "deduction.end_date       AS end_date"      ,
             "created_at"     => "deduction.created_at     AS created_at"    ,
             "updated_at"     => "deduction.updated_at     AS updated_at"    ,
             "deleted_at"     => "deduction.deleted_at     AS deleted_at"
@@ -224,15 +216,13 @@ class DeductionDao
         $query = "
             UPDATE deductions
             SET
-                name           = :name          ,
-                amount_type    = :amount_type   ,
-                amount         = :amount        ,
-                is_pre_tax     = :is_pre_tax    ,
-                frequency      = :frequency     ,
-                description    = :description   ,
-                status         = :status        ,
-                effective_date = :effective_date,
-                end_date       = :end_date
+                name        = :name       ,
+                amount_type = :amount_type,
+                amount      = :amount     ,
+                is_pre_tax  = :is_pre_tax ,
+                frequency   = :frequency  ,
+                description = :description,
+                status      = :status
             WHERE
                 id = :deduction_id
         ";
@@ -242,16 +232,14 @@ class DeductionDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"          , $deduction->getName()         , Helper::getPdoParameterType($deduction->getName()         ));
-            $statement->bindValue(":amount_type"   , $deduction->getAmountType()   , Helper::getPdoParameterType($deduction->getAmountType()   ));
-            $statement->bindValue(":amount"        , $deduction->getAmount()       , Helper::getPdoParameterType($deduction->getAmount()       ));
-            $statement->bindValue(":is_pre_tax"    , $deduction->getIsPreTax()     , Helper::getPdoParameterType($deduction->getIsPreTax()     ));
-            $statement->bindValue(":frequency"     , $deduction->getFrequency()    , Helper::getPdoParameterType($deduction->getFrequency()    ));
-            $statement->bindValue(":description"   , $deduction->getDescription()  , Helper::getPdoParameterType($deduction->getDescription()  ));
-            $statement->bindValue(":status"        , $deduction->getStatus()       , Helper::getPdoParameterType($deduction->getStatus()       ));
-            $statement->bindValue(":effective_date", $deduction->getEffectiveDate(), Helper::getPdoParameterType($deduction->getEffectiveDate()));
-            $statement->bindValue(":end_date"      , $deduction->getEndDate()      , Helper::getPdoParameterType($deduction->getEndDate()      ));
-            $statement->bindValue(":deduction_id"  , $deduction->getId()           , Helper::getPdoParameterType($deduction->getId()           ));
+            $statement->bindValue(":name"        , $deduction->getName()       , Helper::getPdoParameterType($deduction->getName()       ));
+            $statement->bindValue(":amount_type" , $deduction->getAmountType() , Helper::getPdoParameterType($deduction->getAmountType() ));
+            $statement->bindValue(":amount"      , $deduction->getAmount()     , Helper::getPdoParameterType($deduction->getAmount()     ));
+            $statement->bindValue(":is_pre_tax"  , $deduction->getIsPreTax()   , Helper::getPdoParameterType($deduction->getIsPreTax()   ));
+            $statement->bindValue(":frequency"   , $deduction->getFrequency()  , Helper::getPdoParameterType($deduction->getFrequency()  ));
+            $statement->bindValue(":description" , $deduction->getDescription(), Helper::getPdoParameterType($deduction->getDescription()));
+            $statement->bindValue(":status"      , $deduction->getStatus()     , Helper::getPdoParameterType($deduction->getStatus()     ));
+            $statement->bindValue(":deduction_id", $deduction->getId()         , Helper::getPdoParameterType($deduction->getId()         ));
 
             $statement->execute();
 

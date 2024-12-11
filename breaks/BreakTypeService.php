@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/BreakTypeDao.php';
 
-class BreakTypeRepository
+class BreakTypeService
 {
     private readonly BreakTypeDao $breakTypeDao;
 

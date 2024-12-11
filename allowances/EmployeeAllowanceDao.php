@@ -73,8 +73,6 @@ class EmployeeAllowanceDao
             "allowance_is_taxable"     => "allowance.is_taxable            AS allowance_is_taxable"    ,
             "allowance_frequency"      => "allowance.frequency             AS allowance_frequency"     ,
             "allowance_status"         => "allowance.status                AS allowance_status"        ,
-            "allowance_effective_date" => "allowance.effective_date        AS allowance_effective_date",
-            "allowance_end_date"       => "allowance.end_date              AS allowance_end_date"      ,
 
             "amount"                   => "employee_allowance.amount       AS amount"                  ,
             "created_at"               => "employee_allowance.created_at   AS created_at"              ,

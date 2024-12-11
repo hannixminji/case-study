@@ -22,9 +22,7 @@ class AllowanceDao
                 is_taxable    ,
                 frequency     ,
                 description   ,
-                status        ,
-                effective_date,
-                end_date
+                status
             )
             VALUES (
                 :name          ,
@@ -32,9 +30,7 @@ class AllowanceDao
                 :is_taxable    ,
                 :frequency     ,
                 :description   ,
-                :status        ,
-                :effective_date,
-                :end_date
+                :status
             )
         ";
 
@@ -49,8 +45,6 @@ class AllowanceDao
             $statement->bindValue(":frequency"     , $allowance->getFrequency()    , Helper::getPdoParameterType($allowance->getFrequency()    ));
             $statement->bindValue(":description"   , $allowance->getDescription()  , Helper::getPdoParameterType($allowance->getDescription()  ));
             $statement->bindValue(":status"        , $allowance->getStatus()       , Helper::getPdoParameterType($allowance->getStatus()       ));
-            $statement->bindValue(":effective_date", $allowance->getEffectiveDate(), Helper::getPdoParameterType($allowance->getEffectiveDate()));
-            $statement->bindValue(":end_date"      , $allowance->getEndDate()      , Helper::getPdoParameterType($allowance->getEndDate()      ));
 
             $statement->execute();
 
@@ -219,9 +213,7 @@ class AllowanceDao
                 is_taxable     = :is_taxable    ,
                 frequency      = :frequency     ,
                 description    = :description   ,
-                status         = :status        ,
-                effective_date = :effective_date,
-                end_date       = :end_date
+                status         = :status
             WHERE
                 id = :allowance_id
         ";
@@ -237,8 +229,6 @@ class AllowanceDao
             $statement->bindValue(":frequency"     , $allowance->getFrequency()    , Helper::getPdoParameterType($allowance->getFrequency()    ));
             $statement->bindValue(":description"   , $allowance->getDescription()  , Helper::getPdoParameterType($allowance->getDescription()  ));
             $statement->bindValue(":status"        , $allowance->getStatus()       , Helper::getPdoParameterType($allowance->getStatus()       ));
-            $statement->bindValue(":effective_date", $allowance->getEffectiveDate(), Helper::getPdoParameterType($allowance->getEffectiveDate()));
-            $statement->bindValue(":end_date"      , $allowance->getEndDate()      , Helper::getPdoParameterType($allowance->getEndDate()      ));
             $statement->bindValue(":allowance_id"  , $allowance->getId()           , Helper::getPdoParameterType($allowance->getId()           ));
 
             $statement->execute();

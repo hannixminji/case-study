@@ -608,7 +608,7 @@ class AttendanceService
                 $schedule['start_time'] = $startTime->format('Y-m-d H:i:s');
                 $schedule['end_time'  ] = $endTime  ->format('Y-m-d H:i:s');
 
-                if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                if ($currentTime >= $startTime && $currentTime < $endTime) {
                     $currentWorkSchedule = $schedule;
                     break 2;
                 }
