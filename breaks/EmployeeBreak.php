@@ -7,7 +7,8 @@ class EmployeeBreak
         private readonly   int    $breakScheduleId              ,
         private readonly ? string $startTime              = null,
         private readonly ? string $endTime                = null,
-        private readonly   int    $breakDurationInMinutes = 0
+        private readonly   int    $breakDurationInMinutes = 0   ,
+        private readonly   string $createdAt
     ) {
     }
 
@@ -34,5 +35,10 @@ class EmployeeBreak
     public function getBreakDurationInMinutes(): int
     {
         return $this->breakDurationInMinutes;
+    }
+
+    public function getCreatedAt(): string
+    {
+        return $this->createdAt;
     }
 }

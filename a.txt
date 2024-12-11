@@ -3098,3 +3098,145 @@ $breakSchedules = $breakScheduleRepository->fetchOrderedBreakSchedules($workSche
 
 
                                 }
+
+
+
+} else {
+                $startTime = new DateTime($lastBreakRecord['start_time']);
+                $endTime = new DateTime($currentDateTime->format('Y-m-d H:i:s'));
+                $breakTypeDurationInMinutes = $lastBreakRecord['break_type_duration_in_minutes'];
+
+                if ( ! $lastBreakRecord['is_flexible']) {
+                    $scheduleStartTime = new DateTime($lastBreakRecord['break_schedule_start_time']);
+
+                    $scheduleEndTime = clone $scheduleStartTime;
+                    $scheduleEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                    $breakDate = $startTime->format('Y-m-d');
+                    $scheduleStartTime = new DateTime($breakDate . ' ' . $scheduleStartTime->format('H:i:s'));
+                    $scheduleEndTime   = new DateTime($breakDate . ' ' . $scheduleEndTime  ->format('H:i:s'));
+
+                    if ($scheduleEndTime->format('H:i:s') < $scheduleStartTime->format('H:i:s')) {
+                        $scheduleEndTime->modify('+1 day');
+                    }
+
+                    echo $scheduleStartTime->format('Y-m-d H:i:s') . '<br>';
+                    echo $scheduleEndTime->format('Y-m-d H:i:s') . '<br>';
+                    $startTime = $scheduleStartTime;
+                    if ($endTime < $scheduleEndTime) {
+                        $endTime = $scheduleEndTime;
+                    }
+                } else {
+                    $expectedEndTime = clone $startTime;
+                    $expectedEndTime->add(new DateInterval("PT{$breakTypeDurationInMinutes}M"));
+
+                    if ($endTime < $expectedEndTime) {
+                        $endTime = $expectedEndTime;
+                    }
+                }
+
+                $interval = $startTime->diff($endTime);
+                $breakDurationInMinutes = $interval->h * 60 + $interval->i;
+
+                $employeeBreak = new EmployeeBreak(
+                    id                    : $lastBreakRecord['id'                 ],
+                    breakScheduleId       : $lastBreakRecord['break_schedule_id'  ],
+                    startTime             : $lastBreakRecord['start_time'         ],
+                    endTime               : $currentDateTime->format('Y-m-d H:i:s'),
+                    breakDurationInMinutes: $breakDurationInMinutes                ,
+                    createdAt             : $lastBreakRecord['created_at']
+                );
+
+                $result = $this->employeeBreakRepository->breakOut($employeeBreak);
+
+                if ($result === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error7',
+                        'message' => 'An unexpected error occurred. Please try again later.',
+                    ];
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+if ($employeeBreak['break_duration_in_minutes'] > $breakSchedule['break_type_duration_in_minutes']) {
+                                    if ( ! $breakSchedule['break_type_is_paid']) {
+                                        $unpaidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
+                                    } else {
+                                        $paidBreakDurationInMinutes += $breakSchedule['break_type_duration_in_minutes'];
+                                        $unpaidBreakDurationInMinutes += ($employeeBreak['break_duration_in_minutes'] - $breakSchedule['break_type_duration_in_minutes']);
+                                    }
+                                } else {
+                                    if ( ! $breakSchedule['break_type_is_paid']) {
+                                        $unpaidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
+                                    } else {
+                                        $paidBreakDurationInMinutes += $employeeBreak['break_duration_in_minutes'];
+                                    }
+                                }
+
+$breakStartTime = new DateTime($employeeBreak['start_time']);
+                                $checkOutTime = clone $currentDateTime;
+
+                                $breakScheduledEndTime = clone $breakStartTime;
+                                $breakScheduledEndTime->modify("+{$breakSchedule['break_type_duration_in_minutes']} minutes");
+
+                                if ($breakScheduledEndTime->format('H:i:s') < $breakStartTime->format('H:i:s')) {
+                                    $breakScheduledEndTime->modify('+1 day');
+                                }
+
+                                $actualEndTime = ($checkOutTime < $breakScheduledEndTime) ? $checkOutTime : $breakScheduledEndTime;
+
+                                $actualBreakDurationInMinutes = $breakStartTime->diff($actualEndTime);
+                                $actualBreakDurationInMinutes = $actualBreakDurationInMinutes->h * 60 + $actualBreakDurationInMinutes->i;
+
+                                if ($breakSchedule['break_type_is_paid']) {
+                                    $paidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                } else {
+                                    $unpaidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                }
+
+
+    private function getCurrentWorkSchedule(array $workSchedules, string $currentTime): array
+    {
+        $currentWorkSchedule = [];
+        $nextWorkSchedule    = [];
+
+        $currentTime = (new DateTime($currentTime))->format('H:i:s');
+
+        foreach ($workSchedules as $date => $schedules) {
+            foreach ($schedules as $schedule) {
+                $startTime = (new DateTime($schedule['start_time']))->format('H:i:s');
+                $endTime   = (new DateTime($schedule['end_time'  ]))->format('H:i:s');
+
+                if ($endTime < $startTime) {
+                    if ($currentTime >= $startTime || $currentTime <= $endTime) {
+                        $currentWorkSchedule = $schedule;
+                        break 2;
+                    }
+                } else {
+                    if ($currentTime >= $startTime && $currentTime <= $endTime) {
+                        $currentWorkSchedule = $schedule;
+                        break 2;
+                    }
+                }
+
+                if (empty($nextWorkSchedule) && $currentTime < $startTime) {
+                    $nextWorkSchedule = $schedule;
+                }
+            }
+        }
+
+        if (empty($currentWorkSchedule) && ! empty($nextWorkSchedule)) {
+            $currentWorkSchedule = $nextWorkSchedule;
+        }
+
+        return $currentWorkSchedule;
+    }
+

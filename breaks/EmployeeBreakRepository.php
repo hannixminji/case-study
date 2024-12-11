@@ -31,7 +31,7 @@ class EmployeeBreakRepository
         return $this->employeeBreakDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function fetchEmployeeLastBreakRecord(int $employeeId): ActionResult|array
+    public function fetchEmployeeLastBreakRecord(int $workScheduleId, int $employeeId): ActionResult|array
     {
         $columns = [
             'id'                               ,
@@ -46,9 +46,15 @@ class EmployeeBreakRepository
             'break_type_duration_in_minutes'   ,
             'break_type_is_paid'               ,
             'is_require_break_in_and_break_out',
+            'created_at'
         ];
 
         $filterCriteria = [
+            [
+                'column'   => 'break_schedule.work_schedule_id',
+                'operator' => '='                              ,
+                'value'    => $workScheduleId
+            ],
             [
                 'column'   => 'work_schedule.employee_id',
                 'operator' => '='                        ,

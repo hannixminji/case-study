@@ -93,9 +93,7 @@ class AttendanceService
 
             $isCheckIn = true;
 
-            $previousDate = clone new DateTime($currentDate);
-            $previousDate->modify('-1 day');
-            $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $previousDate->format('Y-m-d'), $currentDate);
+            $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $currentDate, $currentDate);
 
             if ($workSchedules === ActionResult::FAILURE) {
                 return [
@@ -119,101 +117,71 @@ class AttendanceService
                     'message' => 'Your scheduled work has already ended.'
                 ];
             }
+            $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
-            if ($lastAttendanceRecord['check_in_time'] >= $currentWorkSchedule['start_time'] && $lastAttendanceRecord['check_out_time'] <= $currentWorkSchedule['end_time']) {
-                $attendance = new Attendance(
-                    id               : null,
-                    workScheduleId   : $lastAttendanceRecord['work_schedule_id' ],
-                    date             : $lastAttendanceRecord['date'             ],
-                    checkInTime      : $currentDateTime->format('Y-m-d H:i:s'   ),
-                    checkOutTime     : null,
-                    totalBreakDurationInMinutes: null,
-                    totalHoursWorked : null,
-                    lateCheckIn      : $lastAttendanceRecord['late_check_in'    ],
-                    earlyCheckOut    : null,
-                    overtimeHours    : null,
-                    isOvertimeApproved: null,
-                    attendanceStatus : $lastAttendanceRecord['attendance_status'],
-                    remarks          : null
-                );
+            if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
+                return [
+                    'status' => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
 
-                $result = $this->attendanceRepository->checkIn($attendance);
+            $earliestCheckInTime = (new DateTime($currentWorkSchedule['start_time']))
+                ->modify("-{$minutesCanCheckInBeforeShift} minutes");
 
-                if ($result === ActionResult::FAILURE) {
-                    return [
-                        'status'  => 'error',
-                        'message' => 'An unexpected error occurred. Please try again later.'
-                    ];
-                }
+            if ($currentDateTime < $earliestCheckInTime) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'You are not allowed to check in early.'
+                ];
+            }
 
-            } else {
-                $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
+            $attendanceStatus = 'Present';
+            $lateCheckIn = 0;
 
-                if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
+            if ( ! $currentWorkSchedule['is_flextime']) {
+                $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
+
+                if ($gracePeriod === ActionResult::FAILURE) {
                     return [
                         'status' => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
 
-                $earliestCheckInTime = (new DateTime($currentWorkSchedule['start_time']))
-                    ->modify("-{$minutesCanCheckInBeforeShift} minutes");
+                $startTime = new DateTime($currentWorkSchedule['start_time']);
+                $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
 
-                if ($currentDateTime < $earliestCheckInTime) {
-                    return [
-                        'status' => 'warning',
-                        'message' => 'You are not allowed to check in early.'
-                    ];
-                }
-
-                $attendanceStatus = 'Present';
-                $lateCheckIn = 0;
-
-                if ( ! $currentWorkSchedule['is_flextime']) {
-                    $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
-
-                    if ($gracePeriod === ActionResult::FAILURE) {
-                        return [
-                            'status' => 'error',
-                            'message' => 'An unexpected error occurred. Please try again later.'
-                        ];
-                    }
-
-                    $startTime = new DateTime($currentWorkSchedule['start_time']);
-                    $adjustedStartTime = (clone $startTime)->modify("+{$gracePeriod} minutes");
-
-                    if ($currentDateTime->format('Y-m-d H:i:s') > $adjustedStartTime->format('Y-m-d H:i:s')) {
-                        $lateCheckIn = ceil(((new DateTime($currentDateTime->format('Y-m-d H:i:s')))->getTimestamp() - (new DateTime($adjustedStartTime->format('Y-m-d H:i:s')))->getTimestamp()) / 60);
-                        $attendanceStatus = 'Late';
-                    }
-                }
-
-                $attendance = new Attendance(
-                    id               : null,
-                    workScheduleId   : $currentWorkSchedule['id'],
-                    date             : $currentDate,
-                    checkInTime      : $currentDateTime->format('Y-m-d H:i:s'),
-                    checkOutTime     : null,
-                    totalBreakDurationInMinutes: null,
-                    totalHoursWorked : null,
-                    lateCheckIn      : $lateCheckIn,
-                    earlyCheckOut    : null,
-                    overtimeHours    : null,
-                    isOvertimeApproved: null,
-                    attendanceStatus : $attendanceStatus,
-                    remarks          : null
-                );
-
-                $result = $this->attendanceRepository->checkIn($attendance);
-
-                if ($result === ActionResult::FAILURE) {
-                    return [
-                        'status'  => 'error',
-                        'message' => 'An unexpected error occurred. Please try again later.'
-                    ];
+                if ($currentDateTime->format('Y-m-d H:i:s') > $adjustedStartTime->format('Y-m-d H:i:s')) {
+                    $lateCheckIn = ceil(((new DateTime($currentDateTime->format('Y-m-d H:i:s')))->getTimestamp() - (new DateTime($adjustedStartTime->format('Y-m-d H:i:s')))->getTimestamp()) / 60);
+                    $attendanceStatus = 'Late';
                 }
             }
 
+            $attendance = new Attendance(
+                id               : null,
+                workScheduleId   : $currentWorkSchedule['id'],
+                date             : $currentDate,
+                checkInTime      : $currentDateTime->format('Y-m-d H:i:s'),
+                checkOutTime     : null,
+                totalBreakDurationInMinutes: null,
+                totalHoursWorked : null,
+                lateCheckIn      : $lateCheckIn,
+                earlyCheckOut    : null,
+                overtimeHours    : null,
+                isOvertimeApproved: null,
+                attendanceStatus : $attendanceStatus,
+                remarks          : null
+            );
+
+            $result = $this->attendanceRepository->checkIn($attendance);
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
 
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
