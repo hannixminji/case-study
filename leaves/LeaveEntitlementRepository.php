@@ -31,6 +31,11 @@ class LeaveEntitlementRepository
         return $this->leaveEntitlementDao->updateBalance($leaveEntitlement);
     }
 
+    public function resetEmployeeAllLeaveBalances(int $employeeId): ActionResult
+    {
+        return $this->resetEmployeeAllLeaveBalances($employeeId);
+    }
+
     public function deleteLeaveEntitlement(int $leaveEntitlementId): ActionResult
     {
         return $this->leaveEntitlementDao->delete($leaveEntitlementId);

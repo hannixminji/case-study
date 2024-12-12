@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../includes/Helper.php'            ;
-require_once __DIR__ . '/../includes/enums/ActionResult.php';
-require_once __DIR__ . '/../includes/enums/ErrorCode.php'   ;
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class LeaveRequestDao
 {
@@ -15,7 +15,7 @@ class LeaveRequestDao
 
     public function create(LeaveRequest $leaveRequest): ActionResult
     {
-        $query = '
+        $query = "
             INSERT INTO leave_requests (
                 employee_id  ,
                 leave_type_id,
@@ -32,19 +32,19 @@ class LeaveRequestDao
                 :reason       ,
                 :status
             )
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_id'  , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
-            $statement->bindValue(':leave_type_id', $leaveRequest->getLeaveTypeId(), Helper::getPdoParameterType($leaveRequest->getLeaveTypeId()));
-            $statement->bindValue(':start_date'   , $leaveRequest->getStartDate()  , Helper::getPdoParameterType($leaveRequest->getStartDate()  ));
-            $statement->bindValue(':end_date'     , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
-            $statement->bindValue(':reason'       , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
-            $statement->bindValue(':status'       , $leaveRequest->getStatus()     , Helper::getPdoParameterType($leaveRequest->getStatus()     ));
+            $statement->bindValue(":employee_id"  , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
+            $statement->bindValue(":leave_type_id", $leaveRequest->getLeaveTypeId(), Helper::getPdoParameterType($leaveRequest->getLeaveTypeId()));
+            $statement->bindValue(":start_date"   , $leaveRequest->getStartDate()  , Helper::getPdoParameterType($leaveRequest->getStartDate()  ));
+            $statement->bindValue(":end_date"     , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
+            $statement->bindValue(":reason"       , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
+            $statement->bindValue(":status"       , $leaveRequest->getStatus()     , Helper::getPdoParameterType($leaveRequest->getStatus()     ));
 
             $statement->execute();
 
@@ -55,8 +55,8 @@ class LeaveRequestDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the leave request. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while creating the leave request. " .
+                      "Exception: " . $exception->getMessage());
 
             return ActionResult::FAILURE;
         }
@@ -70,39 +70,32 @@ class LeaveRequestDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "leave_request.id               AS id"                      ,
-            "employee_id"              => "leave_request.employee_id      AS employee_id"             ,
-            "employee_full_name"       => "employee.full_name             AS employee_full_name"      ,
-            "employee_department_id"   => "employee.department_id         AS employee_department_id"  ,
-            "employee_department_name" => "department.name                AS employee_department_name",
-            "employee_job_title_id"    => "employee.job_title_id          AS employee_job_title_id"   ,
-            "employee_job_title"       => "job_title.title                AS employee_job_title"      ,
-            "employee_supervisor_id"   => "employee.supervisor_id         AS employee_supervisor_id"  ,
-            "employee_manager_id"      => "employee.manager_id            AS employee_manager_id"     ,
-            "leave_type_id"            => "leave_request.leave_type_id    AS leave_type_id"           ,
-            "leave_type_name"          => "leave_type.name                AS leave_type_name"         ,
-            "leave_type_is_paid"       => "leave_type.is_paid             AS leave_type_is_paid"      ,
-            "start_date"               => "leave_request.start_date       AS start_date"              ,
-            "end_date"                 => "leave_request.end_date         AS end_date"                ,
-            "reason"                   => "leave_request.reason           AS reason"                  ,
+            "id"                       => "leave_request.id            AS id"                      ,
 
-            "status" => "
-                CASE
-                    WHEN leave_request.status = 'Canceled' THEN 'Canceled'
-                    WHEN leave_request.status = 'Rejected' THEN 'Rejected'
-                    WHEN CURDATE() >= leave_request.start_date AND leave_request.status = 'Pending' THEN 'Expired'
-                    WHEN leave_request.status = 'Approved' AND CURDATE() BETWEEN leave_request.start_date AND leave_request.end_date THEN 'In Progress'
-                    WHEN leave_request.status = 'Approved' AND CURDATE() > leave_request.end_date THEN 'Completed'
-                    WHEN leave_request.status = 'Approved' AND CURDATE() < leave_request.start_date THEN 'Approved'
-                    ELSE 'Pending'
-                END AS status
-            ",
+            "employee_id"              => "leave_request.employee_id   AS employee_id"             ,
+            "employee_full_name"       => "employee.full_name          AS employee_full_name"      ,
+            "employee_department_id"   => "employee.department_id      AS employee_department_id"  ,
+            "employee_department_name" => "department.name             AS employee_department_name",
+            "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
+            "employee_job_title"       => "job_title.title             AS employee_job_title"      ,
+            "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
+            "employee_manager_id"      => "employee.manager_id         AS employee_manager_id"     ,
 
-            "approved_at"              => "leave_request.approved_at      AS approved_at",
-            "approved_by"              => "approved_by.full_name          AS approved_by",
-            "created_at"               => "leave_request.created_at       AS created_at" ,
-            "updated_at"               => "leave_request.updated_at       AS updated_at" ,
-            "deleted_at"               => "leave_request.deleted_at       AS deleted_at"
+            "leave_type_id"            => "leave_request.leave_type_id AS leave_type_id"           ,
+            "leave_type_name"          => "leave_type.name             AS leave_type_name"         ,
+            "leave_type_is_paid"       => "leave_type.is_paid          AS leave_type_is_paid"      ,
+
+            "start_date"               => "leave_request.start_date    AS start_date"              ,
+            "end_date"                 => "leave_request.end_date      AS end_date"                ,
+            "reason"                   => "leave_request.reason        AS reason"                  ,
+            "status"                   => "leave_request.status        AS status"                  ,
+
+            "approved_at"              => "leave_request.approved_at   AS approved_at"             ,
+            "approved_by"              => "approved_by.full_name       AS approved_by"             ,
+
+            "created_at"               => "leave_request.created_at    AS created_at"              ,
+            "updated_at"               => "leave_request.updated_at    AS updated_at"              ,
+            "deleted_at"               => "leave_request.deleted_at    AS deleted_at"
         ];
 
         $selectedColumns =
@@ -283,7 +276,7 @@ class LeaveRequestDao
 
     public function update(LeaveRequest $leaveRequest): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE leave_requests
             SET
                 employee_id   = :employee_id  ,
@@ -293,19 +286,19 @@ class LeaveRequestDao
                 reason        = :reason
             WHERE
                 id = :leave_request_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_id'     , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
-            $statement->bindValue(':leave_type_id'   , $leaveRequest->getLeaveTypeId(), Helper::getPdoParameterType($leaveRequest->getLeaveTypeId()));
-            $statement->bindValue(':start_date'      , $leaveRequest->getStartDate()  , Helper::getPdoParameterType($leaveRequest->getStartDate()  ));
-            $statement->bindValue(':end_date'        , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
-            $statement->bindValue(':reason'          , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
-            $statement->bindValue(':leave_request_id', $leaveRequest->getId()         , Helper::getPdoParameterType($leaveRequest->getId()         ));
+            $statement->bindValue(":employee_id"     , $leaveRequest->getEmployeeId() , Helper::getPdoParameterType($leaveRequest->getEmployeeId() ));
+            $statement->bindValue(":leave_type_id"   , $leaveRequest->getLeaveTypeId(), Helper::getPdoParameterType($leaveRequest->getLeaveTypeId()));
+            $statement->bindValue(":start_date"      , $leaveRequest->getStartDate()  , Helper::getPdoParameterType($leaveRequest->getStartDate()  ));
+            $statement->bindValue(":end_date"        , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
+            $statement->bindValue(":reason"          , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
+            $statement->bindValue(":leave_request_id", $leaveRequest->getId()         , Helper::getPdoParameterType($leaveRequest->getId()         ));
 
             $statement->execute();
 
@@ -316,8 +309,8 @@ class LeaveRequestDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the leave request. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while updating the leave request. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
@@ -325,21 +318,21 @@ class LeaveRequestDao
 
     public function updateStatus(int $leaveRequestId, string $status): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE leave_requests
             SET
                 status = :status
             WHERE
                 id = :leave_request_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':status'          , $status        , Helper::getPdoParameterType($status        ));
-            $statement->bindValue(':leave_request_id', $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
+            $statement->bindValue(":status"          , $status        , Helper::getPdoParameterType($status        ));
+            $statement->bindValue(":leave_request_id", $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
 
             $statement->execute();
 
@@ -350,8 +343,39 @@ class LeaveRequestDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the status of the leave request. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while updating the status of the leave request. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function updateLeaveRequestStatuses(): ActionResult
+    {
+        $query = "
+            UPDATE leave_requests
+            SET
+                status = CASE
+                    WHEN leave_request.status = 'Canceled'                                                                               THEN 'Canceled'
+                    WHEN leave_request.status = 'Rejected'                                                                               THEN 'Rejected'
+                    WHEN CURDATE() >= leave_request.start_date AND leave_request.status = 'Pending'                                      THEN 'Expired'
+                    WHEN leave_request.status = 'Approved'     AND CURDATE() BETWEEN leave_request.start_date AND leave_request.end_date THEN 'In Progress'
+                    WHEN leave_request.status = 'Approved'     AND CURDATE() > leave_request.end_date                                    THEN 'Completed'
+                    WHEN leave_request.status = 'Approved'     AND CURDATE() < leave_request.start_date                                  THEN 'Approved'
+                                                                                                                                         ELSE 'Pending'
+                                                                                                                                         END
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->execute();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while updating the leave request statuses. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
@@ -374,15 +398,15 @@ class LeaveRequestDao
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_id', $employeeId, Helper::getPdoParameterType($employeeId));
+            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
 
             $statement->execute();
 
             return $statement->fetchColumn() > 0;
 
         } catch (PDOException $exception) {
-            error_log('Database Error: An error occurred while checking if the employee is on leave. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while checking if the employee is on leave. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
@@ -395,20 +419,20 @@ class LeaveRequestDao
 
     private function softDelete(int $leaveRequestId): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE leave_requests
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :leave_request_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':leave_request_id', $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
+            $statement->bindValue(":leave_request_id", $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
 
             $statement->execute();
 
@@ -419,8 +443,8 @@ class LeaveRequestDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the leave request. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while deleting the leave request. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

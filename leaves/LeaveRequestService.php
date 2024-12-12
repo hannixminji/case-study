@@ -23,6 +23,8 @@ class LeaveRequestService
         ? int   $limit          = null,
         ? int   $offset         = null
     ): ActionResult|array {
+        $this->leaveRequestRepository->updateLeaveRequestStatuses();
+
         return $this->leaveRequestRepository->fetchAllLeaveRequests($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 

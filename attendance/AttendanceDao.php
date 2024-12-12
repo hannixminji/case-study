@@ -329,14 +329,16 @@ class AttendanceDao
         $query = "
             UPDATE attendance
             SET
-                check_in_time      = :check_in_time     ,
-                check_out_time     = :check_out_time    ,
-                total_hours_worked = :total_hours_worked,
-                late_check_in      = :late_check_in     ,
-                early_check_out    = :early_check_out   ,
-                overtime_hours     = :overtime_hours    ,
-                attendance_status  = :attendance_status ,
-                remarks            = :remarks
+                check_in_time                   = :check_in_time                  ,
+                check_out_time                  = :check_out_time                 ,
+                total_break_duration_in_minutes = :total_break_duration_in_minutes,
+                total_hours_worked              = :total_hours_worked             ,
+                late_check_in                   = :late_check_in                  ,
+                early_check_out                 = :early_check_out                ,
+                overtime_hours                  = :overtime_hours                 ,
+                is_overtime_approved            = :is_overtime_approved           ,
+                attendance_status               = :attendance_status              ,
+                remarks                         = :remarks
             WHERE
                 id = :attendance_id
         ";
@@ -346,15 +348,17 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":check_in_time"     , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
-            $statement->bindValue(":check_out_time"    , $attendance->getCheckOutTime()    , Helper::getPdoParameterType($attendance->getCheckOutTime()    ));
-            $statement->bindValue(":total_hours_worked", $attendance->getTotalHoursWorked(), Helper::getPdoParameterType($attendance->getTotalHoursWorked()));
-            $statement->bindValue(":late_check_in"     , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
-            $statement->bindValue(":early_check_out"   , $attendance->getEarlyCheckOut()   , Helper::getPdoParameterType($attendance->getEarlyCheckOut()   ));
-            $statement->bindValue(":overtime_hours"    , $attendance->getOvertimeHours()   , Helper::getPdoParameterType($attendance->getOvertimeHours()   ));
-            $statement->bindValue(":attendance_status" , $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
-            $statement->bindValue(":remarks"           , $attendance->getRemarks()         , Helper::getPdoParameterType($attendance->getRemarks()         ));
-            $statement->bindValue(":attendance_id"     , $attendance->getId()              , Helper::getPdoParameterType($attendance->getId()              ));
+            $statement->bindValue(":check_in_time"                  , $attendance->getCheckInTime()                , Helper::getPdoParameterType($attendance->getCheckInTime()                ));
+            $statement->bindValue(":check_out_time"                 , $attendance->getCheckOutTime()               , Helper::getPdoParameterType($attendance->getCheckOutTime()               ));
+            $statement->bindValue(":total_break_duration_in_minutes", $attendance->getTotalBreakDurationInMinutes(), Helper::getPdoParameterType($attendance->getTotalBreakDurationInMinutes()));
+            $statement->bindValue(":total_hours_worked"             , $attendance->getTotalHoursWorked()           , Helper::getPdoParameterType($attendance->getTotalHoursWorked()           ));
+            $statement->bindValue(":late_check_in"                  , $attendance->getLateCheckIn()                , Helper::getPdoParameterType($attendance->getLateCheckIn()                ));
+            $statement->bindValue(":early_check_out"                , $attendance->getEarlyCheckOut()              , Helper::getPdoParameterType($attendance->getEarlyCheckOut()              ));
+            $statement->bindValue(":overtime_hours"                 , $attendance->getOvertimeHours()              , Helper::getPdoParameterType($attendance->getOvertimeHours()              ));
+            $statement->bindValue(":is_overtime_approved"           , $attendance->isOvertimeApproved()            , Helper::getPdoParameterType($attendance->isOvertimeApproved()            ));
+            $statement->bindValue(":attendance_status"              , $attendance->getAttendanceStatus()           , Helper::getPdoParameterType($attendance->getAttendanceStatus()           ));
+            $statement->bindValue(":remarks"                        , $attendance->getRemarks()                    , Helper::getPdoParameterType($attendance->getRemarks()                    ));
+            $statement->bindValue(":attendance_id"                  , $attendance->getId()                         , Helper::getPdoParameterType($attendance->getId()                         ));
 
             $statement->execute();
 

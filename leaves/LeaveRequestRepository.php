@@ -36,6 +36,11 @@ class LeaveRequestRepository
         return $this->leaveRequestDao->updateStatus($leaveRequestId, $status);
     }
 
+    public function updateLeaveRequestStatuses(): ActionResult
+    {
+        return $this->leaveRequestDao->updateLeaveRequestStatuses();
+    }
+
     public function isEmployeeOnLeave(int $employeeId): ActionResult|bool
     {
         return $this->leaveRequestDao->isEmployeeOnLeave($employeeId);

@@ -31,6 +31,11 @@ class LeaveEntitlementService
         return $this->leaveEntitlementRepository->updateLeaveEntitlementBalance($leaveEntitlement);
     }
 
+    public function resetEmployeeAllLeaveBalances(int $employeeId): ActionResult
+    {
+        return $this->resetEmployeeAllLeaveBalances($employeeId);
+    }
+
     public function deleteLeaveEntitlement(int $leaveEntitlementId): ActionResult
     {
         return $this->leaveEntitlementRepository->deleteLeaveEntitlement($leaveEntitlementId);

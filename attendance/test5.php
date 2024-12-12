@@ -268,6 +268,8 @@ foreach ($employees as $employee) {
                     $totalDaysOfPaidLeave = 0;
                     $totalDaysOfUnpaidLeave = 0;
 
+                    $isAbsent = false;
+
                     foreach ($records as $date => $recordEntries) {
                         $totalRequiredHours = 0;
                         foreach ($recordEntries as $record) {
@@ -290,6 +292,7 @@ foreach ($employees as $employee) {
                             }
 
                             if ($attendanceRecords) {
+                                $isAbsent = false;
                                 $isFirstRecord = true;
 
                                 $result = $employeeBreakRepository->fetchOrderedEmployeeBreaks(
@@ -554,7 +557,7 @@ foreach ($employees as $employee) {
                                                     $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                                                     $holidayType = 'non_holiday';
 
-                                                    if ($isHoliday && ! $foundAbsence) {
+                                                    if ($isHoliday) {
                                                         if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                             $holidayType = 'double_holiday';
                                                         } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -587,7 +590,7 @@ foreach ($employees as $employee) {
                                                         $isHoliday = !empty($datesMarkedAsHoliday[$date]);
                                                         $holidayType = 'non_holiday';
 
-                                                        if ($isHoliday && ! $foundAbsence) {
+                                                        if ($isHoliday) {
                                                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                                 $holidayType = 'double_holiday';
                                                             } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -625,7 +628,7 @@ foreach ($employees as $employee) {
                                                         $isHoliday = !empty($datesMarkedAsHoliday[$currentDate]);
                                                         $holidayType = 'non_holiday';
 
-                                                        if ($isHoliday && ! $foundAbsence) {
+                                                        if ($isHoliday) {
                                                             if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                                                 $holidayType = 'double_holiday';
                                                             } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
@@ -655,7 +658,7 @@ foreach ($employees as $employee) {
                                                         $isHoliday = !empty($datesMarkedAsHoliday[$date]);
                                                         $holidayType = 'non_holiday';
 
-                                                        if ($isHoliday && ! $foundAbsence) {
+                                                        if ($isHoliday) {
                                                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                                 $holidayType = 'double_holiday';
                                                             } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -695,7 +698,7 @@ foreach ($employees as $employee) {
                                         $isHoliday = !empty($datesMarkedAsHoliday[$date]);
                                         $holidayType = 'non_holiday';
 
-                                        if ($isHoliday && ! $foundAbsence) {
+                                        if ($isHoliday) {
                                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                 $holidayType = 'double_holiday';
                                             } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -745,7 +748,7 @@ foreach ($employees as $employee) {
                                         $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
                                         $holidayType = 'non_holiday';
 
-                                        if ($isHoliday && ! $foundAbsence) {
+                                        if ($isHoliday) {
                                             if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                                 $holidayType = 'double_holiday';
                                             } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
@@ -790,7 +793,7 @@ foreach ($employees as $employee) {
                                         $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                                         $holidayType = 'non_holiday';
 
-                                        if ($isHoliday && ! $foundAbsence) {
+                                        if ($isHoliday) {
                                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                 $holidayType = 'double_holiday';
                                             } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -914,7 +917,7 @@ foreach ($employees as $employee) {
                                             $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                                             $holidayType = 'non_holiday';
 
-                                            if ($isHoliday && ! $foundAbsence) {
+                                            if ($isHoliday) {
                                                 if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                     $holidayType = 'double_holiday';
                                                 } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -949,7 +952,7 @@ foreach ($employees as $employee) {
                                             $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
                                             $holidayType = 'non_holiday';
 
-                                            if ($isHoliday && ! $foundAbsence) {
+                                            if ($isHoliday) {
                                                 if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                                     $holidayType = 'double_holiday';
                                                 } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
@@ -975,7 +978,7 @@ foreach ($employees as $employee) {
                                             $isHoliday = !empty($datesMarkedAsHoliday[$date]);
                                             $holidayType = 'non_holiday';
 
-                                            if ($isHoliday && ! $foundAbsence) {
+                                            if ($isHoliday) {
                                                 if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                     $holidayType = 'double_holiday';
                                                 } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -1005,9 +1008,6 @@ foreach ($employees as $employee) {
                                     $endTime = $workScheduleStartTime->modify("+{$totalMinutesPerDay} minutes");
                                 }
 
-                                echo $startTime->format('Y-m-d H:i:s') . '<br>';
-                                echo $endTime->format('Y-m-d H:i:s') . '<br>';
-
                                 $startMinutes = (int) $startTime->format('i');
                                 $cloneWorkScheduleStartTime = clone $startTime;
                                 if ($startMinutes > 0) {
@@ -1020,7 +1020,7 @@ foreach ($employees as $employee) {
                                     $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                                     $holidayType = 'non_holiday';
 
-                                    if ($isHoliday && ! $foundAbsence) {
+                                    if ($isHoliday) {
                                         if (count($datesMarkedAsHoliday[$date]) > 1) {
                                             $holidayType = 'double_holiday';
                                         } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -1056,7 +1056,7 @@ foreach ($employees as $employee) {
                                     $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
                                     $holidayType = 'non_holiday';
 
-                                    if ($isHoliday && ! $foundAbsence) {
+                                    if ($isHoliday) {
                                         if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                             $holidayType = 'double_holiday';
                                         } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
@@ -1079,10 +1079,10 @@ foreach ($employees as $employee) {
 
                                     $dayType = 'regular_day';
 
-                                    $isHoliday = !empty($datesMarkedAsHoliday[$date]);
+                                    $isHoliday = ! empty($datesMarkedAsHoliday[$date]);
                                     $holidayType = 'non_holiday';
 
-                                    if ($isHoliday && ! $foundAbsence) {
+                                    if ($isHoliday) {
                                         if (count($datesMarkedAsHoliday[$date]) > 1) {
                                             $holidayType = 'double_holiday';
                                         } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -1098,17 +1098,6 @@ foreach ($employees as $employee) {
                                         $hourSummary1[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
                                     }
                                 }
-                                print_r($hourSummary1);
-                            }
-
-                            $foundAbsence = empty($attendanceRecords);
-
-                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
-                                $foundAbsence = false;
-                            }
-
-                            if (empty($attendanceRecords) && !empty($datesMarkedAsHoliday[$date])) {
-                                $foundAbsence = false;
                             }
                         }
 
@@ -1116,6 +1105,7 @@ foreach ($employees as $employee) {
                     }
 
                     print_r($hourSummary);
+                    print_r($hourSummary1);
 
                     $employeeAllowanceTableColumns = [
                         'allowance_is_taxable',
@@ -1276,6 +1266,10 @@ foreach ($employees as $employee) {
                     foreach ($overtimeRates as $rate) {
                         $dayType     = strtolower(str_replace(['-', ' '], '_', $rate['day_type'    ]));
                         $holidayType = strtolower(str_replace(['-', ' '], '_', $rate['holiday_type']));
+
+                        if ($holidayType === 'regular_holiday' || $holidayType === 'double_holiday') {
+
+                        }
 
                         $grossPay += $hourSummary[$dayType][$holidayType]['regular_hours'              ] * $hourlyRate * $rate['regular_time_rate'                   ];
                         $grossPay += $hourSummary[$dayType][$holidayType]['overtime_hours'             ] * $hourlyRate * $rate['overtime_rate'                       ];

@@ -72,10 +72,12 @@ class LeaveEntitlementDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                      => "leave_entitlement.id                      AS id"                     ,
+
             "employee_id"             => "leave_entitlement.employee_id             AS employee_id"            ,
             "employee_first_name"     => "employee.first_name                       AS employee_first_name"    ,
             "employee_middle_name"    => "employee.middle_name                      AS employee_middle_name"   ,
             "employee_last_name"      => "employee.last_name                        AS employee_last_name"     ,
+            
             "leave_type_id"           => "leave_entitlement.leave_type_id           AS leave_type_id"          ,
             "leave_type_name"         => "leave_type.name                           AS leave_type_name"        ,
             "number_of_entitled_days" => "leave_entitlement.number_of_entitled_days AS number_of_entitled_days",
@@ -258,6 +260,40 @@ class LeaveEntitlementDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while updating the leave entitlement. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function resetEmployeeAllLeaveBalances(int $employeeId)
+    {
+        $query = "
+            UPDATE leave_entitlements
+            SET
+                number_of_days_taken = 0,
+                remaining_days       = 0
+            WHERE
+                employee_id = :employee_id
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while resetting all an employee's leave balances. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
