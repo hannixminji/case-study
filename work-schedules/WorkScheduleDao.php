@@ -178,6 +178,8 @@ class WorkScheduleDao
 
                 switch ($operator) {
                     case "="   :
+                    case "<="  :
+                    case ">="  :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];

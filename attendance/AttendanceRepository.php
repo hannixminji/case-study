@@ -34,18 +34,22 @@ class AttendanceRepository
     public function getLastAttendanceRecord(int $employeeId): ActionResult|array
     {
         $columns = [
-            'id'                               ,
-            'work_schedule_id'                 ,
-            'work_schedule_start_time'         ,
-            'work_schedule_end_time'           ,
-            'work_schedule_is_flextime'        ,
-            'work_schedule_total_work_hours'   ,
-            'employee_id'                      ,
-            'date'                             ,
-            'check_in_time'                    ,
-            'check_out_time'                   ,
-            'late_check_in'                    ,
-            'attendance_status'
+            'id'                             ,
+            'work_schedule_id'               ,
+            'work_schedule_start_time'       ,
+            'work_schedule_end_time'         ,
+            'work_schedule_is_flextime'      ,
+            'work_schedule_total_work_hours' ,
+            'employee_id'                    ,
+            'date'                           ,
+            'check_in_time'                  ,
+            'check_out_time'                 ,
+            'late_check_in'                  ,
+            'is_overtime_approved'           ,
+            'attendance_status'              ,
+            'total_break_duration_in_minutes',
+            'total_hours_worked'             ,
+            'remarks'
         ];
 
         $filterCriteria = [

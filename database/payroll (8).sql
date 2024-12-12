@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 30, 2024 at 04:10 PM
+-- Generation Time: Dec 11, 2024 at 01:18 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -57,8 +57,6 @@ CREATE TABLE `allowances` (
   `frequency` enum('Weekly','Bi-weekly','Semi-monthly','Monthly') NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `status` enum('Active','Inactive','Archived') NOT NULL,
-  `effective_date` date NOT NULL,
-  `end_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL
@@ -93,19 +91,10 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `work_schedule_id`, `date`, `check_in_time`, `check_out_time`, `total_break_duration_in_minutes`, `total_hours_worked`, `late_check_in`, `early_check_out`, `overtime_hours`, `is_overtime_approved`, `attendance_status`, `remarks`, `created_at`, `updated_at`) VALUES
-(1, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:16:08', '2024-11-29 03:16:08'),
-(2, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:16:13', '2024-11-29 03:16:13'),
-(3, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:16:24', '2024-11-29 03:16:24'),
-(4, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:21:56', '2024-11-29 03:21:56'),
-(5, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:23:14', '2024-11-29 03:23:14'),
-(6, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 03:26:56', '2024-11-29 03:29:52'),
-(7, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 04:55:46', '2024-11-29 04:55:46'),
-(8, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 60, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 05:43:23', '2024-11-29 07:18:37'),
-(9, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 07:20:08', '2024-11-29 07:23:59'),
-(10, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 0, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 07:27:15', '2024-11-29 07:27:23'),
-(11, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 60, 8.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 07:30:03', '2024-11-29 07:30:18'),
-(12, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 60, 7.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 08:07:09', '2024-11-29 08:07:09'),
-(13, 1, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 60, 7.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-11-29 08:09:21', '2024-11-29 08:09:21');
+(1, 3, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 120, 6.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-10 16:01:31', '2024-12-10 16:01:31'),
+(2, 3, '2024-11-27', '2024-11-27 22:00:00', '2024-11-28 01:00:00', 0, 3.00, 0, 180, 0.00, NULL, 'Undertime', NULL, '2024-12-10 16:04:01', '2024-12-10 16:04:01'),
+(7, 3, '2024-11-27', '2024-11-28 01:00:00', '2024-11-28 05:30:00', 120, 3.00, 0, 180, 0.00, NULL, 'Undertime', NULL, '2024-12-10 16:34:26', '2024-12-10 16:39:03'),
+(14, 1, '2024-11-28', '2024-11-28 08:00:00', '2024-11-28 18:00:00', 120, 8.00, 0, 0, 1.00, NULL, 'Overtime', NULL, '2024-12-11 01:23:16', '2024-12-11 01:23:16');
 
 -- --------------------------------------------------------
 
@@ -131,8 +120,10 @@ CREATE TABLE `break_schedules` (
 --
 
 INSERT INTO `break_schedules` (`id`, `work_schedule_id`, `break_type_id`, `start_time`, `is_flexible`, `earliest_start_time`, `latest_end_time`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 1, '2024-11-26 23:00:00', 0, NULL, NULL, '2024-11-26 05:42:52', '2024-11-26 05:42:52', NULL),
-(2, 1, 1, '2024-11-29 01:00:00', 0, NULL, NULL, '2024-11-29 08:09:09', '2024-11-29 08:09:09', NULL);
+(1, 1, 1, '1970-01-01 12:00:00', 0, NULL, NULL, '2024-12-08 16:29:56', '2024-12-08 16:29:56', NULL),
+(2, 1, 1, '1970-01-01 15:00:00', 0, NULL, NULL, '2024-12-10 08:26:13', '2024-12-10 08:35:41', NULL),
+(3, 3, 1, '1970-01-02 01:00:00', 0, NULL, NULL, '2024-12-10 08:26:13', '2024-12-10 08:35:41', NULL),
+(4, 3, 1, '1970-01-02 03:00:00', 0, NULL, NULL, '2024-12-10 08:26:13', '2024-12-10 08:35:41', NULL);
 
 -- --------------------------------------------------------
 
@@ -156,7 +147,7 @@ CREATE TABLE `break_types` (
 --
 
 INSERT INTO `break_types` (`id`, `name`, `duration_in_minutes`, `is_paid`, `is_require_break_in_and_break_out`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Lunch', 60, 0, 1, '2024-11-28 10:01:40', '2024-11-29 08:06:36', NULL);
+(1, 'Lunch Break', 60, 0, 1, '2024-11-25 16:00:00', '2024-11-25 16:00:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -173,8 +164,6 @@ CREATE TABLE `deductions` (
   `frequency` enum('Weekly','Bi-weekly','Semi-monthly','Monthly','One-time') NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `status` enum('Active','Inactive','Archived') NOT NULL,
-  `effective_date` date NOT NULL,
-  `end_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL
@@ -240,7 +229,7 @@ CREATE TABLE `employees` (
   `manager_id` int(10) UNSIGNED DEFAULT NULL,
   `access_role` enum('Staff','Supervisor','Manager','Admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `payroll_group_id` int(10) UNSIGNED NOT NULL,
-  `base_salary` decimal(10,2) DEFAULT NULL,
+  `annual_salary` decimal(10,2) DEFAULT NULL,
   `hourly_rate` decimal(10,2) DEFAULT NULL,
   `tin_number` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `sss_number` varchar(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -262,8 +251,9 @@ CREATE TABLE `employees` (
 -- Dumping data for table `employees`
 --
 
-INSERT INTO `employees` (`id`, `rfid_uid`, `first_name`, `middle_name`, `last_name`, `date_of_birth`, `gender`, `marital_status`, `nationality`, `religion`, `phone_number`, `email_address`, `address`, `profile_picture`, `emergency_contact_name`, `emergency_contact_relationship`, `emergency_contact_phone_number`, `emergency_contact_email_address`, `emergency_contact_address`, `employee_code`, `job_title_id`, `department_id`, `employment_type`, `date_of_hire`, `supervisor_id`, `manager_id`, `access_role`, `payroll_group_id`, `base_salary`, `hourly_rate`, `tin_number`, `sss_number`, `philhealth_number`, `pagibig_fund_number`, `bank_name`, `bank_branch_name`, `bank_account_number`, `bank_account_type`, `username`, `password`, `notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(6, '123456789', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+1234567890', 'john.smith@example.com', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0001', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 645.00, '123-45-6789', '987-65-4321', 'PH1234567890', 'PAGIBIG1234567', 'ABC Bank', 'Main Branch, Springfield', '1234567890123456', 'Payroll Account', 'johnsmith123', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-11-28 10:09:41', NULL);
+INSERT INTO `employees` (`id`, `rfid_uid`, `first_name`, `middle_name`, `last_name`, `date_of_birth`, `gender`, `marital_status`, `nationality`, `religion`, `phone_number`, `email_address`, `address`, `profile_picture`, `emergency_contact_name`, `emergency_contact_relationship`, `emergency_contact_phone_number`, `emergency_contact_email_address`, `emergency_contact_address`, `employee_code`, `job_title_id`, `department_id`, `employment_type`, `date_of_hire`, `supervisor_id`, `manager_id`, `access_role`, `payroll_group_id`, `annual_salary`, `hourly_rate`, `tin_number`, `sss_number`, `philhealth_number`, `pagibig_fund_number`, `bank_name`, `bank_branch_name`, `bank_account_number`, `bank_account_type`, `username`, `password`, `notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(6, '123456789', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+1234567890', 'john.smith@example.com', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0001', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 645.00, '123-45-6789', '987-65-4321', 'PH1234567890', 'PAGIBIG1234567', 'ABC Bank', 'Main Branch, Springfield', '1234567890123456', 'Payroll Account', 'johnsmith123', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-11-28 10:09:41', NULL),
+(11, '1234567891', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+12345678901', 'john.smith@example.com1', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0002', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 645.00, '123-45-67891', '987-65-4111321', 'PH123456111789', 'PAGI11BIG12345', 'ABC Bank', 'Main Branch, Springfield', '12345678111190123456', 'Payroll Account', 'johnsmith1231', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-11-28 10:09:41', NULL);
 
 -- --------------------------------------------------------
 
@@ -301,8 +291,12 @@ CREATE TABLE `employee_breaks` (
 --
 
 INSERT INTO `employee_breaks` (`id`, `break_schedule_id`, `start_time`, `end_time`, `break_duration_in_minutes`, `created_at`, `updated_at`) VALUES
-(1, 1, '2024-11-26 23:00:00', '2024-11-27 00:00:00', 60, '2024-11-26 14:00:00', '2024-11-29 07:29:39'),
-(4, 2, NULL, NULL, 0, '2024-11-29 08:09:21', '2024-11-29 08:09:21');
+(1, 3, NULL, NULL, 0, '2024-11-26 22:00:00', '2024-12-10 16:01:31'),
+(2, 4, NULL, NULL, 0, '2024-11-26 22:00:00', '2024-12-10 16:01:31'),
+(11, 3, NULL, NULL, 0, '2024-11-27 21:30:00', '2024-12-10 17:05:18'),
+(12, 4, NULL, NULL, 0, '2024-11-27 21:30:00', '2024-12-10 17:05:21'),
+(19, 1, NULL, NULL, 0, '2024-11-28 10:00:00', '2024-12-11 01:23:16'),
+(20, 2, NULL, NULL, 0, '2024-11-28 10:00:00', '2024-12-11 01:23:16');
 
 -- --------------------------------------------------------
 
@@ -339,6 +333,14 @@ CREATE TABLE `holidays` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `holidays`
+--
+
+INSERT INTO `holidays` (`id`, `name`, `start_date`, `end_date`, `is_paid`, `is_recurring_annually`, `description`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, '1', '2024-11-28', '2024-11-28', 1, 0, NULL, 'Active', '2024-12-09 15:53:48', '2024-12-09 15:54:56', NULL),
+(2, '2', '2024-11-28', '2024-11-28', 1, 1, NULL, 'Active', '2024-12-09 16:04:52', '2024-12-09 16:04:52', NULL);
 
 -- --------------------------------------------------------
 
@@ -440,6 +442,20 @@ CREATE TABLE `overtime_rates` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `overtime_rates`
+--
+
+INSERT INTO `overtime_rates` (`id`, `overtime_rate_assignment_id`, `day_type`, `holiday_type`, `regular_time_rate`, `overtime_rate`, `night_differential_rate`, `night_differential_and_overtime_rate`, `created_at`, `updated_at`) VALUES
+(9, 1, 'Regular Day', 'Non-holiday', 1.00000, 1.25000, 1.10000, 1.37500, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(10, 1, 'Regular Day', 'Special Holiday', 1.30000, 1.69000, 1.43000, 1.85900, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(11, 1, 'Regular Day', 'Regular Holiday', 2.00000, 2.60000, 2.20000, 2.86000, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(12, 1, 'Regular Day', 'Double Holiday', 2.60000, 3.90000, 3.30000, 4.29000, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(13, 1, 'Rest Day', 'Non-holiday', 1.30000, 1.69000, 1.43000, 1.85900, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(14, 1, 'Rest Day', 'Special Holiday', 1.50000, 1.95000, 1.65000, 2.14500, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(15, 1, 'Rest Day', 'Regular Holiday', 2.60000, 3.38000, 2.86000, 3.71800, '2024-12-04 02:05:38', '2024-12-04 02:05:38'),
+(16, 1, 'Rest Day', 'Double Holiday', 3.90000, 5.07000, 4.29000, 5.51700, '2024-12-04 02:05:38', '2024-12-04 02:05:38');
+
 -- --------------------------------------------------------
 
 --
@@ -453,6 +469,13 @@ CREATE TABLE `overtime_rate_assignments` (
   `employee_id` int(10) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `overtime_rate_assignments`
+--
+
+INSERT INTO `overtime_rate_assignments` (`id`, `department_id`, `job_title_id`, `employee_id`, `created_at`) VALUES
+(1, NULL, NULL, NULL, '2024-12-02 07:09:13');
 
 -- --------------------------------------------------------
 
@@ -501,11 +524,10 @@ INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `group_name`, `cre
 --
 
 CREATE TABLE `test` (
-  `id` int(11) NOT NULL,
-  `department_id` int(11) DEFAULT NULL,
-  `job_title_id` int(11) DEFAULT NULL,
-  `employee_id` int(11) DEFAULT NULL,
-  `assignment_level` varchar(10) NOT NULL,
+  `id` int(10) NOT NULL,
+  `department_id` int(10) DEFAULT NULL,
+  `job_title_id` int(10) DEFAULT NULL,
+  `employee_id` int(10) DEFAULT NULL,
   `time` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -513,17 +535,17 @@ CREATE TABLE `test` (
 -- Dumping data for table `test`
 --
 
-INSERT INTO `test` (`id`, `department_id`, `job_title_id`, `employee_id`, `assignment_level`, `time`) VALUES
-(1, 1, 101, 1001, 'Employee', '2024-11-28 12:44:54'),
-(2, 1, 101, 1002, 'Employee', '2024-11-28 12:44:54'),
-(3, 1, 101, NULL, 'Job Title', '2024-11-28 12:44:54'),
-(4, 1, NULL, NULL, 'Department', '2024-11-28 12:44:54'),
-(5, NULL, NULL, NULL, 'All', '2024-11-28 12:44:54'),
-(6, 1, 101, 1003, 'Employee', '2024-11-28 12:44:54'),
-(7, 2, NULL, NULL, '', '2024-11-28 12:44:54'),
-(8, 3, 104, 21, '', '2024-11-28 12:44:54'),
-(9, 3, 104, NULL, '', '2024-11-28 12:44:54'),
-(10, 1, 102, 1005, '', '2024-11-28 06:08:39');
+INSERT INTO `test` (`id`, `department_id`, `job_title_id`, `employee_id`, `time`) VALUES
+(1, 1, 101, 1001, '2024-11-28 12:44:54'),
+(2, 1, 101, 1002, '2024-11-28 12:44:54'),
+(3, 1, 101, NULL, '2024-11-28 12:44:54'),
+(4, 1, NULL, NULL, '2024-11-28 12:44:54'),
+(5, NULL, NULL, NULL, '2024-11-28 12:44:54'),
+(6, 1, 101, 1003, '2024-11-28 12:44:54'),
+(7, 2, NULL, NULL, '2024-11-28 12:44:54'),
+(8, 3, 104, 21, '2024-11-28 12:44:54'),
+(9, 3, 104, NULL, '2024-11-28 12:44:54'),
+(10, 1, 102, 1005, '2024-11-28 06:08:39');
 
 -- --------------------------------------------------------
 
@@ -541,6 +563,7 @@ CREATE TABLE `work_schedules` (
   `core_hours_start_time` datetime DEFAULT NULL,
   `core_hours_end_time` datetime DEFAULT NULL,
   `total_hours_per_week` int(10) UNSIGNED DEFAULT NULL,
+  `total_work_hours` int(10) NOT NULL,
   `start_date` date NOT NULL,
   `recurrence_rule` text NOT NULL,
   `note` varchar(255) DEFAULT NULL,
@@ -553,8 +576,9 @@ CREATE TABLE `work_schedules` (
 -- Dumping data for table `work_schedules`
 --
 
-INSERT INTO `work_schedules` (`id`, `employee_id`, `title`, `start_time`, `end_time`, `is_flextime`, `core_hours_start_time`, `core_hours_end_time`, `total_hours_per_week`, `start_date`, `recurrence_rule`, `note`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 6, 'Morning Shift', '2024-11-28 22:00:00', '2024-11-28 06:00:00', 0, NULL, NULL, NULL, '2024-11-28', 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-04;BYDAY=MO,TU,WE,TH,FR,SA,SU;', NULL, '2024-11-28 15:57:12', '2024-11-28 16:13:55', NULL);
+INSERT INTO `work_schedules` (`id`, `employee_id`, `title`, `start_time`, `end_time`, `is_flextime`, `core_hours_start_time`, `core_hours_end_time`, `total_hours_per_week`, `total_work_hours`, `start_date`, `recurrence_rule`, `note`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 6, 'Regular Schedule', '1970-01-01 08:00:00', '1970-01-01 17:00:00', 0, NULL, NULL, NULL, 7, '2024-11-26', 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-26;BYDAY=MO,TU,WE,TH,FR,SA;', NULL, '2024-12-08 16:28:07', '2024-12-10 08:27:03', NULL),
+(3, 6, 'Regular Schedule', '1970-01-01 22:00:00', '1970-01-02 06:00:00', 0, NULL, NULL, NULL, 6, '2024-11-26', 'FREQ=WEEKLY;INTERVAL=1;DTSTART=2024-11-26;BYDAY=MO,TU,WE,TH,FR,SA;', NULL, '2024-12-08 16:28:07', '2024-12-10 14:52:30', NULL);
 
 --
 -- Indexes for dumped tables
@@ -734,7 +758,6 @@ ALTER TABLE `leave_types`
 --
 ALTER TABLE `overtime_rates`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_overtime_rates_overtime_rate_assignment_id` (`overtime_rate_assignment_id`),
   ADD KEY `fk_overtime_rates_overtime_rate_assignment_id` (`overtime_rate_assignment_id`);
 
 --
@@ -796,19 +819,19 @@ ALTER TABLE `allowances`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `break_schedules`
 --
 ALTER TABLE `break_schedules`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `break_types`
 --
 ALTER TABLE `break_types`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `deductions`
@@ -826,7 +849,7 @@ ALTER TABLE `departments`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `employee_allowances`
@@ -838,7 +861,7 @@ ALTER TABLE `employee_allowances`
 -- AUTO_INCREMENT for table `employee_breaks`
 --
 ALTER TABLE `employee_breaks`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `employee_deductions`
@@ -850,7 +873,7 @@ ALTER TABLE `employee_deductions`
 -- AUTO_INCREMENT for table `holidays`
 --
 ALTER TABLE `holidays`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `job_titles`
@@ -880,13 +903,13 @@ ALTER TABLE `leave_types`
 -- AUTO_INCREMENT for table `overtime_rates`
 --
 ALTER TABLE `overtime_rates`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `overtime_rate_assignments`
 --
 ALTER TABLE `overtime_rate_assignments`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `payroll_groups`
@@ -904,13 +927,13 @@ ALTER TABLE `settings`
 -- AUTO_INCREMENT for table `test`
 --
 ALTER TABLE `test`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `work_schedules`
 --
 ALTER TABLE `work_schedules`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

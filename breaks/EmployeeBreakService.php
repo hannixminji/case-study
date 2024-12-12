@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/EmployeeBreak.php'                           ;
+require_once __DIR__ . '/EmployeeBreak.php'                     ;
 
-require_once __DIR__ . '/EmployeeBreakRepository.php'                 ;
-require_once __DIR__ . '/../employees/EmployeeRepository.php'         ;
-require_once __DIR__ . '/../attendance/AttendanceRepository.php'      ;
-require_once __DIR__ . '/BreakScheduleRepository.php'                 ;
+require_once __DIR__ . '/EmployeeBreakRepository.php'           ;
+require_once __DIR__ . '/../employees/EmployeeRepository.php'   ;
+require_once __DIR__ . '/../attendance/AttendanceRepository.php';
+require_once __DIR__ . '/BreakScheduleRepository.php'           ;
 
 class EmployeeBreakService
 {
@@ -63,7 +63,6 @@ class EmployeeBreakService
 
         if ($lastAttendanceRecord['check_in_time' ] !== null &&
             $lastAttendanceRecord['check_out_time'] === null) {
-            echo '<pre>';
 
             $currentDateTime = new DateTime($currentDateTime );
             $currentTime     = $currentDateTime->format('H:i:s');
@@ -86,7 +85,7 @@ class EmployeeBreakService
             }
 
             $lastBreakRecord = $this->employeeBreakRepository->fetchEmployeeLastBreakRecord($lastAttendanceRecord['work_schedule_id'], $employeeId);
-            print_r($lastBreakRecord);
+
             if ($lastBreakRecord === ActionResult::FAILURE) {
                 return [
                     'status'  => 'error',

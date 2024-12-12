@@ -61,11 +61,11 @@ class EmployeeDeductionDao
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                       => "employee_deduction.id           AS id"                      ,
@@ -76,8 +76,6 @@ class EmployeeDeductionDao
             "deduction_is_pre_tax"     => "deduction.is_pre_tax            AS deduction_is_pre_tax"    ,
             "deduction_frequency"      => "deduction.frequency             AS deduction_frequency"     ,
             "deduction_status"         => "deduction.status                AS deduction_status"        ,
-            "deduction_effective_date" => "deduction.effective_date        AS deduction_effective_date",
-            "deduction_end_date"       => "deduction.end_date              AS deduction_end_date"      ,
 
             "amount_type"              => "employee_deduction.amount_type  AS amount_type"             ,
             "amount"                   => "employee_deduction.amount       AS amount"                  ,

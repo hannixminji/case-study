@@ -3,11 +3,11 @@
 class EmployeeDeduction
 {
     public function __construct(
-        private readonly ?int   $id         ,
-        private readonly int    $employeeId ,
-        private readonly int    $deductionId,
-        private readonly string $amountType ,
-        private readonly float  $amount
+        private readonly ? int    $id         ,
+        private readonly   int    $employeeId ,
+        private readonly   int    $deductionId,
+        private readonly   string $amountType ,
+        private readonly   float  $amount
     ) {
     }
 
