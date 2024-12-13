@@ -31,6 +31,11 @@ class HolidayService
         return $this->holidayRepository->updateHoliday($holiday);
     }
 
+    public function getHolidayDatesForPeriod(string $startDate, string $endDate): ActionResult|array
+    {
+        return $this->holidayRepository->getHolidayDatesForPeriod($startDate, $endDate);
+    }
+
     public function deleteHoliday(int $holidayId): ActionResult
     {
         return $this->holidayRepository->deleteHoliday($holidayId);

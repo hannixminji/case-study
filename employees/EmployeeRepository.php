@@ -33,6 +33,10 @@ class EmployeeRepository
 
     public function getEmployeeIdBy(string $column, string $value): ActionResult|int
     {
+        $columns = [
+            'id'
+        ];
+
         $filterCriteria = [
             [
                 'column'   => $column,
@@ -42,7 +46,7 @@ class EmployeeRepository
         ];
 
         $result = $this->fetchAllEmployees(
-            columns       : ['id']         ,
+            columns       : $columns       ,
             filterCriteria: $filterCriteria,
             limit         : 1
         );
@@ -51,7 +55,9 @@ class EmployeeRepository
             return ActionResult::FAILURE;
         }
 
-        return (int) $result['result_set'][0]['id'];
+        return empty($result['result_set'])
+            ? ActionResult::NO_RECORD_FOUND
+            : (int) $result['result_set'][0]['id'];
     }
 
     public function changePassword(int $employeeId, string $newHashedPassword): ActionResult

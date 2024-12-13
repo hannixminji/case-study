@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../includes/Helper.php'            ;
-require_once __DIR__ . '/../includes/enums/ActionResult.php';
-require_once __DIR__ . '/../includes/enums/ErrorCode.php'   ;
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class DepartmentDao
 {
@@ -15,7 +15,7 @@ class DepartmentDao
 
     public function create(Department $department): ActionResult
     {
-        $query = '
+        $query = "
             INSERT INTO departments (
                 name              ,
                 department_head_id,
@@ -28,17 +28,17 @@ class DepartmentDao
                 :description       ,
                 :status
             )
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
-            $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
-            $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
-            $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
+            $statement->bindValue(":name"              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
+            $statement->bindValue(":department_head_id", $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
+            $statement->bindValue(":description"       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
+            $statement->bindValue(":status"            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
 
             $statement->execute();
 
@@ -49,8 +49,8 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while creating the department. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while creating the department. " .
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -68,14 +68,14 @@ class DepartmentDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                        => "department.id                 AS id"                         ,
-            "name"                      => "department.name               AS name"                       ,
-            "department_head_id"        => "department.department_head_id AS department_head_id"         ,
-            "department_head_full_name" => "department_head.full_name     AS department_head_full_name"  ,
-            "description"               => "department.description        AS description"                ,
-            "status"                    => "department.status             AS status"                     ,
-            "created_at"                => "department.created_at         AS created_at"                 ,
-            "updated_at"                => "department.updated_at         AS updated_at"                 ,
+            "id"                        => "department.id                 AS id"                       ,
+            "name"                      => "department.name               AS name"                     ,
+            "department_head_id"        => "department.department_head_id AS department_head_id"       ,
+            "department_head_full_name" => "department_head.full_name     AS department_head_full_name",
+            "description"               => "department.description        AS description"              ,
+            "status"                    => "department.status             AS status"                   ,
+            "created_at"                => "department.created_at         AS created_at"               ,
+            "updated_at"                => "department.updated_at         AS updated_at"               ,
             "deleted_at"                => "department.deleted_at         AS deleted_at"
         ];
 
@@ -106,7 +106,7 @@ class DepartmentDao
             $whereClauses[] = "department.status <> 'Archived'";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
+                $column   = $filterCriterion["column"];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
@@ -210,7 +210,7 @@ class DepartmentDao
 
     public function update(Department $department): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE departments
             SET
                 name               = :name              ,
@@ -219,18 +219,18 @@ class DepartmentDao
                 status             = :status
             WHERE
                 id = :department_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':name'              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
-            $statement->bindValue(':department_head_id', $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
-            $statement->bindValue(':description'       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
-            $statement->bindValue(':status'            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
-            $statement->bindValue(':department_id'     , $department->getId()              , Helper::getPdoParameterType($department->getId()              ));
+            $statement->bindValue(":name"              , $department->getName()            , Helper::getPdoParameterType($department->getName()            ));
+            $statement->bindValue(":department_head_id", $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
+            $statement->bindValue(":description"       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
+            $statement->bindValue(":status"            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
+            $statement->bindValue(":department_id"     , $department->getId()              , Helper::getPdoParameterType($department->getId()              ));
 
             $statement->execute();
 
@@ -241,8 +241,8 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while updating the department. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while updating the department. " .
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;
@@ -254,7 +254,7 @@ class DepartmentDao
 
     public function isDepartmentHead(int $employeeId): ActionResult|bool
     {
-        $query = '
+        $query = "
             SELECT
                 COUNT(*) AS count
             FROM
@@ -262,23 +262,23 @@ class DepartmentDao
             WHERE
                 department_head_id = :employee_id
             AND
-                status <> "Archived"
-        ';
+                status <> 'Archived'
+        ";
 
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_id', $employeeId, PDO::PARAM_INT);
+            $statement->bindValue(":employee_id", $employeeId, PDO::PARAM_INT);
 
             $statement->execute();
 
             $result = $statement->fetch(PDO::FETCH_ASSOC);
 
-            return $result['count'] > 0;
+            return $result["count"] > 0;
 
         } catch (PDOException $exception) {
-            error_log('Database Error: An error occurred while checking if the employee is a department head. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while checking if the employee is a department head. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
@@ -291,21 +291,21 @@ class DepartmentDao
 
     private function softDelete(int $departmentId): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE departments
             SET
-                status     = "Archived"       ,
+                status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
                 id = :department_id
-        ';
+        ";
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':department_id', $departmentId, Helper::getPdoParameterType($departmentId));
+            $statement->bindValue(":department_id", $departmentId, Helper::getPdoParameterType($departmentId));
 
             $statement->execute();
 
@@ -316,8 +316,8 @@ class DepartmentDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the department. ' .
-                      'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while deleting the department. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

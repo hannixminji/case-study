@@ -34,27 +34,27 @@ class HolidayRepository
     public function getHolidayDatesForPeriod(string $startDate, string $endDate): ActionResult|array
     {
         $columns = [
-            'name'      ,
-            'start_date',
-            'end_date'  ,
-            'is_paid'   ,
+            'name'                 ,
+            'start_date'           ,
+            'end_date'             ,
+            'is_paid'              ,
             'is_recurring_annually'
         ];
 
         $filterCriteria = [
             [
                 'column'   => 'holiday.status',
-                'operator' => '=',
+                'operator' => '='             ,
                 'value'    => "Active"
             ],
             [
                 'column'   => 'holiday.start_date',
-                'operator' => '<=',
+                'operator' => '<='                ,
                 'value'    => $endDate
             ],
             [
                 'column'   => 'holiday.end_date',
-                'operator' => '>=',
+                'operator' => '>='              ,
                 'value'    => $startDate
             ]
         ];

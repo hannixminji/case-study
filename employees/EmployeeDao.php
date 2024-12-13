@@ -48,7 +48,7 @@ class EmployeeDao
                 access_role                    ,
 
                 payroll_group_id               ,
-                annual_salary                   ,
+                annual_salary                  ,
                 hourly_rate                    ,
 
                 tin_number                     ,
@@ -439,7 +439,7 @@ class EmployeeDao
             $totalRowCount = $countStatement->fetchColumn();
 
             return [
-                "result_set"      => $resultSet,
+                "result_set"      => $resultSet    ,
                 "total_row_count" => $totalRowCount
             ];
 

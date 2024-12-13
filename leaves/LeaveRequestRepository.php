@@ -57,22 +57,22 @@ class LeaveRequestRepository
         $filterCriteria = [
             [
                 'column'   => 'leave_request.employee_id',
-                'operator' => '=',
+                'operator' => '='                        ,
                 'value'    => $employeeId
             ],
             [
                 'column'   => 'leave_request.status',
-                'operator' => '=',
+                'operator' => '='                   ,
                 'value'    => "Approved"
             ],
             [
                 'column'   => 'leave_request.start_date',
-                'operator' => '<=',
+                'operator' => '<='                      ,
                 'value'    => $endDate
             ],
             [
                 'column'   => 'leave_request.end_date',
-                'operator' => '>=',
+                'operator' => '>='                    ,
                 'value'    => $startDate
             ]
         ];

@@ -50,7 +50,7 @@ class JobTitleDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while creating the job title. " .
-                      "Exception: " . $exception->getMessage());
+                      "Exception: {$exception->getMessage()}");
 
             if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
                 return ActionResult::DUPLICATE_ENTRY_ERROR;

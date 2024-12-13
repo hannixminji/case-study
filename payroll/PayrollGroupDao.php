@@ -49,6 +49,10 @@ class PayrollGroupDao
             error_log("Database Error: An error occurred while creating the payroll group. " .
                       "Exception: {$exception->getMessage()}");
 
+            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
+                return ActionResult::DUPLICATE_ENTRY_ERROR;
+            }
+
             return ActionResult::FAILURE;
         }
     }

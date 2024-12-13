@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 11, 2024 at 01:18 PM
+-- Generation Time: Dec 12, 2024 at 08:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,28 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `payroll`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admins`
---
-
-CREATE TABLE `admins` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `deleted_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `admins`
---
-
-INSERT INTO `admins` (`id`, `username`, `password`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'admin', '1', '2024-10-20 14:43:41', '2024-11-03 08:33:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -91,10 +69,10 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `work_schedule_id`, `date`, `check_in_time`, `check_out_time`, `total_break_duration_in_minutes`, `total_hours_worked`, `late_check_in`, `early_check_out`, `overtime_hours`, `is_overtime_approved`, `attendance_status`, `remarks`, `created_at`, `updated_at`) VALUES
-(1, 3, '2024-11-26', '2024-11-26 22:00:00', '2024-11-27 06:00:00', 120, 6.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-10 16:01:31', '2024-12-10 16:01:31'),
-(2, 3, '2024-11-27', '2024-11-27 22:00:00', '2024-11-28 01:00:00', 0, 3.00, 0, 180, 0.00, NULL, 'Undertime', NULL, '2024-12-10 16:04:01', '2024-12-10 16:04:01'),
-(7, 3, '2024-11-27', '2024-11-28 01:00:00', '2024-11-28 05:30:00', 120, 3.00, 0, 180, 0.00, NULL, 'Undertime', NULL, '2024-12-10 16:34:26', '2024-12-10 16:39:03'),
-(14, 1, '2024-11-28', '2024-11-28 08:00:00', '2024-11-28 18:00:00', 120, 8.00, 0, 0, 1.00, NULL, 'Overtime', NULL, '2024-12-11 01:23:16', '2024-12-11 01:23:16');
+(1, 1, '2024-12-02', '2024-12-02 08:00:00', '2024-12-02 17:00:00', 120, 7.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-12 09:35:17', '2024-12-12 09:35:37'),
+(2, 1, '2024-11-28', '2024-11-28 08:00:00', '2024-11-28 17:00:00', 120, 7.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-12 13:40:49', '2024-12-12 13:40:49'),
+(3, 1, '2024-11-27', '2024-11-27 08:00:00', '2024-11-27 17:00:00', 120, 7.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-12 13:44:29', '2024-12-12 13:44:29'),
+(4, 3, '2024-11-27', '2024-11-27 22:00:00', '2024-11-28 06:00:00', 120, 6.00, 0, 0, 0.00, NULL, 'Present', NULL, '2024-12-12 13:44:49', '2024-12-12 13:44:49');
 
 -- --------------------------------------------------------
 
@@ -252,8 +230,8 @@ CREATE TABLE `employees` (
 --
 
 INSERT INTO `employees` (`id`, `rfid_uid`, `first_name`, `middle_name`, `last_name`, `date_of_birth`, `gender`, `marital_status`, `nationality`, `religion`, `phone_number`, `email_address`, `address`, `profile_picture`, `emergency_contact_name`, `emergency_contact_relationship`, `emergency_contact_phone_number`, `emergency_contact_email_address`, `emergency_contact_address`, `employee_code`, `job_title_id`, `department_id`, `employment_type`, `date_of_hire`, `supervisor_id`, `manager_id`, `access_role`, `payroll_group_id`, `annual_salary`, `hourly_rate`, `tin_number`, `sss_number`, `philhealth_number`, `pagibig_fund_number`, `bank_name`, `bank_branch_name`, `bank_account_number`, `bank_account_type`, `username`, `password`, `notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(6, '123456789', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+1234567890', 'john.smith@example.com', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0001', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 645.00, '123-45-6789', '987-65-4321', 'PH1234567890', 'PAGIBIG1234567', 'ABC Bank', 'Main Branch, Springfield', '1234567890123456', 'Payroll Account', 'johnsmith123', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-11-28 10:09:41', NULL),
-(11, '1234567891', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+12345678901', 'john.smith@example.com1', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0002', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 645.00, '123-45-67891', '987-65-4111321', 'PH123456111789', 'PAGI11BIG12345', 'ABC Bank', 'Main Branch, Springfield', '12345678111190123456', 'Payroll Account', 'johnsmith1231', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-11-28 10:09:41', NULL);
+(6, '123456789', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+1234567890', 'john.smith@example.com', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0001', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 100.00, '123-45-6789', '987-65-4321', 'PH1234567890', 'PAGIBIG1234567', 'ABC Bank', 'Main Branch, Springfield', '1234567890123456', 'Payroll Account', 'johnsmith123', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-12-11 13:17:55', NULL),
+(11, '1234567891', 'John', 'Doe', 'Smith', '1985-07-20', 'Male', 'Single', 'American', 'Christian', '+12345678901', 'john.smith@example.com1', '123 Elm St, Springfield, IL', NULL, 'Jane Smith', 'Spouse', '+1234567891', 'jane.smith@example.com', '456 Oak St, Springfield, IL', 'EMP-0002', 1, 1, 'Regular / Permanent', '2020-01-15', NULL, NULL, 'Staff', 1, NULL, 100.00, '123-45-67891', '987-65-4111321', 'PH123456111789', 'PAGI11BIG12345', 'ABC Bank', 'Main Branch, Springfield', '12345678111190123456', 'Payroll Account', 'johnsmith1231', '$2y$10$w/VLzSHuRvT41/1NRdNrrOJwQLPLqqCoJciuDL6v/dgAvLy9gnqhu', NULL, '2024-11-28 10:09:41', '2024-12-11 13:17:58', NULL);
 
 -- --------------------------------------------------------
 
@@ -291,12 +269,15 @@ CREATE TABLE `employee_breaks` (
 --
 
 INSERT INTO `employee_breaks` (`id`, `break_schedule_id`, `start_time`, `end_time`, `break_duration_in_minutes`, `created_at`, `updated_at`) VALUES
-(1, 3, NULL, NULL, 0, '2024-11-26 22:00:00', '2024-12-10 16:01:31'),
-(2, 4, NULL, NULL, 0, '2024-11-26 22:00:00', '2024-12-10 16:01:31'),
-(11, 3, NULL, NULL, 0, '2024-11-27 21:30:00', '2024-12-10 17:05:18'),
-(12, 4, NULL, NULL, 0, '2024-11-27 21:30:00', '2024-12-10 17:05:21'),
-(19, 1, NULL, NULL, 0, '2024-11-28 10:00:00', '2024-12-11 01:23:16'),
-(20, 2, NULL, NULL, 0, '2024-11-28 10:00:00', '2024-12-11 01:23:16');
+(1, 1, '2024-12-02 12:10:00', '2024-12-02 12:30:00', 20, '2024-12-02 04:10:00', '2024-12-12 09:35:17'),
+(2, 1, '2024-12-02 12:35:00', '2024-12-02 12:55:00', 20, '2024-12-02 04:35:00', '2024-12-12 09:35:17'),
+(3, 2, NULL, NULL, 0, '2024-12-02 09:00:00', '2024-12-12 09:35:37'),
+(4, 1, NULL, NULL, 0, '2024-11-28 09:00:00', '2024-12-12 13:40:49'),
+(5, 2, NULL, NULL, 0, '2024-11-28 09:00:00', '2024-12-12 13:40:49'),
+(6, 1, NULL, NULL, 0, '2024-11-27 09:00:00', '2024-12-12 13:44:29'),
+(7, 2, NULL, NULL, 0, '2024-11-27 09:00:00', '2024-12-12 13:44:29'),
+(8, 3, NULL, NULL, 0, '2024-11-27 22:00:00', '2024-12-12 13:44:49'),
+(9, 4, NULL, NULL, 0, '2024-11-27 22:00:00', '2024-12-12 13:44:49');
 
 -- --------------------------------------------------------
 
@@ -484,15 +465,21 @@ INSERT INTO `overtime_rate_assignments` (`id`, `department_id`, `job_title_id`, 
 --
 
 CREATE TABLE `payroll_groups` (
-  `id` int(10) UNSIGNED NOT NULL
+  `id` int(10) UNSIGNED NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `pay_frequency` enum('Weekly','Bi-weekly','Semi-monthly','Monthly') NOT NULL,
+  `status` enum('Active','Inactive','Archived') NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `payroll_groups`
 --
 
-INSERT INTO `payroll_groups` (`id`) VALUES
-(1);
+INSERT INTO `payroll_groups` (`id`, `name`, `pay_frequency`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, '', 'Weekly', 'Active', '2024-12-12 19:15:00', '2024-12-12 19:15:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -516,36 +503,6 @@ CREATE TABLE `settings` (
 INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `group_name`, `created_at`, `updated_at`) VALUES
 (1, 'minutes_can_check_in_before_shift', '15', 'work_schedule', '2024-11-28 04:24:36', '2024-11-28 04:24:36'),
 (2, 'grace_period', '15', 'work_schedule', '2024-11-28 04:24:36', '2024-11-28 04:24:36');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `test`
---
-
-CREATE TABLE `test` (
-  `id` int(10) NOT NULL,
-  `department_id` int(10) DEFAULT NULL,
-  `job_title_id` int(10) DEFAULT NULL,
-  `employee_id` int(10) DEFAULT NULL,
-  `time` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `test`
---
-
-INSERT INTO `test` (`id`, `department_id`, `job_title_id`, `employee_id`, `time`) VALUES
-(1, 1, 101, 1001, '2024-11-28 12:44:54'),
-(2, 1, 101, 1002, '2024-11-28 12:44:54'),
-(3, 1, 101, NULL, '2024-11-28 12:44:54'),
-(4, 1, NULL, NULL, '2024-11-28 12:44:54'),
-(5, NULL, NULL, NULL, '2024-11-28 12:44:54'),
-(6, 1, 101, 1003, '2024-11-28 12:44:54'),
-(7, 2, NULL, NULL, '2024-11-28 12:44:54'),
-(8, 3, 104, 21, '2024-11-28 12:44:54'),
-(9, 3, 104, NULL, '2024-11-28 12:44:54'),
-(10, 1, 102, 1005, '2024-11-28 06:08:39');
 
 -- --------------------------------------------------------
 
@@ -583,14 +540,6 @@ INSERT INTO `work_schedules` (`id`, `employee_id`, `title`, `start_time`, `end_t
 --
 -- Indexes for dumped tables
 --
-
---
--- Indexes for table `admins`
---
-ALTER TABLE `admins`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uq_admins_username` (`username`),
-  ADD KEY `idx_admins_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `allowances`
@@ -773,7 +722,10 @@ ALTER TABLE `overtime_rate_assignments`
 -- Indexes for table `payroll_groups`
 --
 ALTER TABLE `payroll_groups`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_payroll_groups_name` (`name`),
+  ADD KEY `idx_payroll_groups_status` (`status`),
+  ADD KEY `idx_payroll_groups_deleted_at` (`deleted_at`);
 
 --
 -- Indexes for table `settings`
@@ -783,12 +735,6 @@ ALTER TABLE `settings`
   ADD KEY `idx_settings_setting_key` (`setting_key`),
   ADD KEY `idx_settings_setting_value` (`setting_value`) USING BTREE,
   ADD KEY `idx_settings_group_name` (`group_name`) USING BTREE;
-
---
--- Indexes for table `test`
---
-ALTER TABLE `test`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `work_schedules`
@@ -804,12 +750,6 @@ ALTER TABLE `work_schedules`
 --
 
 --
--- AUTO_INCREMENT for table `admins`
---
-ALTER TABLE `admins`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `allowances`
 --
 ALTER TABLE `allowances`
@@ -819,7 +759,7 @@ ALTER TABLE `allowances`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `break_schedules`
@@ -861,7 +801,7 @@ ALTER TABLE `employee_allowances`
 -- AUTO_INCREMENT for table `employee_breaks`
 --
 ALTER TABLE `employee_breaks`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `employee_deductions`
@@ -922,12 +862,6 @@ ALTER TABLE `payroll_groups`
 --
 ALTER TABLE `settings`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `test`
---
-ALTER TABLE `test`
-  MODIFY `id` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `work_schedules`
