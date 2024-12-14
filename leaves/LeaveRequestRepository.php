@@ -61,11 +61,6 @@ class LeaveRequestRepository
                 'value'    => $employeeId
             ],
             [
-                'column'   => 'leave_request.status',
-                'operator' => '='                   ,
-                'value'    => "Approved"
-            ],
-            [
                 'column'   => 'leave_request.start_date',
                 'operator' => '<='                      ,
                 'value'    => $endDate
@@ -84,6 +79,15 @@ class LeaveRequestRepository
         }
 
         $leaveRequests = $leaveRequests['result_set'];
+
+        $approvedLeaveRequests = [];
+        foreach ($leaveRequests as $leaveRequest) {
+            if (in_array($leaveRequest['status'], ['In Progress', 'Completed', 'Approved'])) {
+                $approvedLeaveRequests[] = $leaveRequest;
+            }
+        }
+
+        $leaveRequests = $approvedLeaveRequests;
 
         $datesMarkedAsLeave = [];
 

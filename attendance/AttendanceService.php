@@ -50,6 +50,15 @@ class AttendanceService
             ];
         }
 
+        $result = $this->leaveRequestRepository->updateLeaveRequestStatuses();
+
+        if ($result === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.',
+            ];
+        }
+
         $isOnLeave = $this->leaveRequestRepository->isEmployeeOnLeave($employeeId);
 
         if ($isOnLeave === ActionResult::FAILURE) {
@@ -75,7 +84,7 @@ class AttendanceService
             ];
         }
 
-        $currentDateTime = new DateTime($currentDateTime   );
+        $currentDateTime = new DateTime($currentDateTime );
         $currentDate     = $currentDateTime->format('Y-m-d');
 
         $isCheckIn = false;
@@ -118,6 +127,26 @@ class AttendanceService
                 ];
             }
 
+            if ((new DateTime($currentWorkSchedule['end_time']))->format('Y-m-d') > (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d')) {
+                $startTimeDate = (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d');
+
+                $onLeave = $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $startTimeDate, $startTimeDate);
+
+                if ($onLeave === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                if ($onLeave[$startTimeDate]['is_leave']) {
+                    return [
+                        'status'  => 'warning',
+                        'message' => 'You are currently on leave. You cannot check in or check out.'
+                    ];
+                }
+            }
+
             if ( ! empty($lastAttendanceRecord)                                                  &&
                 $lastAttendanceRecord['work_schedule_id'] === $currentWorkSchedule['id'        ] &&
                 $lastAttendanceRecord['check_in_time'   ] >=  $currentWorkSchedule['start_time'] &&
@@ -127,7 +156,7 @@ class AttendanceService
                     id                         : null                                                    ,
                     workScheduleId             : $lastAttendanceRecord['work_schedule_id'               ],
                     date                       : $lastAttendanceRecord['date'                           ],
-                    checkInTime                : $currentDateTime->format('Y-m-d H:i:s')                 ,
+                    checkInTime                : $currentDateTime->format('Y-m-d H:i:s')         ,
                     checkOutTime               : null                                                    ,
                     totalBreakDurationInMinutes: $lastAttendanceRecord['total_break_duration_in_minutes'],
                     totalHoursWorked           : $lastAttendanceRecord['total_hours_worked'             ],
