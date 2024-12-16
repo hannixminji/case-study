@@ -853,4 +853,14 @@ class AttendanceService
 
         return $currentWorkSchedule;
     }
+
+    public function updateAttendance(Attendance $attendance, bool $isHashedId = false): ActionResult
+    {
+        return $this->attendanceRepository->updateAttendance($attendance, $isHashedId);
+    }
+
+    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
+    {
+        return $this->attendanceRepository->approveOvertime($attendanceId, $isHashedId);
+    }
 }

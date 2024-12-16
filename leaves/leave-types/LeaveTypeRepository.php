@@ -26,13 +26,13 @@ class LeaveTypeRepository
         return $this->leaveTypeDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateLeaveType(LeaveType $leaveType): ActionResult
+    public function updateLeaveType(LeaveType $leaveType, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveTypeDao->update($leaveType);
+        return $this->leaveTypeDao->update($leaveType, $isHashedId);
     }
 
-    public function deleteLeaveType(int $leaveTypeId): ActionResult
+    public function deleteLeaveType(int $leaveTypeId, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveTypeDao->delete($leaveTypeId);
+        return $this->leaveTypeDao->delete($leaveTypeId, $isHashedId);
     }
 }

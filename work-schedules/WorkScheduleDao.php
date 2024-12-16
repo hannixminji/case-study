@@ -362,7 +362,7 @@ class WorkScheduleDao
         }
     }
 
-    public function update(WorkSchedule $workSchedule): ActionResult
+    public function update(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE work_schedules
@@ -380,8 +380,13 @@ class WorkScheduleDao
                 recurrence_rule       = :recurrence_rule      ,
                 note                  = :note
             WHERE
-                id = :work_schedule_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :work_schedule_id";
+        } else {
+            $query .= " id = :work_schedule_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -418,20 +423,25 @@ class WorkScheduleDao
         }
     }
 
-    public function delete(int $workScheduleId): ActionResult
+    public function delete(int $workScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($workScheduleId);
+        return $this->softDelete($workScheduleId, $isHashedId);
     }
 
-    private function softDelete(int $workScheduleId): ActionResult
+    private function softDelete(int $workScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE work_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :work_schedule_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :work_schedule_id";
+        } else {
+            $query .= " id = :work_schedule_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

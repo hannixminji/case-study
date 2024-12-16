@@ -61,10 +61,6 @@ class HolidayDao
             error_log("Database Error: An error occurred while creating the holiday. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -103,7 +99,7 @@ class HolidayDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "holiday.status <> 'Archived'";
+            $whereClauses[] = "holiday.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -205,7 +201,7 @@ class HolidayDao
         }
     }
 
-    public function update(Holiday $holiday): ActionResult
+    public function update(Holiday $holiday, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE holidays
@@ -218,8 +214,13 @@ class HolidayDao
                 description           = :description          ,
                 status                = :status
             WHERE
-                id = :holiday_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :holiday_id";
+        } else {
+            $query .= " id = :holiday_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -247,20 +248,16 @@ class HolidayDao
             error_log("Database Error: An error occurred while updating the holiday. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $holidayId): ActionResult
+    public function delete(int $holidayId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($holidayId);
+        return $this->softDelete($holidayId, $isHashedId);
     }
 
-    private function softDelete(int $holidayId): ActionResult
+    private function softDelete(int $holidayId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE holidays
@@ -268,8 +265,13 @@ class HolidayDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :holiday_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :holiday_id";
+        } else {
+            $query .= " id = :holiday_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

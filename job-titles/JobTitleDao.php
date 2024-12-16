@@ -52,10 +52,6 @@ class JobTitleDao
             error_log("Database Error: An error occurred while creating the job title. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -105,7 +101,7 @@ class JobTitleDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "job_title.status <> 'Archived'";
+            $whereClauses[] = "job_title.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -209,7 +205,7 @@ class JobTitleDao
         }
     }
 
-    public function update(JobTitle $jobTitle): ActionResult
+    public function update(JobTitle $jobTitle, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE job_titles
@@ -219,8 +215,13 @@ class JobTitleDao
                 description   = :description  ,
                 status        = :status
             WHERE
-                id = :job_title_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :job_title_id";
+        } else {
+            $query .= " id = :job_title_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -245,20 +246,16 @@ class JobTitleDao
             error_log("Database Error: An error occurred while updating the job title. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $departmentId): ActionResult
+    public function delete(int $departmentId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($departmentId);
+        return $this->softDelete($departmentId, $isHashedId);
     }
 
-    private function softDelete(int $jobTitleId): ActionResult
+    private function softDelete(int $jobTitleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE job_titles
@@ -266,8 +263,13 @@ class JobTitleDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :job_title_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :job_title_id";
+        } else {
+            $query .= " id = :job_title_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

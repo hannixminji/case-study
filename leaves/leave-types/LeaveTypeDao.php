@@ -55,10 +55,6 @@ class LeaveTypeDao
             error_log("Database Error: An error occurred while creating the leave type. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -95,7 +91,7 @@ class LeaveTypeDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "leave_type.status <> 'Archived'";
+            $whereClauses[] = "leave_type.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -199,7 +195,7 @@ class LeaveTypeDao
         }
     }
 
-    public function update(LeaveType $leaveType): ActionResult
+    public function update(LeaveType $leaveType, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_types
@@ -210,8 +206,13 @@ class LeaveTypeDao
                 description            = :description           ,
                 status                 = :status
             WHERE
-                id = :leave_type_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_type_id";
+        } else {
+            $query .= " id = :leave_type_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -237,20 +238,16 @@ class LeaveTypeDao
             error_log("Database Error: An error occurred while updating the leave type. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $leaveTypeId): ActionResult
+    public function delete(int $leaveTypeId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($leaveTypeId);
+        return $this->softDelete($leaveTypeId, $isHashedId);
     }
 
-    private function softDelete(int $leaveTypeId): ActionResult
+    private function softDelete(int $leaveTypeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_types
@@ -258,8 +255,13 @@ class LeaveTypeDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :leave_type_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_type_id";
+        } else {
+            $query .= " id = :leave_type_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

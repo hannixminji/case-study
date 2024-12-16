@@ -26,7 +26,7 @@ class EmployeeService
         return $this->employeeRepository->fetchAllEmployees($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateEmployee(Employee $employee, bool $isHashedId): ActionResult
+    public function updateEmployee(Employee $employee, bool $isHashedId = false): ActionResult
     {
         return $this->employeeRepository->updateEmployee($employee, $isHashedId);
     }
@@ -36,9 +36,9 @@ class EmployeeService
         return $this->employeeRepository->getEmployeeIdBy($column, $value);
     }
 
-    public function changePassword(int $employeeId, string $newHashedPassword): ActionResult
+    public function changePassword(int $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
-        return $this->employeeRepository->changePassword($employeeId, $newHashedPassword);
+        return $this->employeeRepository->changePassword($employeeId, $newHashedPassword, $isHashedId);
     }
 
     public function countTotalRecords(): ActionResult|int
@@ -46,8 +46,8 @@ class EmployeeService
         return $this->employeeRepository->countTotalRecords();
     }
 
-    public function deleteEmployee(int $employeeId): ActionResult
+    public function deleteEmployee(int $employeeId, bool $isHashedId = false): ActionResult
     {
-        return $this->employeeRepository->deleteEmployee($employeeId);
+        return $this->employeeRepository->deleteEmployee($employeeId, $isHashedId);
     }
 }

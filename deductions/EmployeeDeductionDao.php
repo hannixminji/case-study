@@ -49,10 +49,6 @@ class EmployeeDeductionDao
             error_log("Database Error: An error occurred while assigning the deduction to employee. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -65,17 +61,17 @@ class EmployeeDeductionDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "employee_deduction.id           AS id"                      ,
-            "employee_id"              => "employee_deduction.employee_id  AS employee_id"             ,
+            "id"                  => "employee_deduction.id           AS id"                 ,
+            "employee_id"         => "employee_deduction.employee_id  AS employee_id"        ,
 
-            "deduction_id"             => "employee_deduction.deduction_id AS deduction_id"            ,
-            "deduction_name"           => "deduction.name                  AS deduction_name"          ,
-            "deduction_frequency"      => "deduction.frequency             AS deduction_frequency"     ,
-            "deduction_status"         => "deduction.status                AS deduction_status"        ,
+            "deduction_id"        => "employee_deduction.deduction_id AS deduction_id"       ,
+            "deduction_name"      => "deduction.name                  AS deduction_name"     ,
+            "deduction_frequency" => "deduction.frequency             AS deduction_frequency",
+            "deduction_status"    => "deduction.status                AS deduction_status"   ,
 
-            "amount"                   => "employee_deduction.amount       AS amount"                  ,
-            "created_at"               => "employee_deduction.created_at   AS created_at"              ,
-            "deleted_at"               => "employee_deduction.deleted_at   AS deleted_at"
+            "amount"              => "employee_deduction.amount       AS amount"             ,
+            "created_at"          => "employee_deduction.created_at   AS created_at"         ,
+            "deleted_at"          => "employee_deduction.deleted_at   AS deleted_at"
         ];
 
         $selectedColumns =
@@ -198,20 +194,25 @@ class EmployeeDeductionDao
         }
     }
 
-    public function delete(int $employeeDeductionId): ActionResult
+    public function delete(int $employeeDeductionId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($employeeDeductionId);
+        return $this->softDelete($employeeDeductionId, $isHashedId);
     }
 
-    private function softDelete(int $employeeDeductionId): ActionResult
+    private function softDelete(int $employeeDeductionId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employee_deductions
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :employee_deduction_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_deduction_id";
+        } else {
+            $query .= " id = :employee_deduction_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

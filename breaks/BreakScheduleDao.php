@@ -222,7 +222,7 @@ class BreakScheduleDao
         }
     }
 
-    public function update(BreakSchedule $breakSchedule): ActionResult
+    public function update(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_schedules
@@ -232,8 +232,13 @@ class BreakScheduleDao
                 earliest_start_time = :earliest_start_time,
                 latest_end_time     = :latest_end_time
             WHERE
-                id = :break_schedule_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :break_schedule_id";
+        } else {
+            $query .= " id = :break_schedule_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -262,7 +267,7 @@ class BreakScheduleDao
         }
     }
 
-    public function fetchOrderedBreakSchedules(int $workScheduleId): ActionResult|array
+    public function fetchOrderedBreakSchedules(int $workScheduleId, bool $isHashedId = false): ActionResult|array
     {
         $query = "
             SELECT
@@ -281,9 +286,19 @@ class BreakScheduleDao
             ON
                 break_schedule.break_type_id = break_type.id
             WHERE
-                break_schedule.work_schedule_id = :work_schedule_id
-                AND break_type.deleted_at IS NULL
-                AND break_schedule.deleted_at IS NULL
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(break_schedule.work_schedule_id, 256) = :work_schedule_id";
+        } else {
+            $query .= " break_schedule.work_schedule_id = :work_schedule_id";
+        }
+
+        $query .= "
+            AND
+                break_type.deleted_at IS NULL
+            AND
+                break_schedule.deleted_at IS NULL
             ORDER BY
                 CASE
                     WHEN break_schedule.start_time IS NULL THEN break_schedule.earliest_start_time
@@ -309,15 +324,20 @@ class BreakScheduleDao
         }
     }
 
-    public function deleteByWorkScheduleId(int $workScheduleId): ActionResult
+    public function deleteByWorkScheduleId(int $workScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                work_schedule_id = :work_schedule_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(work_schedule_id, 256) = :work_schedule_id";
+        } else {
+            $query .= " work_schedule_id = :work_schedule_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -342,20 +362,25 @@ class BreakScheduleDao
         }
     }
 
-    public function delete(int $breakScheduleId): ActionResult
+    public function delete(int $breakScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($breakScheduleId);
+        return $this->softDelete($breakScheduleId, $isHashedId);
     }
 
-    private function softDelete(int $breakScheduleId): ActionResult
+    private function softDelete(int $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_schedules
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :break_schedule_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :break_schedule_id";
+        } else {
+            $query .= " id = :break_schedule_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

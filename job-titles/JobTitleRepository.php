@@ -26,13 +26,13 @@ class JobTitleRepository
         return $this->jobTitleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateJobTitle(JobTitle $jobTitle): ActionResult
+    public function updateJobTitle(JobTitle $jobTitle, bool $isHashedId = false): ActionResult
     {
-        return $this->jobTitleDao->update($jobTitle);
+        return $this->jobTitleDao->update($jobTitle, $isHashedId);
     }
 
-    public function deleteJobTitle(int $jobTitleId): ActionResult
+    public function deleteJobTitle(int $jobTitleId, bool $isHashedId = false): ActionResult
     {
-        return $this->jobTitleDao->delete($jobTitleId);
+        return $this->jobTitleDao->delete($jobTitleId, $isHashedId);
     }
 }

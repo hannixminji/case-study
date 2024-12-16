@@ -16,9 +16,9 @@ class AttendanceRepository
         return $this->attendanceDao->checkIn($attendance);
     }
 
-    public function checkOut(Attendance $attendance): ActionResult
+    public function checkOut(Attendance $attendance, bool $isHashedId = false): ActionResult
     {
-        return $this->attendanceDao->checkOut($attendance);
+        return $this->attendanceDao->checkOut($attendance, $isHashedId);
     }
 
     public function fetchAllAttendance(
@@ -86,13 +86,13 @@ class AttendanceRepository
             : [];
     }
 
-    public function updateAttendance(Attendance $attendance): ActionResult
+    public function updateAttendance(Attendance $attendance, bool $isHashedId = false): ActionResult
     {
-        return $this->attendanceDao->update($attendance);
+        return $this->attendanceDao->update($attendance, $isHashedId);
     }
 
-    public function approveOvertime(int $attendanceId): ActionResult
+    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
     {
-        return $this->attendanceDao->approveOvertime($attendanceId);
+        return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
     }
 }

@@ -13,7 +13,7 @@ class LeaveEntitlementDao
         $this->pdo = $pdo;
     }
 
-    public function create(LeaveEntitlement $leaveEntitlement): ActionResult
+    public function create(LeaveEntitlement $leaveEntitlement, bool $isHashedId = false): ActionResult
     {
         $insertQuery = "
             INSERT INTO leave_entitlements (
@@ -38,9 +38,23 @@ class LeaveEntitlementDao
                 number_of_days_taken    = :number_of_days_taken   ,
                 remaining_days          = :remaining_days
             WHERE
-                employee_id   = :employee_id
+        ";
+
+        if ($isHashedId) {
+            $updateQuery .= "
+                SHA2(employee_id, 256) = :employee_id
+            AND
+                SHA2(leave_type_id, 256) = :leave_type_id
+            ";
+        } else {
+            $updateQuery .= "
+                employee_id = :employee_id
             AND
                 leave_type_id = :leave_type_id
+            ";
+        }
+
+        $updateQuery .= "
             AND
                 deleted_at IS NULL
         ";
@@ -252,7 +266,7 @@ class LeaveEntitlementDao
         }
     }
 
-    public function updateBalance(LeaveEntitlement $leaveEntitlement): ActionResult
+    public function updateBalance(LeaveEntitlement $leaveEntitlement, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_entitlements
@@ -260,10 +274,21 @@ class LeaveEntitlementDao
                 number_of_days_taken = :number_of_days_taken,
                 remaining_days       = :remaining_days
             WHERE
-                leave_type_id = :leave_type_id
-            AND
-                employee_id = :employee_id
         ";
+
+        if ($isHashedId) {
+            $query .= "
+                SHA2(employee_id, 256) = :employee_id
+            AND
+                SHA2(leave_type_id, 256) = :leave_type_id
+            ";
+        } else {
+            $query .= "
+                employee_id = :employee_id
+            AND
+                leave_type_id = :leave_type_id
+            ";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -291,7 +316,7 @@ class LeaveEntitlementDao
         }
     }
 
-    public function resetEmployeeAllLeaveBalances(int $employeeId)
+    public function resetEmployeeAllLeaveBalances(int $employeeId, bool $isHashedId = false)
     {
         $query = "
             UPDATE leave_entitlements
@@ -299,8 +324,13 @@ class LeaveEntitlementDao
                 number_of_days_taken = 0,
                 remaining_days       = 0
             WHERE
-                employee_id = :employee_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(employee_id, 256) = :employee_id";
+        } else {
+            $query .= " employee_id = :employee_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -325,20 +355,25 @@ class LeaveEntitlementDao
         }
     }
 
-    public function delete(int $leaveEntitlementId): ActionResult
+    public function delete(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($leaveEntitlementId);
+        return $this->softDelete($leaveEntitlementId, $isHashedId);
     }
 
-    private function softDelete(int $leaveEntitlementId): ActionResult
+    private function softDelete(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_entitlements
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :leave_entitlement_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_entitlement_id";
+        } else {
+            $query .= " id = :leave_entitlement_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

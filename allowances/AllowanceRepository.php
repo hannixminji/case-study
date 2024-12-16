@@ -26,13 +26,13 @@ class AllowanceRepository
         return $this->allowanceDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateAllowance(Allowance $allowance): ActionResult
+    public function updateAllowance(Allowance $allowance, bool $isHashedId = false): ActionResult
     {
-        return $this->allowanceDao->update($allowance);
+        return $this->allowanceDao->update($allowance, $isHashedId);
     }
 
-    public function deleteAllowance(int $allowanceId): ActionResult
+    public function deleteAllowance(int $allowanceId, bool $isHashedId = false): ActionResult
     {
-        return $this->allowanceDao->delete($allowanceId);
+        return $this->allowanceDao->delete($allowanceId, $isHashedId);
     }
 }

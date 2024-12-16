@@ -16,7 +16,7 @@ class LeaveRequestService
         return $this->leaveRequestRepository->createLeaveRequest($leaveRequest);
     }
 
-    public function getAllLeaveRequests(
+    public function fetchAllLeaveRequests(
         ? array $columns        = null,
         ? array $filterCriteria = null,
         ? array $sortCriteria   = null,
@@ -28,19 +28,19 @@ class LeaveRequestService
         return $this->leaveRequestRepository->fetchAllLeaveRequests($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateLeaveRequest(LeaveRequest $leaveRequest): ActionResult
+    public function updateLeaveRequest(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveRequestRepository->updateLeaveRequest($leaveRequest);
+        return $this->leaveRequestRepository->updateLeaveRequest($leaveRequest, $isHashedId);
     }
 
-    public function updateLeaveRequestStatus(int $leaveRequestId, string $status): ActionResult
+    public function updateLeaveRequestStatus(int $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status);
+        return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status, $isHashedId);
     }
 
-    public function isEmployeeOnLeave(int $employeeId): ActionResult|bool
+    public function isEmployeeOnLeave(int $employeeId, bool $isHashedId = false): ActionResult|bool
     {
-        return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId);
+        return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId, $isHashedId);
     }
 
     public function getLeaveDatesForPeriod(int $employeeId, string $startDate, string $endDate): ActionResult|array
@@ -48,8 +48,8 @@ class LeaveRequestService
         return $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $startDate, $endDate);
     }
 
-    public function deleteLeaveRequest(int $leaveRequestId): ActionResult
+    public function deleteLeaveRequest(int $leaveRequestId, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId);
+        return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId, $isHashedId);
     }
 }

@@ -52,20 +52,16 @@ class BreakTypeDao
             error_log("Database Error: An error occurred while creating the break type. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
     public function fetchAll(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
             "id"                                => "break_type.id                                AS id"                               ,
@@ -115,7 +111,7 @@ class BreakTypeDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -191,7 +187,7 @@ class BreakTypeDao
         }
     }
 
-    public function update(BreakType $breakType): ActionResult
+    public function update(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_types
@@ -200,10 +196,14 @@ class BreakTypeDao
                 duration_in_minutes               = :duration_in_minutes              ,
                 is_paid                           = :is_paid                          ,
                 is_require_break_in_and_break_out = :is_require_break_in_and_break_out
-
             WHERE
-                id = :break_type_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :break_type_id";
+        } else {
+            $query .= " id = :break_type_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -228,28 +228,29 @@ class BreakTypeDao
             error_log("Database Error: An error occurred while updating the break type. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $breakTypeId): ActionResult
+    public function delete(int $breakTypeId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($breakTypeId);
+        return $this->softDelete($breakTypeId, $isHashedId);
     }
 
-    private function softDelete(int $breakTypeId): ActionResult
+    private function softDelete(int $breakTypeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_types
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :break_type_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :break_type_id";
+        } else {
+            $query .= " id = :break_type_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

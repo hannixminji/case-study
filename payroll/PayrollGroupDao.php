@@ -49,10 +49,6 @@ class PayrollGroupDao
             error_log("Database Error: An error occurred while creating the payroll group. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -87,7 +83,7 @@ class PayrollGroupDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "payroll_group.status <> 'Archived'";
+            $whereClauses[] = "payroll_group.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -179,7 +175,7 @@ class PayrollGroupDao
         }
     }
 
-    public function update(PayrollGroup $payrollGroup): ActionResult
+    public function update(PayrollGroup $payrollGroup, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE payroll_groups
@@ -188,8 +184,13 @@ class PayrollGroupDao
                 pay_frequency = :pay_frequency,
                 status        = :status
             WHERE
-                id = :payroll_group_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :payroll_group_id";
+        } else {
+            $query .= " id = :payroll_group_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -213,20 +214,16 @@ class PayrollGroupDao
             error_log("Database Error: An error occurred while updating the payroll group. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $payrollGroupId): ActionResult
+    public function delete(int $payrollGroupId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($payrollGroupId);
+        return $this->softDelete($payrollGroupId, $isHashedId);
     }
 
-    private function softDelete(int $payrollGroupId): ActionResult
+    private function softDelete(int $payrollGroupId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE payroll_groups
@@ -234,8 +231,13 @@ class PayrollGroupDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :payroll_group_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :payroll_group_id";
+        } else {
+            $query .= " id = :payroll_group_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

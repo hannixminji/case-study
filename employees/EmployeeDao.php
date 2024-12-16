@@ -179,14 +179,6 @@ class EmployeeDao
             error_log("Database Error: An error occurred while creating the employee. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                $errorMessage = $exception->getMessage();
-
-                if (preg_match("/Duplicate entry '[^']+' for key '([^']+)'/", $errorMessage, $matches)) {
-                    return $matches[1];
-                }
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -433,7 +425,7 @@ class EmployeeDao
         }
     }
 
-    public function update(Employee $employee, bool $isHashedId): ActionResult|string
+    public function update(Employee $employee, bool $isHashedId = false): ActionResult|string
     {
         $query = "
             UPDATE employees
@@ -485,11 +477,10 @@ class EmployeeDao
 
                 notes                           = :notes
             WHERE
-                id = :employee_id
         ";
 
         if ($isHashedId) {
-            $query .= " MD5(id) = :employee_id";
+            $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";
         }
@@ -498,7 +489,6 @@ class EmployeeDao
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
-
 
             $statement->bindValue(":rfid_uid"                       , $employee->getRfidUid()                     , Helper::getPdoParameterType($employee->getRfidUid()                     ));
 
@@ -561,27 +551,24 @@ class EmployeeDao
             error_log("Database Error: An error occurred while creating the employee. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                $errorMessage = $exception->getMessage();
-
-                if (preg_match("/Duplicate entry '[^']+' for key '([^']+)'/", $errorMessage, $matches)) {
-                    return $matches[1];
-                }
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function changePassword(int $employeeId, string $newHashedPassword): ActionResult
+    public function changePassword(int $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employees
             SET
                 password = :new_hashed_password
             WHERE
-                id = :employee_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_id";
+        } else {
+            $query .= " id = :employee_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -633,20 +620,25 @@ class EmployeeDao
         }
     }
 
-    public function delete(int $employeeId): ActionResult
+    public function delete(int $employeeId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($employeeId);
+        return $this->softDelete($employeeId, $isHashedId);
     }
 
-    private function softDelete(int $employeeId): ActionResult
+    private function softDelete(int $employeeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employees
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :employee_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_id";
+        } else {
+            $query .= " id = :employee_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

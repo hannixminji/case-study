@@ -26,13 +26,13 @@ class BreakTypeRepository
         return $this->breakTypeDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateBreakType(BreakType $breakType): ActionResult
+    public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
-        return $this->breakTypeDao->update($breakType);
+        return $this->breakTypeDao->update($breakType, $isHashedId);
     }
 
-    public function deleteBreakType(int $breakTypeId): ActionResult
+    public function deleteBreakType(int $breakTypeId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakTypeDao->delete($breakTypeId);
+        return $this->breakTypeDao->delete($breakTypeId, $isHashedId);
     }
 }

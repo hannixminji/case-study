@@ -26,13 +26,13 @@ class DeductionRepository
         return $this->deductionDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateDeduction(Deduction $deduction): ActionResult
+    public function updateDeduction(Deduction $deduction, bool $isHashedId = false): ActionResult
     {
-        return $this->deductionDao->update($deduction);
+        return $this->deductionDao->update($deduction, $isHashedId);
     }
 
-    public function deleteDeduction(int $deductionId): ActionResult
+    public function deleteDeduction(int $deductionId, bool $isHashedId = false): ActionResult
     {
-        return $this->deductionDao->delete($deductionId);
+        return $this->deductionDao->delete($deductionId, $isHashedId);
     }
 }

@@ -335,4 +335,9 @@ class EmployeeBreakService
 
         return $currentBreakSchedule;
     }
+
+    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
+    {
+        return $this->employeeBreakRepository->updateEmployeeBreak($employeeBreak, $isHashedId);
+    }
 }

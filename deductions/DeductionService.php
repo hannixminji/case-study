@@ -26,13 +26,13 @@ class DeductionService
         return $this->deductionRepository->fetchAllDeductions($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateDeduction(Deduction $deduction): ActionResult
+    public function updateDeduction(Deduction $deduction, bool $isHashedId = false): ActionResult
     {
-        return $this->deductionRepository->updateDeduction($deduction);
+        return $this->deductionRepository->updateDeduction($deduction, $isHashedId);
     }
 
-    public function deleteDeduction(int $deductionId): ActionResult
+    public function deleteDeduction(int $deductionId, bool $isHashedId = false): ActionResult
     {
-        return $this->deductionRepository->deleteDeduction($deductionId);
+        return $this->deductionRepository->deleteDeduction($deductionId, $isHashedId);
     }
 }

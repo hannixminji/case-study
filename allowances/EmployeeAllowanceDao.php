@@ -49,10 +49,6 @@ class EmployeeAllowanceDao
             error_log("Database Error: An error occurred while assigning the allowance to employee. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -138,8 +134,23 @@ class EmployeeAllowanceDao
         if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
-                $direction = $sortCriterion["direction"];
-                $orderByClauses[] = "{$column} {$direction}";
+
+                if (isset($sortCriterion["direction"])) {
+                    $direction = $sortCriterion["direction"];
+                    $orderByClauses[] = "{$column} {$direction}";
+
+                } elseif (isset($sortCriterion["custom_order"])) {
+                    $customOrder = $sortCriterion["custom_order"];
+                    $caseExpressions = ["CASE {$column}"];
+
+                    foreach ($customOrder as $priority => $value) {
+                        $caseExpressions[] = "WHEN ? THEN {$priority}";
+                        $queryParameters[] = $value;
+                    }
+
+                    $caseExpressions[] = "ELSE " . count($caseExpressions) . " END";
+                    $orderByClauses[] = implode(" ", $caseExpressions);
+                }
             }
         }
 
@@ -198,20 +209,25 @@ class EmployeeAllowanceDao
         }
     }
 
-    public function delete(int $employeeAllowanceId): ActionResult
+    public function delete(int $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($employeeAllowanceId);
+        return $this->softDelete($employeeAllowanceId, $isHashedId);
     }
 
-    private function softDelete(int $employeeAllowanceId): ActionResult
+    private function softDelete(int $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
         $query = '
             UPDATE employee_allowances
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :employee_allowance_id
         ';
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_allowance_id";
+        } else {
+            $query .= " id = :employee_allowance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

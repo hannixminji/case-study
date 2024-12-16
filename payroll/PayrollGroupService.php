@@ -27,13 +27,13 @@ class PayrollGroupService
         return $this->payrollGroupRepository->fetchAllPayrollGroups($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updatePayrollGroup(PayrollGroup $payrollGroup): ActionResult
+    public function updatePayrollGroup(PayrollGroup $payrollGroup, bool $isHashedId = false): ActionResult
     {
-        return $this->payrollGroupRepository->updatePayrollGroup($payrollGroup);
+        return $this->payrollGroupRepository->updatePayrollGroup($payrollGroup, $isHashedId);
     }
 
-    public function deletePayrollGroup(int $payrollGroupId): ActionResult
+    public function deletePayrollGroup(int $payrollGroupId, bool $isHashedId = false): ActionResult
     {
-        return $this->payrollGroupRepository->deletePayrollGroup($payrollGroupId);
+        return $this->payrollGroupRepository->deletePayrollGroup($payrollGroupId, $isHashedId);
     }
 }

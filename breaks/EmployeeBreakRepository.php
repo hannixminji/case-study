@@ -16,9 +16,9 @@ class EmployeeBreakRepository
         return $this->employeeBreakDao->breakIn($employeeBreak);
     }
 
-    public function breakOut(EmployeeBreak $employeeBreak): ActionResult
+    public function breakOut(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
     {
-        return $this->employeeBreakDao->breakOut($employeeBreak);
+        return $this->employeeBreakDao->breakOut($employeeBreak, $isHashedId);
     }
 
     public function fetchAllEmployeeBreaks(
@@ -92,49 +92,17 @@ class EmployeeBreakRepository
     }
 
     public function fetchOrderedEmployeeBreaks(
-        int    $workScheduleId,
-        int    $employeeId    ,
-        string $startDate     ,
-        string $endDate
+        int    $workScheduleId        ,
+        int    $employeeId            ,
+        string $startDate             ,
+        string $endDate               ,
+        bool   $isHashedId     = false
     ): ActionResult|array {
-        return $this->employeeBreakDao->fetchOrderedEmployeeBreaks($workScheduleId, $employeeId, $startDate, $endDate);
+        return $this->employeeBreakDao->fetchOrderedEmployeeBreaks($workScheduleId, $employeeId, $startDate, $endDate, $isHashedId);
     }
 
-    public function fetchTotalBreakDuration(int $workScheduleId, string $startTime, string $endTime): ActionResult|int
+    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
     {
-        $columns = [
-            'work_schedule_id'               ,
-            'total_break_duration_in_minutes'
-        ];
-
-        $filterCriteria = [
-            [
-                'column'   => 'break_schedule.work_schedule_id',
-                'operator' => '='                              ,
-                'value'    => $workScheduleId
-            ],
-            [
-                'column'      => 'employee_break.created_at',
-                'operator'    => 'BETWEEN'                  ,
-                'lower_bound' => $startTime                 ,
-                'upper_bound' => $endTime
-            ]
-        ];
-
-        $result = $this->employeeBreakDao->fetchAll(
-            columns       : $columns       ,
-            filterCriteria: $filterCriteria
-        );
-
-        if ($result === ActionResult::FAILURE) {
-            return ActionResult::FAILURE;
-        }
-
-        return (int) $result["result_set"][0]["total_break_duration_in_minutes"];
-    }
-
-    public function updateEmployeeBreak(EmployeeBreak $employeeBreak): ActionResult
-    {
-        return $this->employeeBreakDao->update($employeeBreak);
+        return $this->employeeBreakDao->update($employeeBreak, $isHashedId);
     }
 }

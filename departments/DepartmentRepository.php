@@ -26,18 +26,18 @@ class DepartmentRepository
         return $this->departmentDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateDepartment(Department $department): ActionResult
+    public function updateDepartment(Department $department, bool $isHashedId = false): ActionResult
     {
-        return $this->departmentDao->update($department);
+        return $this->departmentDao->update($department, $isHashedId);
     }
 
-    public function isEmployeeDepartmentHead(int $employeeId): ActionResult|bool
+    public function isEmployeeDepartmentHead(int $employeeId, bool $isHashedId = false): ActionResult|bool
     {
-        return $this->departmentDao->isDepartmentHead($employeeId);
+        return $this->departmentDao->isDepartmentHead($employeeId, $isHashedId);
     }
 
-    public function deleteDepartment(int $departmentId): ActionResult
+    public function deleteDepartment(int $departmentId, bool $isHashedId = false): ActionResult
     {
-        return $this->departmentDao->delete($departmentId);
+        return $this->departmentDao->delete($departmentId, $isHashedId);
     }
 }

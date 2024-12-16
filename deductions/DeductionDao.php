@@ -55,10 +55,6 @@ class DeductionDao
             error_log("Database Error: An error occurred while creating the deduction. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -95,7 +91,7 @@ class DeductionDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "deduction.status <> 'Archived'";
+            $whereClauses[] = "deduction.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -126,7 +122,7 @@ class DeductionDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
 
@@ -203,7 +199,7 @@ class DeductionDao
         }
     }
 
-    public function update(Deduction $deduction): ActionResult
+    public function update(Deduction $deduction, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE deductions
@@ -214,8 +210,13 @@ class DeductionDao
                 description = :description,
                 status      = :status
             WHERE
-                id = :deduction_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :deduction_id";
+        } else {
+            $query .= " id = :deduction_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -241,20 +242,16 @@ class DeductionDao
             error_log("Database Error: An error occurred while updating the deduction. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $deductionId): ActionResult
+    public function delete(int $deductionId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($deductionId);
+        return $this->softDelete($deductionId, $isHashedId);
     }
 
-    private function softDelete(int $deductionId): ActionResult
+    private function softDelete(int $deductionId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE deductions
@@ -262,8 +259,13 @@ class DeductionDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :deduction_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :deduction_id";
+        } else {
+            $query .= " id = :deduction_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

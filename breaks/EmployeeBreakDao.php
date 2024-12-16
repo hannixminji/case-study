@@ -53,7 +53,7 @@ class EmployeeBreakDao
         }
     }
 
-    public function breakOut(EmployeeBreak $employeeBreak): ActionResult
+    public function breakOut(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employee_breaks
@@ -61,8 +61,13 @@ class EmployeeBreakDao
                 end_time = :end_time,
                 break_duration_in_minutes = :break_duration_in_minutes
             WHERE
-                id = :employee_break_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_break_id";
+        } else {
+            $query .= " id = :employee_break_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -83,7 +88,7 @@ class EmployeeBreakDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while recording the break out. " .
-                    "Exception: {$exception->getMessage()}");
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }
@@ -285,7 +290,7 @@ class EmployeeBreakDao
         }
     }
 
-    public function fetchOrderedEmployeeBreaks(int $workScheduleId, int $employeeId, string $startDate, string $endDate): ActionResult|array
+    public function fetchOrderedEmployeeBreaks(int $workScheduleId, int $employeeId, string $startDate, string $endDate, bool $isHashedId = false): ActionResult|array
     {
         $query = "
             SELECT
@@ -316,9 +321,25 @@ class EmployeeBreakDao
                 break_types AS break_type
                 ON break_schedule.break_type_id = break_type.id
             WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= "
+                SHA2(break_schedule.work_schedule_id, 256) = :work_schedule_id
+            AND
+                SHA2(work_schedule.employee_id, 256) = :employee_id
+            ";
+        } else {
+            $query .= "
                 break_schedule.work_schedule_id = :work_schedule_id
-                AND work_schedule.employee_id = :employee_id
-                AND employee_break.created_at BETWEEN :start_date AND :end_date
+            AND
+                work_schedule.employee_id = :employee_id
+            ";
+        }
+
+        $query .= "
+            AND
+                employee_break.created_at BETWEEN :start_date AND :end_date
             ORDER BY
                 CASE
                     WHEN employee_break.start_time IS NOT NULL THEN employee_break.start_time
@@ -348,7 +369,7 @@ class EmployeeBreakDao
         }
     }
 
-    public function update(EmployeeBreak $employeeBreak): ActionResult
+    public function update(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employee_breaks
@@ -358,8 +379,13 @@ class EmployeeBreakDao
                 end_time                  = :end_time                 ,
                 break_duration_in_minutes = :break_duration_in_minutes
             WHERE
-                id = :employee_break_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_break_id";
+        } else {
+            $query .= " id = :employee_break_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

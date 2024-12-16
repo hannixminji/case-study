@@ -26,9 +26,9 @@ class WorkScheduleRepository
         return $this->workScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
+    public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
-        return $this->workScheduleDao->update($workSchedule);
+        return $this->workScheduleDao->update($workSchedule, $isHashedId);
     }
 
     public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
@@ -130,8 +130,8 @@ class WorkScheduleRepository
         return $workSchedules;
     }
 
-    public function deleteWorkSchedule(int $workScheduleId): ActionResult
+    public function deleteWorkSchedule(int $workScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->workScheduleDao->delete($workScheduleId);
+        return $this->workScheduleDao->delete($workScheduleId, $isHashedId);
     }
 }

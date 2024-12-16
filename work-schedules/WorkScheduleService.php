@@ -28,14 +28,9 @@ class WorkScheduleService
         return $this->workScheduleRepository->fetchAllWorkSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
+    public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
-        return $this->workScheduleRepository->updateWorkSchedule($workSchedule);
-    }
-
-    public function deleteWorkSchedule(int $workScheduleId): ActionResult
-    {
-        return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId);
+        return $this->workScheduleRepository->updateWorkSchedule($workSchedule, $isHashedId);
     }
 
     public function getEmployeeWorkSchedules(
@@ -44,5 +39,10 @@ class WorkScheduleService
         string $endDate
     ): ActionResult|array {
         return $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $startDate, $endDate);
+    }
+
+    public function deleteWorkSchedule(int $workScheduleId, bool $isHashedId = false): ActionResult
+    {
+        return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId, $isHashedId);
     }
 }

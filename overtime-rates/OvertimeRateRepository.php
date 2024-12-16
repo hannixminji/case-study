@@ -16,13 +16,13 @@ class OvertimeRateRepository
         return $this->overtimeRateDao->create($overtimeRate);
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId): ActionResult|array
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): ActionResult|array
     {
-        return $this->overtimeRateDao->fetchOvertimeRates($overtimeRateAssignmentId);
+        return $this->overtimeRateDao->fetchOvertimeRates($overtimeRateAssignmentId, $isHashedId);
     }
 
-    public function update(OvertimeRate $overtimeRate): ActionResult
+    public function update(OvertimeRate $overtimeRate, bool $isHashedId = false): ActionResult
     {
-        return $this->overtimeRateDao->update($overtimeRate);
+        return $this->overtimeRateDao->update($overtimeRate, $isHashedId);
     }
 }

@@ -55,10 +55,6 @@ class AllowanceDao
             error_log("Database Error: An error occurred while creating the allowance. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -95,7 +91,7 @@ class AllowanceDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "allowance.status <> 'Archived'";
+            $whereClauses[] = "allowance.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -199,7 +195,7 @@ class AllowanceDao
         }
     }
 
-    public function update(Allowance $allowance): ActionResult
+    public function update(Allowance $allowance, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE allowances
@@ -210,8 +206,13 @@ class AllowanceDao
                 description = :description,
                 status      = :status
             WHERE
-                id = :allowance_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :allowance_id";
+        } else {
+            $query .= " id = :allowance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -237,20 +238,16 @@ class AllowanceDao
             error_log("Database Error: An error occurred while updating the allowance. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function delete(int $allowanceId): ActionResult
+    public function delete(int $allowanceId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($allowanceId);
+        return $this->softDelete($allowanceId, $isHashedId);
     }
 
-    private function softDelete(int $allowanceId): ActionResult
+    private function softDelete(int $allowanceId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE allowances
@@ -258,8 +255,13 @@ class AllowanceDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :allowance_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :allowance_id";
+        } else {
+            $query .= " id = :allowance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

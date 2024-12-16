@@ -26,18 +26,18 @@ class LeaveEntitlementRepository
         return $this->leaveEntitlementDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateLeaveEntitlementBalance(LeaveEntitlement $leaveEntitlement): ActionResult
+    public function updateLeaveEntitlementBalance(LeaveEntitlement $leaveEntitlement, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveEntitlementDao->updateBalance($leaveEntitlement);
+        return $this->leaveEntitlementDao->updateBalance($leaveEntitlement, $isHashedId);
     }
 
-    public function resetEmployeeAllLeaveBalances(int $employeeId): ActionResult
+    public function resetEmployeeAllLeaveBalances(int $employeeId, bool $isHashedId = false): ActionResult
     {
-        return $this->resetEmployeeAllLeaveBalances($employeeId);
+        return $this->resetEmployeeAllLeaveBalances($employeeId, $isHashedId);
     }
 
-    public function deleteLeaveEntitlement(int $leaveEntitlementId): ActionResult
+    public function deleteLeaveEntitlement(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
-        return $this->leaveEntitlementDao->delete($leaveEntitlementId);
+        return $this->leaveEntitlementDao->delete($leaveEntitlementId, $isHashedId);
     }
 }

@@ -26,23 +26,23 @@ class BreakScheduleRepository
         return $this->breakScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateBreakSchedule(BreakSchedule $breakSchedule): ActionResult
+    public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
-        return $this->$breakSchedule->update($breakSchedule);
+        return $this->$breakSchedule->update($breakSchedule, $isHashedId);
     }
 
-    public function fetchOrderedBreakSchedules(int $workScheduleId): ActionResult|array
+    public function fetchOrderedBreakSchedules(int $workScheduleId, bool $isHashedId = false): ActionResult|array
     {
-        return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId);
+        return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
     }
 
-    public function deleteBreakSchedule(int $breakScheduleId): ActionResult
+    public function deleteBreakSchedule(int $breakScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakScheduleDao->delete($breakScheduleId);
+        return $this->breakScheduleDao->delete($breakScheduleId, $isHashedId);
     }
 
-    public function deleteBreakScheduleByWorkScheduleId(int $workScheduleId): ActionResult
+    public function deleteBreakScheduleByWorkScheduleId(int $workScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakScheduleDao->deleteByWorkScheduleId($workScheduleId);
+        return $this->breakScheduleDao->deleteByWorkScheduleId($workScheduleId, $isHashedId);
     }
 }

@@ -272,7 +272,7 @@ class LeaveRequestDao
         }
     }
 
-    public function update(LeaveRequest $leaveRequest): ActionResult
+    public function update(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_requests
@@ -283,8 +283,13 @@ class LeaveRequestDao
                 end_date      = :end_date     ,
                 reason        = :reason
             WHERE
-                id = :leave_request_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_request_id";
+        } else {
+            $query .= " id = :leave_request_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -314,15 +319,20 @@ class LeaveRequestDao
         }
     }
 
-    public function updateStatus(int $leaveRequestId, string $status): ActionResult
+    public function updateStatus(int $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_requests
             SET
                 status = :status
             WHERE
-                id = :leave_request_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_request_id";
+        } else {
+            $query .= " id = :leave_request_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -379,7 +389,7 @@ class LeaveRequestDao
         }
     }
 
-    public function isEmployeeOnLeave(int $employeeId): ActionResult|bool
+    public function isEmployeeOnLeave(int $employeeId, bool $isHashedId = false): ActionResult|bool
     {
         $query = "
             SELECT
@@ -387,7 +397,15 @@ class LeaveRequestDao
             FROM
                 leave_requests
             WHERE
-                employee_id = :employee_id
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(employee_id, 256) = :employee_id";
+        } else {
+            $query .= " employee_id = :employee_id";
+        }
+
+        $query .= "
             AND
                 status = 'In Progress'
             LIMIT 1
@@ -410,20 +428,25 @@ class LeaveRequestDao
         }
     }
 
-    public function delete(int $leaveRequestId): ActionResult
+    public function delete(int $leaveRequestId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($leaveRequestId);
+        return $this->softDelete($leaveRequestId, $isHashedId);
     }
 
-    private function softDelete(int $leaveRequestId): ActionResult
+    private function softDelete(int $leaveRequestId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_requests
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :leave_request_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :leave_request_id";
+        } else {
+            $query .= " id = :leave_request_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

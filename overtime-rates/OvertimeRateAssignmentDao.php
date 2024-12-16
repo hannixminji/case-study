@@ -49,15 +49,11 @@ class OvertimeRateAssignmentDao
             error_log("Database Error: An error occurred while creating the overtime rate assignment. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function assign(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates): ActionResult
+    public function assign(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates, bool $isHashedId = false): ActionResult
     {
         try {
             $this->pdo->beginTransaction();
@@ -70,7 +66,7 @@ class OvertimeRateAssignmentDao
 
             if ($overtimeRateAssignmentId === ActionResult::DUPLICATE_ENTRY_ERROR) {
                 foreach ($overtimeRates as $overtimeRate) {
-                    $result = $this->overtimeRateDao->update($overtimeRate);
+                    $result = $this->overtimeRateDao->update($overtimeRate, $isHashedId);
 
                     if ($result === ActionResult::FAILURE) {
                         $this->pdo->rollBack();
@@ -110,7 +106,7 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function findId(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
+    public function findId(OvertimeRateAssignment $overtimeRateAssignment, bool $isHashedId = false): ActionResult|int
     {
         $query = "
             SELECT
@@ -118,19 +114,42 @@ class OvertimeRateAssignmentDao
             FROM
                 overtime_rate_assignments
             WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= "
+                (SHA2(employee_id, 256) = SHA2(:employee_id, 256) AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) AND SHA2(department_id, 256) = SHA2(:department_id, 256))
+            OR
+                (employee_id IS NULL                              AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) AND SHA2(department_id, 256) = SHA2(:department_id, 256))
+            OR
+                (employee_id IS NULL                              AND job_title_id IS NULL                               AND SHA2(department_id, 256) = SHA2(:department_id, 256))
+            OR
+                (employee_id IS NULL                              AND job_title_id IS NULL                               AND department_id IS NULL                               )
+            ORDER BY
+                CASE
+                    WHEN SHA2(employee_id, 256) = SHA2(:employee_id, 256) AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 1
+                    WHEN employee_id IS NULL                              AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 2
+                    WHEN employee_id IS NULL                              AND job_title_id IS NULL                               AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 3
+            ";
+        } else {
+            $query .= "
                 (employee_id = :employee_id AND job_title_id = :job_title_id AND department_id = :department_id)
             OR
                 (employee_id IS NULL        AND job_title_id = :job_title_id AND department_id = :department_id)
             OR
                 (employee_id IS NULL        AND job_title_id IS NULL         AND department_id = :department_id)
             OR
-                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL        )
+                (employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL         )
             ORDER BY
                 CASE
                     WHEN employee_id = :employee_id AND job_title_id = :job_title_id AND department_id = :department_id THEN 1
                     WHEN employee_id IS NULL        AND job_title_id = :job_title_id AND department_id = :department_id THEN 2
                     WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id = :department_id THEN 3
-                    WHEN employee_id IS NULL        AND job_title_id IS NULL         AND department_id IS NULL          THEN 4
+            ";
+        }
+
+        $query .= "
+                    WHEN employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL THEN 4
                     ELSE 5
                 END
             LIMIT 1
@@ -154,7 +173,7 @@ class OvertimeRateAssignmentDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the ID. " .
                       "Exception: {$exception->getMessage()}");
-            echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }

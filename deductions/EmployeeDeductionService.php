@@ -26,8 +26,8 @@ class EmployeeDeductionService
         return $this->employeeDeductionRepository->fetchAllEmployeeDeductions($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function deleteEmployeeDeduction(int $employeeDeductionId): ActionResult
+    public function deleteEmployeeDeduction(int $employeeDeductionId, bool $isHashedId = false): ActionResult
     {
-        return $this->employeeDeductionRepository->deleteEmployeeDeduction($employeeDeductionId);
+        return $this->employeeDeductionRepository->deleteEmployeeDeduction($employeeDeductionId, $isHashedId);
     }
 }

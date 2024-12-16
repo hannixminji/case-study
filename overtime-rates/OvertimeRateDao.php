@@ -61,15 +61,11 @@ class OvertimeRateDao
             error_log("Database Error: An error occurred while creating the overtime rate. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId): ActionResult|array
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): ActionResult|array
     {
         $query = "
             SELECT
@@ -84,8 +80,13 @@ class OvertimeRateDao
             FROM
                 overtime_rates
             WHERE
-                overtime_rate_assignment_id = :overtime_rate_assignment_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
+        } else {
+            $query .= " overtime_rate_assignment_id = :overtime_rate_assignment_id";
+        }
 
         try {
             $statement = $this->pdo->prepare($query);
@@ -104,7 +105,7 @@ class OvertimeRateDao
         }
     }
 
-    public function update(OvertimeRate $overtimeRate): ActionResult
+    public function update(OvertimeRate $overtimeRate, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE overtime_rates
@@ -114,10 +115,21 @@ class OvertimeRateDao
                 night_differential_rate              = :night_differential_rate             ,
                 night_differential_and_overtime_rate = :night_differential_and_overtime_rate
             WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= "
+                SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id
+            AND
+                SHA2(id, 256) = :overtime_rate_id
+            ";
+        } else {
+            $query .= "
                 overtime_rate_assignment_id = :overtime_rate_assignment_id
             AND
                 id = :overtime_rate_id
-        ";
+            ";
+        }
 
         try {
             $this->pdo->beginTransaction();

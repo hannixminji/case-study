@@ -52,10 +52,6 @@ class DepartmentDao
             error_log("Database Error: An error occurred while creating the department. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
@@ -70,8 +66,10 @@ class DepartmentDao
         $tableColumns = [
             "id"                        => "department.id                 AS id"                       ,
             "name"                      => "department.name               AS name"                     ,
+
             "department_head_id"        => "department.department_head_id AS department_head_id"       ,
             "department_head_full_name" => "department_head.full_name     AS department_head_full_name",
+
             "description"               => "department.description        AS description"              ,
             "status"                    => "department.status             AS status"                   ,
             "created_at"                => "department.created_at         AS created_at"               ,
@@ -103,10 +101,10 @@ class DepartmentDao
         $whereClauses = [];
 
         if (empty($filterCriteria)) {
-            $whereClauses[] = "department.status <> 'Archived'";
+            $whereClauses[] = "department.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
@@ -208,7 +206,7 @@ class DepartmentDao
         }
     }
 
-    public function update(Department $department): ActionResult
+    public function update(Department $department, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE departments
@@ -218,8 +216,13 @@ class DepartmentDao
                 description        = :description       ,
                 status             = :status
             WHERE
-                id = :department_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :department_id";
+        } else {
+            $query .= " id = :department_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -244,15 +247,11 @@ class DepartmentDao
             error_log("Database Error: An error occurred while updating the department. " .
                       "Exception: {$exception->getMessage()}");
 
-            if ( (int) $exception->getCode() === ErrorCode::DUPLICATE_ENTRY->value) {
-                return ActionResult::DUPLICATE_ENTRY_ERROR;
-            }
-
             return ActionResult::FAILURE;
         }
     }
 
-    public function isDepartmentHead(int $employeeId): ActionResult|bool
+    public function isDepartmentHead(int $employeeId, bool $isHashedId = false): ActionResult|bool
     {
         $query = "
             SELECT
@@ -260,9 +259,17 @@ class DepartmentDao
             FROM
                 departments
             WHERE
-                department_head_id = :employee_id
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(department_head_id, 256) = :employee_id";
+        } else {
+            $query .= " department_head_id = :employee_id";
+        }
+
+        $query .= "
             AND
-                status <> 'Archived'
+                deleted_at IS NULL
         ";
 
         try {
@@ -284,12 +291,12 @@ class DepartmentDao
         }
     }
 
-    public function delete(int $departmentId): ActionResult
+    public function delete(int $departmentId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($departmentId);
+        return $this->softDelete($departmentId, $isHashedId);
     }
 
-    private function softDelete(int $departmentId): ActionResult
+    private function softDelete(int $departmentId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE departments
@@ -297,8 +304,13 @@ class DepartmentDao
                 status     = 'Archived'       ,
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-                id = :department_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :department_id";
+        } else {
+            $query .= " id = :department_id";
+        }
 
         try {
             $this->pdo->beginTransaction();

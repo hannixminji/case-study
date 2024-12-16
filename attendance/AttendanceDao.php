@@ -59,7 +59,7 @@ class AttendanceDao
         }
     }
 
-    public function checkOut(Attendance $attendance): ActionResult
+    public function checkOut(Attendance $attendance, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE attendance
@@ -71,8 +71,13 @@ class AttendanceDao
                 overtime_hours                  = :overtime_hours                 ,
                 attendance_status               = :attendance_status
             WHERE
-                id = :attendance_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :attendance_id";
+        } else {
+            $query .= " id = :attendance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -321,7 +326,7 @@ class AttendanceDao
         }
     }
 
-    public function update(Attendance $attendance): ActionResult
+    public function update(Attendance $attendance, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE attendance
@@ -337,8 +342,13 @@ class AttendanceDao
                 attendance_status               = :attendance_status              ,
                 remarks                         = :remarks
             WHERE
-                id = :attendance_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :attendance_id";
+        } else {
+            $query .= " id = :attendance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -373,15 +383,20 @@ class AttendanceDao
         }
     }
 
-    public function approveOvertime(int $attendanceId): ActionResult
+    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE attendance
             SET
                 is_overtime_approved = 1
             WHERE
-                id = :attendance_id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :attendance_id";
+        } else {
+            $query .= " id = :attendance_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
