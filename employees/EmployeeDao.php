@@ -433,7 +433,7 @@ class EmployeeDao
         }
     }
 
-    public function update(Employee $employee): ActionResult|string
+    public function update(Employee $employee, bool $isHashedId): ActionResult|string
     {
         $query = "
             UPDATE employees
@@ -487,6 +487,12 @@ class EmployeeDao
             WHERE
                 id = :employee_id
         ";
+
+        if ($isHashedId) {
+            $query .= " MD5(id) = :employee_id";
+        } else {
+            $query .= " id = :employee_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
