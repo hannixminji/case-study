@@ -3,9 +3,9 @@
 class LeaveRequest
 {
     public function __construct(
-        private readonly ? int    $id          = null,
-        private readonly   int    $employeeId        ,
-        private readonly   int    $leaveTypeId       ,
+        private readonly   int|string    $id         ,
+        private readonly   int|string    $employeeId ,
+        private readonly   int|string    $leaveTypeId,
         private readonly   string $startDate         ,
         private readonly   string $endDate           ,
         private readonly   string $reason            ,
