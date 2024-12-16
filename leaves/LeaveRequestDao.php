@@ -79,7 +79,6 @@ class LeaveRequestDao
             "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
             "employee_job_title"       => "job_title.title             AS employee_job_title"      ,
             "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
-            "employee_manager_id"      => "employee.manager_id         AS employee_manager_id"     ,
 
             "leave_type_id"            => "leave_request.leave_type_id AS leave_type_id"           ,
             "leave_type_name"          => "leave_type.name             AS leave_type_name"         ,
@@ -117,7 +116,6 @@ class LeaveRequestDao
             array_key_exists("employee_job_title"      , $selectedColumns) ||
 
             array_key_exists("supervisor_id"           , $selectedColumns) ||
-            array_key_exists("manager_id"              , $selectedColumns) ||
 
             array_key_exists("approved_by"             , $selectedColumns)) {
             $joinClauses .= "

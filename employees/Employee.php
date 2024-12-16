@@ -31,7 +31,6 @@ class Employee
         private readonly   string $employmentType                     ,
         private readonly   string $dateOfHire                         ,
         private readonly ? int    $supervisorId                 = null,
-        private readonly ? int    $managerId                    = null,
         private readonly   string $accessRole                         ,
 
         private readonly   int    $payrollGroupId                     ,
@@ -156,10 +155,6 @@ class Employee
 
     public function getSupervisorId(): ?int {
         return $this->supervisorId;
-    }
-
-    public function getManagerId(): ?int {
-        return $this->managerId;
     }
 
     public function getAccessRole(): string {

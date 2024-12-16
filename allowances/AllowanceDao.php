@@ -19,7 +19,6 @@ class AllowanceDao
             INSERT INTO allowances (
                 name       ,
                 amount     ,
-                is_taxable ,
                 frequency  ,
                 description,
                 status
@@ -27,7 +26,6 @@ class AllowanceDao
             VALUES (
                 :name       ,
                 :amount     ,
-                :is_taxable ,
                 :frequency  ,
                 :description,
                 :status
@@ -41,7 +39,6 @@ class AllowanceDao
 
             $statement->bindValue(":name"       , $allowance->getName()       , Helper::getPdoParameterType($allowance->getName()       ));
             $statement->bindValue(":amount"     , $allowance->getAmount()     , Helper::getPdoParameterType($allowance->getAmount()     ));
-            $statement->bindValue(":is_taxable" , $allowance->getIsTaxable()  , Helper::getPdoParameterType($allowance->getIsTaxable()  ));
             $statement->bindValue(":frequency"  , $allowance->getFrequency()  , Helper::getPdoParameterType($allowance->getFrequency()  ));
             $statement->bindValue(":description", $allowance->getDescription(), Helper::getPdoParameterType($allowance->getDescription()));
             $statement->bindValue(":status"     , $allowance->getStatus()     , Helper::getPdoParameterType($allowance->getStatus()     ));
@@ -77,7 +74,6 @@ class AllowanceDao
             "id"          => "allowance.id          AS id"         ,
             "name"        => "allowance.name        AS name"       ,
             "amount"      => "allowance.amount      AS amount"     ,
-            "is_taxable"  => "allowance.is_taxable  AS is_taxable" ,
             "frequency"   => "allowance.frequency   AS frequency"  ,
             "description" => "allowance.description AS description",
             "status"      => "allowance.status      AS status"     ,
@@ -210,7 +206,6 @@ class AllowanceDao
             SET
                 name        = :name       ,
                 amount      = :amount     ,
-                is_taxable  = :is_taxable ,
                 frequency   = :frequency  ,
                 description = :description,
                 status      = :status
@@ -225,7 +220,6 @@ class AllowanceDao
 
             $statement->bindValue(":name"        , $allowance->getName()       , Helper::getPdoParameterType($allowance->getName()       ));
             $statement->bindValue(":amount"      , $allowance->getAmount()     , Helper::getPdoParameterType($allowance->getAmount()     ));
-            $statement->bindValue(":is_taxable"  , $allowance->getIsTaxable()  , Helper::getPdoParameterType($allowance->getIsTaxable()  ));
             $statement->bindValue(":frequency"   , $allowance->getFrequency()  , Helper::getPdoParameterType($allowance->getFrequency()  ));
             $statement->bindValue(":description" , $allowance->getDescription(), Helper::getPdoParameterType($allowance->getDescription()));
             $statement->bindValue(":status"      , $allowance->getStatus()     , Helper::getPdoParameterType($allowance->getStatus()     ));

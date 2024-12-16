@@ -6,7 +6,6 @@ class Allowance
         private readonly ? int    $id            = null,
         private readonly   string $name                ,
         private readonly   float  $amount              ,
-        private readonly   bool   $isTaxable           ,
         private readonly   string $frequency           ,
         private readonly ? string $description   = null,
         private readonly   string $status
@@ -26,11 +25,6 @@ class Allowance
     public function getAmount(): float
     {
         return $this->amount;
-    }
-
-    public function getIsTaxable(): bool
-    {
-        return $this->isTaxable;
     }
 
     public function getFrequency(): string

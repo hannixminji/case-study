@@ -6,7 +6,6 @@ class EmployeeDeduction
         private readonly ? int    $id         ,
         private readonly   int    $employeeId ,
         private readonly   int    $deductionId,
-        private readonly   string $amountType ,
         private readonly   float  $amount
     ) {
     }
@@ -24,11 +23,6 @@ class EmployeeDeduction
     public function getDeductionId(): int
     {
         return $this->deductionId;
-    }
-
-    public function getAmountType(): string
-    {
-        return $this->amountType;
     }
 
     public function getAmount(): float

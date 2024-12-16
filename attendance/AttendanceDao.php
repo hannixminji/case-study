@@ -123,7 +123,6 @@ class AttendanceDao
             "employee_code"                   => "employee.employee_code                     AS employee_code"                  ,
             "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
             "employee_supervisor_id"          => "employee.supervisor_id                     AS employee_supervisor_id"         ,
-            "employee_manager_id"             => "employee.manager_id                        AS employee_manager_id"            ,
             "department_id"                   => "department.id                              AS department_id"                  ,
             "department_name"                 => "department.name                            AS department_name"                ,
             "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
@@ -164,7 +163,6 @@ class AttendanceDao
             array_key_exists("employee_code"                 , $selectedColumns) ||
             array_key_exists("employee_full_name"            , $selectedColumns) ||
             array_key_exists("employee_supervisor_id"        , $selectedColumns) ||
-            array_key_exists("employee_manager_id"           , $selectedColumns) ||
 
             array_key_exists("department_id"                 , $selectedColumns) ||
             array_key_exists("department_name"               , $selectedColumns) ||
@@ -183,7 +181,6 @@ class AttendanceDao
             array_key_exists("employee_code"         , $selectedColumns) ||
             array_key_exists("employee_full_name"    , $selectedColumns) ||
             array_key_exists("employee_supervisor_id", $selectedColumns) ||
-            array_key_exists("employee_manager_id"   , $selectedColumns) ||
 
             array_key_exists("department_id"         , $selectedColumns) ||
             array_key_exists("department_name"       , $selectedColumns) ||

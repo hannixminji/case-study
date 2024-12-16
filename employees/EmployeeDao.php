@@ -44,7 +44,6 @@ class EmployeeDao
                 employment_type                ,
                 date_of_hire                   ,
                 supervisor_id                  ,
-                manager_id                     ,
                 access_role                    ,
 
                 payroll_group_id               ,
@@ -94,7 +93,6 @@ class EmployeeDao
                 :employment_type                ,
                 :date_of_hire                   ,
                 :supervisor_id                  ,
-                :manager_id                     ,
                 :access_role                    ,
 
                 :payroll_group_id               ,
@@ -149,7 +147,6 @@ class EmployeeDao
             $statement->bindValue(":employment_type"                , $employee->getEmploymentType()              , Helper::getPdoParameterType($employee->getEmploymentType()              ));
             $statement->bindValue(":date_of_hire"                   , $employee->getDateOfHire()                  , Helper::getPdoParameterType($employee->getDateOfHire()                  ));
             $statement->bindValue(":supervisor_id"                  , $employee->getSupervisorId()                , Helper::getPdoParameterType($employee->getSupervisorId()                ));
-            $statement->bindValue(":manager_id"                     , $employee->getManagerId()                   , Helper::getPdoParameterType($employee->getManagerId()                   ));
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));
@@ -237,10 +234,6 @@ class EmployeeDao
             "supervisor_first_name"           => "supervisor.first_name                    AS supervisor_first_name"          ,
             "supervisor_middle_name"          => "supervisor.middle_name                   AS supervisor_middle_name"         ,
             "supervisor_last_name"            => "supervisor.last_name                     AS supervisor_last_name"           ,
-            "manager_id"                      => "employee.manager_id                      AS manager_id"                     ,
-            "manager_first_name"              => "manager.first_name                       AS manager_first_name"             ,
-            "manager_middle_name"             => "manager.middle_name                      AS manager_middle_name"            ,
-            "manager_last_name"               => "manager.last_name                        AS manager_last_name"              ,
             "access_role"                     => "employee.access_role                     AS access_role"                    ,
 
             "payroll_group_id"                => "employee.payroll_group_id                AS payroll_group_id"               ,
@@ -304,17 +297,6 @@ class EmployeeDao
                     employees AS supervisor
                 ON
                     employee.supervisor_id = supervisor.id
-            ";
-        }
-
-        if (array_key_exists("manager_first_name" , $selectedColumns) ||
-            array_key_exists("manager_middle_name", $selectedColumns) ||
-            array_key_exists("manager_last_name"  , $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    employees AS manager
-                ON
-                    employee.manager_id = manager.id
             ";
         }
 
@@ -483,7 +465,6 @@ class EmployeeDao
                 employment_type                 = :employment_type                ,
                 date_of_hire                    = :date_of_hire                   ,
                 supervisor_id                   = :supervisor_id                  ,
-                manager_id                      = :manager_id                     ,
                 access_role                     = :access_role                    ,
 
                 payroll_group_id                = :payroll_group_id               ,
@@ -540,7 +521,6 @@ class EmployeeDao
             $statement->bindValue(":employment_type"                , $employee->getEmploymentType()              , Helper::getPdoParameterType($employee->getEmploymentType()              ));
             $statement->bindValue(":date_of_hire"                   , $employee->getDateOfHire()                  , Helper::getPdoParameterType($employee->getDateOfHire()                  ));
             $statement->bindValue(":supervisor_id"                  , $employee->getSupervisorId()                , Helper::getPdoParameterType($employee->getSupervisorId()                ));
-            $statement->bindValue(":manager_id"                     , $employee->getManagerId()                   , Helper::getPdoParameterType($employee->getManagerId()                   ));
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));

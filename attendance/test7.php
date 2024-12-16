@@ -304,6 +304,7 @@ foreach ($employees as $employee) {
     );
     */
 
+    $foundAbsence = false;
     $totalUnworkedHoursPaid = 0;
     $totalUnworkedHoursPaidDoubleHoliday = 0;
     $totalActualHoursWorked = 0;
@@ -314,12 +315,19 @@ foreach ($employees as $employee) {
 
     $isAbsent = false;
 
+    $isFirstSchedule = true;
+    $workHoursPerDay = 0;
     foreach ($records as $date => $recordEntries) {
         $totalRequiredHours = 0;
         foreach ($recordEntries as $record) {
             $totalRequiredHours += $record['work_schedule']['total_work_hours'];
         }
         $hoursWorked = 0;
+
+        if ($isFirstSchedule) {
+            $workHoursPerDay = $totalRequiredHours;
+            $isFirstSchedule = false;
+        }
 
         foreach ($recordEntries as $record) {
             $workSchedule = $record['work_schedule'];
@@ -1046,7 +1054,7 @@ foreach ($employees as $employee) {
 
             if ($workSchedule['is_flextime']) {
                 $totalHoursPerWeek = $workSchedule['total_hours_per_week'];
-                $totalHoursPerDay = $totalHoursPerDay / 6;
+                $totalHoursPerDay = $totalHoursPerWeek / 6;
                 $totalMinutesPerDay = $totalHoursPerDay * 60;
 
                 $endTime = $workScheduleStartTime->modify("+{$totalMinutesPerDay} minutes");
@@ -1151,9 +1159,8 @@ foreach ($employees as $employee) {
     print_r($hourSummary1);
 
     $employeeAllowanceTableColumns = [
-        'allowance_is_taxable',
-        'allowance_frequency' ,
-        'allowance_status'    ,
+        'allowance_frequency',
+        'allowance_status'   ,
         'amount'
     ];
 
@@ -1185,20 +1192,20 @@ foreach ($employees as $employee) {
 
     $employeeAllowances = $employeeAllowances['result_set'];
 
-    $taxableAllowances = 0;
-    $nonTaxableAllowances = 0;
+    $totalAllowances = 0;
 
     $frequencyMultiplier = [
-        'Weekly' => 4,
-        'Bi-weekly' => 2,
-        'Semi-monthly' => 2,
-        'Monthly' => 1
+        'weekly'       => 4,
+        'bi-weekly'    => 2,
+        'semi-monthly' => 2,
+        'monthly'      => 1
     ];
+
+    $payrollGroupFrequency = strtolower($payrollGroupFrequency);
 
     foreach ($employeeAllowances as $employeeAllowance) {
         $amount = $employeeAllowance['amount'];
-        $allowanceFrequency = $employeeAllowance['allowance_frequency'];
-        $isTaxable = $employeeAllowance['allowance_is_taxable'];
+        $allowanceFrequency = strtolower($employeeAllowance['allowance_frequency']);
 
         if (isset($frequencyMultiplier[$allowanceFrequency], $frequencyMultiplier[$payrollGroupFrequency])) {
             $allowanceMultiplier = $frequencyMultiplier[$allowanceFrequency] / $frequencyMultiplier[$payrollGroupFrequency];
@@ -1207,18 +1214,12 @@ foreach ($employees as $employee) {
             $proratedAmount = 0;
         }
 
-        if ($isTaxable) {
-            $taxableAllowances += $proratedAmount;
-        } else {
-            $nonTaxableAllowances += $proratedAmount;
-        }
+        $totalAllowances += $proratedAmount;
     }
 
     $employeeDeductionTableColumns = [
-        'deduction_is_pre_tax',
-        'deduction_frequency' ,
-        'deduction_status'    ,
-        'amount_type'         ,
+        'deduction_frequency',
+        'deduction_status'   ,
         'amount'
     ];
 
@@ -1250,38 +1251,17 @@ foreach ($employees as $employee) {
 
     $employeeDeductions = $employeeDeductions['result_set'];
 
-    $preTaxFixedDeductions = 0;
-    $postTaxFixedDeductions = 0;
-    $preTaxPercentageDeductions = 0;
-    $postTaxPercentageDeductions = 0;
+    $totalDeductions = 0;
 
     foreach ($employeeDeductions as $deduction) {
         $amount = $deduction['amount'];
-        $amountType = $deduction['amount_type'];
-        $isPreTax = $deduction['is_pre_tax'];
-        $frequency = $deduction['frequency'];
+        $frequency = strtolower($deduction['frequency']);
 
         if (isset($frequencyMultiplier[$frequency], $frequencyMultiplier[$payrollGroupFrequency])) {
             $allowanceMultiplier = $frequencyMultiplier[$frequency] / $frequencyMultiplier[$payrollGroupFrequency];
             $proratedAmount = $amount * $allowanceMultiplier;
 
-            if ($amountType == 'Fixed Amount') {
-                $deductionAmount = $proratedAmount;
-
-                if ($isPreTax) {
-                    $preTaxFixedDeductions += $deductionAmount;
-                } else {
-                    $postTaxFixedDeductions += $deductionAmount;
-                }
-            } elseif ($amountType == 'Percentage-based') {
-                $deductionAmount = 0;
-
-                if ($isPreTax) {
-                    $preTaxPercentageDeductions += $amount;
-                } else {
-                    $postTaxPercentageDeductions += $amount;
-                }
-            }
+            $totalDeductions += $proratedAmount;
         }
     }
 
@@ -1355,7 +1335,11 @@ foreach ($employees as $employee) {
         }
     }
 
-    $grossPay += $taxableAllowances;
+    $grossPayWithoutAllowances = $grossPay;
+
+    $grossPay += $totalAllowances;
+
+    echo $grossPay;
 }
 
 /*

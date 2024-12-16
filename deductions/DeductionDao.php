@@ -18,18 +18,14 @@ class DeductionDao
         $query = "
             INSERT INTO deductions (
                 name          ,
-                amount_type   ,
                 amount        ,
-                is_pre_tax    ,
                 frequency     ,
                 description   ,
                 status
             )
             VALUES (
                 :name          ,
-                :amount_type   ,
                 :amount        ,
-                :is_pre_tax    ,
                 :frequency     ,
                 :description   ,
                 :status
@@ -42,9 +38,7 @@ class DeductionDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":name"       , $deduction->getName()       , Helper::getPdoParameterType($deduction->getName()       ));
-            $statement->bindValue(":amount_type", $deduction->getAmountType() , Helper::getPdoParameterType($deduction->getAmountType() ));
             $statement->bindValue(":amount"     , $deduction->getAmount()     , Helper::getPdoParameterType($deduction->getAmount()     ));
-            $statement->bindValue(":is_pre_tax" , $deduction->getIsPreTax()   , Helper::getPdoParameterType($deduction->getIsPreTax()   ));
             $statement->bindValue(":frequency"  , $deduction->getFrequency()  , Helper::getPdoParameterType($deduction->getFrequency()  ));
             $statement->bindValue(":description", $deduction->getDescription(), Helper::getPdoParameterType($deduction->getDescription()));
             $statement->bindValue(":status"     , $deduction->getStatus()     , Helper::getPdoParameterType($deduction->getStatus()     ));
@@ -79,9 +73,7 @@ class DeductionDao
         $tableColumns = [
             "id"             => "deduction.id             AS id"            ,
             "name"           => "deduction.name           AS name"          ,
-            "amount_type"    => "deduction.amount_type    AS amount_type"   ,
             "amount"         => "deduction.amount         AS amount"        ,
-            "is_pre_tax"     => "deduction.is_pre_tax     AS is_pre_tax"    ,
             "frequency"      => "deduction.frequency      AS frequency"     ,
             "description"    => "deduction.description    AS description"   ,
             "status"         => "deduction.status         AS status"        ,
@@ -217,9 +209,7 @@ class DeductionDao
             UPDATE deductions
             SET
                 name        = :name       ,
-                amount_type = :amount_type,
                 amount      = :amount     ,
-                is_pre_tax  = :is_pre_tax ,
                 frequency   = :frequency  ,
                 description = :description,
                 status      = :status
@@ -233,9 +223,7 @@ class DeductionDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":name"        , $deduction->getName()       , Helper::getPdoParameterType($deduction->getName()       ));
-            $statement->bindValue(":amount_type" , $deduction->getAmountType() , Helper::getPdoParameterType($deduction->getAmountType() ));
             $statement->bindValue(":amount"      , $deduction->getAmount()     , Helper::getPdoParameterType($deduction->getAmount()     ));
-            $statement->bindValue(":is_pre_tax"  , $deduction->getIsPreTax()   , Helper::getPdoParameterType($deduction->getIsPreTax()   ));
             $statement->bindValue(":frequency"   , $deduction->getFrequency()  , Helper::getPdoParameterType($deduction->getFrequency()  ));
             $statement->bindValue(":description" , $deduction->getDescription(), Helper::getPdoParameterType($deduction->getDescription()));
             $statement->bindValue(":status"      , $deduction->getStatus()     , Helper::getPdoParameterType($deduction->getStatus()     ));

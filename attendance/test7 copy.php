@@ -1170,10 +1170,8 @@ foreach ($employees as $employee) {
     }
 
     $employeeDeductionTableColumns = [
-        'deduction_is_pre_tax',
-        'deduction_frequency' ,
-        'deduction_status'    ,
-        'amount_type'         ,
+        'deduction_frequency',
+        'deduction_status'   ,
         'amount'
     ];
 

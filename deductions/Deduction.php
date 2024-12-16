@@ -3,14 +3,12 @@
 class Deduction
 {
     public function __construct(
-        private readonly ?int    $id           ,
-        private readonly string  $name         ,
-        private readonly string  $amountType   ,
-        private readonly float   $amount       ,
-        private readonly bool    $isPreTax     ,
-        private readonly string  $frequency    ,
-        private readonly ?string $description  ,
-        private readonly string  $status
+        private readonly ? int    $id         ,
+        private readonly   string $name       ,
+        private readonly   float  $amount     ,
+        private readonly   string $frequency  ,
+        private readonly ? string $description,
+        private readonly   string $status
     ) {
     }
 
@@ -24,19 +22,9 @@ class Deduction
         return $this->name;
     }
 
-    public function getAmountType(): string
-    {
-        return $this->amountType;
-    }
-
     public function getAmount(): float
     {
         return $this->amount;
-    }
-
-    public function getIsPreTax(): bool
-    {
-        return $this->isPreTax;
     }
 
     public function getFrequency(): string

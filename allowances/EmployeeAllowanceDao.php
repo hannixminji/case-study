@@ -65,17 +65,16 @@ class EmployeeAllowanceDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "employee_allowance.id           AS id"                      ,
-            "employee_id"              => "employee_allowance.employee_id  AS employee_id"             ,
+            "id"                       => "employee_allowance.id           AS id"                 ,
+            "employee_id"              => "employee_allowance.employee_id  AS employee_id"        ,
 
-            "allowance_id"             => "employee_allowance.allowance_id AS allowance_id"            ,
-            "allowance_name"           => "allowance.name                  AS allowance_name"          ,
-            "allowance_is_taxable"     => "allowance.is_taxable            AS allowance_is_taxable"    ,
-            "allowance_frequency"      => "allowance.frequency             AS allowance_frequency"     ,
-            "allowance_status"         => "allowance.status                AS allowance_status"        ,
+            "allowance_id"             => "employee_allowance.allowance_id AS allowance_id"       ,
+            "allowance_name"           => "allowance.name                  AS allowance_name"     ,
+            "allowance_frequency"      => "allowance.frequency             AS allowance_frequency",
+            "allowance_status"         => "allowance.status                AS allowance_status"   ,
 
-            "amount"                   => "employee_allowance.amount       AS amount"                  ,
-            "created_at"               => "employee_allowance.created_at   AS created_at"              ,
+            "amount"                   => "employee_allowance.amount       AS amount"             ,
+            "created_at"               => "employee_allowance.created_at   AS created_at"         ,
             "deleted_at"               => "employee_allowance.deleted_at   AS employee_deleted_at"
         ];
 
@@ -90,11 +89,8 @@ class EmployeeAllowanceDao
         $joinClauses = "";
 
         if (array_key_exists("allowance_name"          , $selectedColumns) ||
-            array_key_exists("allowance_is_taxable"    , $selectedColumns) ||
             array_key_exists("allowance_frequency"     , $selectedColumns) ||
-            array_key_exists("allowance_status"        , $selectedColumns) ||
-            array_key_exists("allowance_effective_date", $selectedColumns) ||
-            array_key_exists("allowance_end_date"      , $selectedColumns)) {
+            array_key_exists("allowance_status"        , $selectedColumns)) {
             $joinClauses = "
                 LEFT JOIN
                     allowances AS allowance

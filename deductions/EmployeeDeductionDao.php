@@ -19,13 +19,11 @@ class EmployeeDeductionDao
             INSERT INTO employee_deductions (
                 employee_id ,
                 deduction_id,
-                amount_type ,
                 amount
             )
             VALUES (
                 :employee_id ,
                 :deduction_id,
-                :amount_type ,
                 :amount
             )
         ";
@@ -37,7 +35,6 @@ class EmployeeDeductionDao
 
             $statement->bindValue(":employee_id" , $employeeDeduction->getEmployeeId() , Helper::getPdoParameterType($employeeDeduction->getEmployeeId() ));
             $statement->bindValue(":deduction_id", $employeeDeduction->getDeductionId(), Helper::getPdoParameterType($employeeDeduction->getDeductionId()));
-            $statement->bindValue(":amount_type" , $employeeDeduction->getAmountType() , Helper::getPdoParameterType($employeeDeduction->getAmountType() ));
             $statement->bindValue(":amount"      , $employeeDeduction->getAmount()     , Helper::getPdoParameterType($employeeDeduction->getAmount()     ));
 
             $statement->execute();
@@ -73,11 +70,9 @@ class EmployeeDeductionDao
 
             "deduction_id"             => "employee_deduction.deduction_id AS deduction_id"            ,
             "deduction_name"           => "deduction.name                  AS deduction_name"          ,
-            "deduction_is_pre_tax"     => "deduction.is_pre_tax            AS deduction_is_pre_tax"    ,
             "deduction_frequency"      => "deduction.frequency             AS deduction_frequency"     ,
             "deduction_status"         => "deduction.status                AS deduction_status"        ,
 
-            "amount_type"              => "employee_deduction.amount_type  AS amount_type"             ,
             "amount"                   => "employee_deduction.amount       AS amount"                  ,
             "created_at"               => "employee_deduction.created_at   AS created_at"              ,
             "deleted_at"               => "employee_deduction.deleted_at   AS deleted_at"
@@ -94,11 +89,8 @@ class EmployeeDeductionDao
         $joinClauses = "";
 
         if (array_key_exists("deduction_name"          , $selectedColumns) ||
-            array_key_exists("deduction_is_pre_tax"    , $selectedColumns) ||
             array_key_exists("deduction_frequency"     , $selectedColumns) ||
-            array_key_exists("deduction_status"        , $selectedColumns) ||
-            array_key_exists("deduction_effective_date", $selectedColumns) ||
-            array_key_exists("deduction_end_date"      , $selectedColumns)) {
+            array_key_exists("deduction_status"        , $selectedColumns)) {
             $joinClauses = "
                 LEFT JOIN
                     deductions AS deduction
@@ -143,7 +135,7 @@ class EmployeeDeductionDao
 
         $orderByClauses = [];
 
-        if (!empty($sortCriteria)) {
+        if ( ! empty($sortCriteria)) {
             foreach ($sortCriteria as $sortCriterion) {
                 $column = $sortCriterion["column"];
                 $direction = $sortCriterion["direction"];
