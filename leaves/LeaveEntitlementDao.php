@@ -15,7 +15,7 @@ class LeaveEntitlementDao
 
     public function create(LeaveEntitlement $leaveEntitlement): ActionResult
     {
-        $query = "
+        $insertQuery = "
             INSERT INTO leave_entitlements (
                 employee_id            ,
                 leave_type_id          ,
@@ -29,25 +29,46 @@ class LeaveEntitlementDao
                 :number_of_days_taken   ,
                 :remaining_days
             )
-            ON DUPLICATE KEY UPDATE
-                number_of_entitled_days = VALUES(number_of_entitled_days),
-                number_of_days_taken    = VALUES(number_of_days_taken   ),
-                remaining_days          = VALUES(remaining_days         ),
-                updated_at              = CURRENT_TIMESTAMP
+        ";
+
+        $updateQuery = "
+            UPDATE leave_entitlements
+            SET
+                number_of_entitled_days = :number_of_entitled_days,
+                number_of_days_taken    = :number_of_days_taken   ,
+                remaining_days          = :remaining_days
+            WHERE
+                employee_id   = :employee_id
+            AND
+                leave_type_id = :leave_type_id
+            AND
+                deleted_at IS NULL
         ";
 
         try {
             $this->pdo->beginTransaction();
 
-            $statement = $this->pdo->prepare($query);
+            $updateStatement = $this->pdo->prepare($updateQuery);
 
-            $statement->bindValue(":employee_id"            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
-            $statement->bindValue(":leave_type_id"          , $leaveEntitlement->getLeaveTypeId()         , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()         ));
-            $statement->bindValue(":number_of_entitled_days", $leaveEntitlement->getNumberOfEntitledDays(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfEntitledDays()));
-            $statement->bindValue(":number_of_days_taken"   , $leaveEntitlement->getNumberOfDaysTaken()   , Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()   ));
-            $statement->bindValue(":remaining_days"         , $leaveEntitlement->getRemainingDays()       , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()       ));
+            $updateStatement->bindValue(':number_of_entitled_days', $leaveEntitlement->getNumberOfEntitledDays(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfEntitledDays()));
+            $updateStatement->bindValue(':number_of_days_taken'   , $leaveEntitlement->getNumberOfDaysTaken()   , Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()   ));
+            $updateStatement->bindValue(':remaining_days'         , $leaveEntitlement->getRemainingDays()       , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()       ));
+            $updateStatement->bindValue(':employee_id'            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
+            $updateStatement->bindValue(':leave_type_id'          , $leaveEntitlement->getLeaveTypeId()         , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()         ));
 
-            $statement->execute();
+            $updateStatement->execute();
+
+            if ($updateStatement->rowCount() == 0) {
+                $insertStatement = $this->pdo->prepare($insertQuery);
+
+                $insertStatement->bindValue(':employee_id'            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
+                $insertStatement->bindValue(':leave_type_id'          , $leaveEntitlement->getLeaveTypeId()         , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()         ));
+                $insertStatement->bindValue(':number_of_entitled_days', $leaveEntitlement->getNumberOfEntitledDays(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfEntitledDays()));
+                $insertStatement->bindValue(':number_of_days_taken'   , $leaveEntitlement->getNumberOfDaysTaken()   , Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()   ));
+                $insertStatement->bindValue(':remaining_days'         , $leaveEntitlement->getRemainingDays()       , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()       ));
+
+                $insertStatement->execute();
+            }
 
             $this->pdo->commit();
 
