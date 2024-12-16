@@ -26,9 +26,9 @@ class EmployeeRepository
         return $this->employeeDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateEmployee(Employee $employee): ActionResult
+    public function updateEmployee(Employee $employee, bool $isHashedId): ActionResult
     {
-        return $this->employeeDao->update($employee);
+        return $this->employeeDao->update($employee, $isHashedId);
     }
 
     public function getEmployeeIdBy(string $column, string $value): ActionResult|int

@@ -26,9 +26,9 @@ class EmployeeService
         return $this->employeeRepository->fetchAllEmployees($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function updateEmployee(Employee $employee): ActionResult
+    public function updateEmployee(Employee $employee, bool $isHashedId): ActionResult
     {
-        return $this->employeeRepository->updateEmployee($employee);
+        return $this->employeeRepository->updateEmployee($employee, $isHashedId);
     }
 
     public function getEmployeeIdBy(string $column, string $value): ActionResult|int
