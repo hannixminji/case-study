@@ -33,22 +33,22 @@ class LeaveRequestService
         return $this->leaveRequestRepository->updateLeaveRequest($leaveRequest, $isHashedId);
     }
 
-    public function updateLeaveRequestStatus(int $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
+    public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
     {
         return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status, $isHashedId);
     }
 
-    public function isEmployeeOnLeave(int $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
     {
         return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId, $isHashedId);
     }
 
-    public function getLeaveDatesForPeriod(int $employeeId, string $startDate, string $endDate): ActionResult|array
+    public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): ActionResult|array
     {
         return $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $startDate, $endDate);
     }
 
-    public function deleteLeaveRequest(int $leaveRequestId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveRequest(int|string $leaveRequestId, bool $isHashedId = false): ActionResult
     {
         return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId, $isHashedId);
     }

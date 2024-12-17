@@ -316,7 +316,7 @@ class LeaveEntitlementDao
         }
     }
 
-    public function resetEmployeeAllLeaveBalances(int $employeeId, bool $isHashedId = false)
+    public function resetEmployeeAllLeaveBalances(int|string $employeeId, bool $isHashedId = false)
     {
         $query = "
             UPDATE leave_entitlements
@@ -355,12 +355,12 @@ class LeaveEntitlementDao
         }
     }
 
-    public function delete(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($leaveEntitlementId, $isHashedId);
     }
 
-    private function softDelete(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_entitlements

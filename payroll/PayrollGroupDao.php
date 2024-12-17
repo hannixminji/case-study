@@ -218,12 +218,12 @@ class PayrollGroupDao
         }
     }
 
-    public function delete(int $payrollGroupId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($payrollGroupId, $isHashedId);
     }
 
-    private function softDelete(int $payrollGroupId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE payroll_groups

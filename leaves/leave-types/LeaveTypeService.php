@@ -31,7 +31,7 @@ class LeaveTypeService
         return $this->leaveTypeRepository->updateLeaveType($leaveType, $isHashedId);
     }
 
-    public function deleteLeaveType(int $leaveTypeId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveType(int|string $leaveTypeId, bool $isHashedId = false): ActionResult
     {
         return $this->leaveTypeRepository->deleteLeaveType($leaveTypeId, $isHashedId);
     }

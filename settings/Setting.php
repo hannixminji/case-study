@@ -3,14 +3,14 @@
 class Setting
 {
     public function __construct(
-        private readonly ? int    $id           = null,
-        private readonly   string $settingKey         ,
-        private readonly   string $settingValue       ,
-        private readonly   string $groupName
+        private readonly int|string|null $id           = null,
+        private readonly string          $settingKey         ,
+        private readonly string          $settingValue       ,
+        private readonly string          $groupName
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }

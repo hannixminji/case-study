@@ -31,12 +31,12 @@ class LeaveEntitlementService
         return $this->leaveEntitlementRepository->updateLeaveEntitlementBalance($leaveEntitlement, $isHashedId);
     }
 
-    public function resetEmployeeAllLeaveBalances(int $employeeId, bool $isHashedId = false): ActionResult
+    public function resetEmployeeAllLeaveBalances(int|string $employeeId, bool $isHashedId = false): ActionResult
     {
         return $this->resetEmployeeAllLeaveBalances($employeeId, $isHashedId);
     }
 
-    public function deleteLeaveEntitlement(int $leaveEntitlementId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveEntitlement(int|string $leaveEntitlementId, bool $isHashedId = false): ActionResult
     {
         return $this->leaveEntitlementRepository->deleteLeaveEntitlement($leaveEntitlementId, $isHashedId);
     }

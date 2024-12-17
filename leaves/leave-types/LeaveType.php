@@ -3,16 +3,16 @@
 class LeaveType
 {
     public function __construct(
-        private readonly ? int    $id                  = null,
-        private readonly   string $name                      ,
-        private readonly   int    $maximumNumberOfDays       ,
-        private readonly   bool   $isPaid                    ,
-        private readonly ? string $description         = null,
-        private readonly   string $status
+        private readonly   int|string|null $id                  = null,
+        private readonly   string          $name                      ,
+        private readonly   int             $maximumNumberOfDays       ,
+        private readonly   bool            $isPaid                    ,
+        private readonly ? string          $description         = null,
+        private readonly   string          $status
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }

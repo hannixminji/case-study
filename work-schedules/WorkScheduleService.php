@@ -41,7 +41,7 @@ class WorkScheduleService
         return $this->workScheduleRepository->getEmployeeWorkSchedules($employeeId, $startDate, $endDate);
     }
 
-    public function deleteWorkSchedule(int $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteWorkSchedule(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId, $isHashedId);
     }

@@ -130,7 +130,7 @@ class WorkScheduleRepository
         return $workSchedules;
     }
 
-    public function deleteWorkSchedule(int $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteWorkSchedule(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->workScheduleDao->delete($workScheduleId, $isHashedId);
     }

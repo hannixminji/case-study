@@ -3,14 +3,14 @@
 class PayrollGroup
 {
     public function __construct(
-        private readonly ? int    $id           = null,
-        private readonly   string $name               ,
-        private readonly   string $payFrequency       ,
-        private readonly   string $status
+        private readonly int|string|null $id           = null,
+        private readonly string          $name               ,
+        private readonly string          $payFrequency       ,
+        private readonly string          $status
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }

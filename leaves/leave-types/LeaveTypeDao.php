@@ -242,12 +242,12 @@ class LeaveTypeDao
         }
     }
 
-    public function delete(int $leaveTypeId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $leaveTypeId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($leaveTypeId, $isHashedId);
     }
 
-    private function softDelete(int $leaveTypeId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $leaveTypeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE leave_types

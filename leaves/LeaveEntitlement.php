@@ -3,26 +3,26 @@
 class LeaveEntitlement
 {
     public function __construct(
-        private readonly ? int $id                   = null,
-        private readonly   int $employeeId                 ,
-        private readonly   int $leaveTypeId                ,
-        private readonly   int $numberOfEntitledDays       ,
-        private readonly   int $numberOfDaysTaken          ,
-        private readonly   int $remainingDays
+        private readonly int|string|null $id                   = null,
+        private readonly int|string      $employeeId                 ,
+        private readonly int|string      $leaveTypeId                ,
+        private readonly int             $numberOfEntitledDays       ,
+        private readonly int             $numberOfDaysTaken          ,
+        private readonly int             $remainingDays
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }
 
-    public function getEmployeeId(): int
+    public function getEmployeeId(): int|string
     {
         return $this->employeeId;
     }
 
-    public function getLeaveTypeId(): int
+    public function getLeaveTypeId(): int|string
     {
         return $this->leaveTypeId;
     }

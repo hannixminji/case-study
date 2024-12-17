@@ -32,7 +32,7 @@ class PayrollGroupRepository
         return $this->payrollGroupDao->update($payrollGroup, $isHashedId);
     }
 
-    public function deletePayrollGroup(int $payrollGroupId, bool $isHashedId = false): ActionResult
+    public function deletePayrollGroup(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
     {
         return $this->payrollGroupDao->delete($payrollGroupId, $isHashedId);
     }

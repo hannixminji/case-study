@@ -3,27 +3,27 @@
 class LeaveRequest
 {
     public function __construct(
-        private readonly mixed  $id          = null,
-        private readonly mixed  $employeeId        ,
-        private readonly mixed  $leaveTypeId       ,
-        private readonly string $startDate         ,
-        private readonly string $endDate           ,
-        private readonly string $reason            ,
-        private readonly string $status
+        private readonly int|string|null $id          = null,
+        private readonly int|string      $employeeId        ,
+        private readonly int|string      $leaveTypeId       ,
+        private readonly string          $startDate         ,
+        private readonly string          $endDate           ,
+        private readonly string          $reason            ,
+        private readonly string          $status
     ) {
     }
 
-    public function getId(): mixed
+    public function getId(): int|string|null
     {
         return $this->id;
     }
 
-    public function getEmployeeId(): mixed
+    public function getEmployeeId(): int|string
     {
         return $this->employeeId;
     }
 
-    public function getLeaveTypeId(): mixed
+    public function getLeaveTypeId(): int|string
     {
         return $this->leaveTypeId;
     }

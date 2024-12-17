@@ -3,28 +3,28 @@
 class WorkSchedule
 {
     public function __construct(
-        private readonly ? int    $id                 = null,
-        private readonly   int    $employeeId               ,
-        private readonly   string $title                    ,
-        private readonly   string $startTime                ,
-        private readonly   string $endTime                  ,
-        private readonly   bool   $isFlextime               ,
-        private readonly ? string $coreHoursStartTime = null,
-        private readonly ? string $coreHoursEndTime   = null,
-        private readonly ? int    $totalHoursPerWeek  = null,
-        private readonly   int    $totalWorkHours           ,
-        private readonly   string $startDate                ,
-        private readonly   string $recurrenceRule           ,
-        private readonly ? string $note               = null
+        private readonly   int|string|null $id                 = null,
+        private readonly   int|string      $employeeId               ,
+        private readonly   string          $title                    ,
+        private readonly   string          $startTime                ,
+        private readonly   string          $endTime                  ,
+        private readonly   bool            $isFlextime               ,
+        private readonly ? string          $coreHoursStartTime = null,
+        private readonly ? string          $coreHoursEndTime   = null,
+        private readonly ? int             $totalHoursPerWeek  = null,
+        private readonly   int             $totalWorkHours           ,
+        private readonly   string          $startDate                ,
+        private readonly   string          $recurrenceRule           ,
+        private readonly ? string          $note               = null
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }
 
-    public function getEmployeeId(): int
+    public function getEmployeeId(): int|string
     {
         return $this->employeeId;
     }

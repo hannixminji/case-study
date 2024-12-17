@@ -423,12 +423,12 @@ class WorkScheduleDao
         }
     }
 
-    public function delete(int $workScheduleId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($workScheduleId, $isHashedId);
     }
 
-    private function softDelete(int $workScheduleId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE work_schedules
