@@ -232,12 +232,12 @@ class BreakTypeDao
         }
     }
 
-    public function delete(int $breakTypeId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $breakTypeId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($breakTypeId, $isHashedId);
     }
 
-    private function softDelete(int $breakTypeId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $breakTypeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_types

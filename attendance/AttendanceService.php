@@ -859,7 +859,7 @@ class AttendanceService
         return $this->attendanceRepository->updateAttendance($attendance, $isHashedId);
     }
 
-    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
+    public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
     {
         return $this->attendanceRepository->approveOvertime($attendanceId, $isHashedId);
     }

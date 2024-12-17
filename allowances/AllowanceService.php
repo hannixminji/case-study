@@ -31,7 +31,7 @@ class AllowanceService
         return $this->allowanceDao->update($allowance, $isHashedId);
     }
 
-    public function deleteAllowance(int $allowanceId, bool $isHashedId = false): ActionResult
+    public function deleteAllowance(int|string $allowanceId, bool $isHashedId = false): ActionResult
     {
         return $this->allowanceDao->delete($allowanceId, $isHashedId);
     }

@@ -251,7 +251,7 @@ class DepartmentDao
         }
     }
 
-    public function isDepartmentHead(int $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isDepartmentHead(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
     {
         $query = "
             SELECT
@@ -291,12 +291,12 @@ class DepartmentDao
         }
     }
 
-    public function delete(int $departmentId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $departmentId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($departmentId, $isHashedId);
     }
 
-    private function softDelete(int $departmentId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $departmentId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE departments

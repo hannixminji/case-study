@@ -31,7 +31,7 @@ class DeductionService
         return $this->deductionRepository->updateDeduction($deduction, $isHashedId);
     }
 
-    public function deleteDeduction(int $deductionId, bool $isHashedId = false): ActionResult
+    public function deleteDeduction(int|string $deductionId, bool $isHashedId = false): ActionResult
     {
         return $this->deductionRepository->deleteDeduction($deductionId, $isHashedId);
     }

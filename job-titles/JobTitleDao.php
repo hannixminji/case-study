@@ -250,12 +250,12 @@ class JobTitleDao
         }
     }
 
-    public function delete(int $departmentId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $jobTitleId, bool $isHashedId = false): ActionResult
     {
-        return $this->softDelete($departmentId, $isHashedId);
+        return $this->softDelete($jobTitleId, $isHashedId);
     }
 
-    private function softDelete(int $jobTitleId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $jobTitleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE job_titles

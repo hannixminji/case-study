@@ -3,15 +3,15 @@
 class BreakType
 {
     public function __construct(
-        private readonly ?int   $id                       ,
-        private readonly string $name                     ,
-        private readonly int    $durationInMinutes        ,
-        private readonly bool   $isPaid                   ,
-        private readonly bool   $requireBreakInAndBreakOut
+        private readonly int|string|null $id                        = null,
+        private readonly string          $name                            ,
+        private readonly int             $durationInMinutes               ,
+        private readonly bool            $isPaid                          ,
+        private readonly bool            $requireBreakInAndBreakOut
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }

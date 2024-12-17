@@ -63,7 +63,7 @@ class EmployeeDao
                 username                       ,
                 password                       ,
 
-                notes                          ,
+                notes
             )
             VALUES (
                 :rfid_uid                       ,
@@ -111,7 +111,7 @@ class EmployeeDao
                 :username                       ,
                 :password                       ,
 
-                :notes                          ,
+                :notes
             )
         ";
 
@@ -555,7 +555,7 @@ class EmployeeDao
         }
     }
 
-    public function changePassword(int $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
+    public function changePassword(int|string $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employees
@@ -620,12 +620,12 @@ class EmployeeDao
         }
     }
 
-    public function delete(int $employeeId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($employeeId, $isHashedId);
     }
 
-    private function softDelete(int $employeeId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employees

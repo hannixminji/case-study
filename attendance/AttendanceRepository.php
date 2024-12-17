@@ -91,7 +91,7 @@ class AttendanceRepository
         return $this->attendanceDao->update($attendance, $isHashedId);
     }
 
-    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
+    public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
     {
         return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
     }

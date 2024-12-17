@@ -31,7 +31,7 @@ class BreakTypeRepository
         return $this->breakTypeDao->update($breakType, $isHashedId);
     }
 
-    public function deleteBreakType(int $breakTypeId, bool $isHashedId = false): ActionResult
+    public function deleteBreakType(int|string $breakTypeId, bool $isHashedId = false): ActionResult
     {
         return $this->breakTypeDao->delete($breakTypeId, $isHashedId);
     }

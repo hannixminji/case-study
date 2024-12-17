@@ -252,12 +252,12 @@ class HolidayDao
         }
     }
 
-    public function delete(int $holidayId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $holidayId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($holidayId, $isHashedId);
     }
 
-    private function softDelete(int $holidayId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $holidayId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE holidays

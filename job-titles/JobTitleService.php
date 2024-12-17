@@ -31,7 +31,7 @@ class JobTitleService
         return $this->jobTitleRepository->updateJobTitle($jobTitle, $isHashedId);
     }
 
-    public function deleteJobTitle(int $jobTitleId, bool $isHashedId = false): ActionResult
+    public function deleteJobTitle(int|string $jobTitleId, bool $isHashedId = false): ActionResult
     {
         return $this->jobTitleRepository->deleteJobTitle($jobTitleId, $isHashedId);
     }

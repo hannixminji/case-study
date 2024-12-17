@@ -209,12 +209,12 @@ class EmployeeAllowanceDao
         }
     }
 
-    public function delete(int $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($employeeAllowanceId, $isHashedId);
     }
 
-    private function softDelete(int $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
         $query = '
             UPDATE employee_allowances

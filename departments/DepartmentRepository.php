@@ -31,12 +31,12 @@ class DepartmentRepository
         return $this->departmentDao->update($department, $isHashedId);
     }
 
-    public function isEmployeeDepartmentHead(int $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isEmployeeDepartmentHead(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
     {
         return $this->departmentDao->isDepartmentHead($employeeId, $isHashedId);
     }
 
-    public function deleteDepartment(int $departmentId, bool $isHashedId = false): ActionResult
+    public function deleteDepartment(int|string $departmentId, bool $isHashedId = false): ActionResult
     {
         return $this->departmentDao->delete($departmentId, $isHashedId);
     }

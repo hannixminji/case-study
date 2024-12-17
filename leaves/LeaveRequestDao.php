@@ -361,7 +361,7 @@ class LeaveRequestDao
     public function updateLeaveRequestStatuses(): ActionResult
     {
         $query = "
-            UPDATE leave_requests
+            UPDATE leave_requests AS leave_request
             SET
                 status = CASE
                     WHEN leave_request.status = 'Canceled'                                                                               THEN 'Canceled'

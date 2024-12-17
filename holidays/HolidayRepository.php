@@ -110,7 +110,7 @@ class HolidayRepository
         return $datesMarkedAsHoliday;
     }
 
-    public function deleteHoliday(int $holidayId, bool $isHashedId = false): ActionResult
+    public function deleteHoliday(int|string $holidayId, bool $isHashedId = false): ActionResult
     {
         return $this->holidayDao->delete($holidayId, $isHashedId);
     }

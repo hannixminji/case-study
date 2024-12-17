@@ -265,16 +265,16 @@ $attendanceColumns = [];
                     foreach ($records as $date => $recordEntries) {
                         $actualDate = $date;
                         foreach ($recordEntries as $record) {
-                            $workSchedule = $record['work_schedule'];
+                            $workSchedule      = $record['work_schedule'     ];
                             $attendanceRecords = $record['attendance_records'];
 
                             if ($attendanceRecords) {
                                 foreach ($attendanceRecords as $attendanceRecord) {
 
-                                    $workScheduleStartTime = new DateTime($workSchedule['start_time']);
-                                    $workScheduleEndTime = new DateTime($workSchedule['end_time']);
-                                    $workScheduleStartTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['start_time']))->format('H:i:s'));
-                                    $workScheduleEndTime = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['end_time']))->format('H:i:s'));
+                                    $workScheduleStartTime     = new DateTime($workSchedule['start_time']);
+                                    $workScheduleEndTime       = new DateTime($workSchedule['end_time'  ]);
+                                    $workScheduleStartTime     = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['start_time']))->format('H:i:s'));
+                                    $workScheduleEndTime       = new DateTime($attendanceRecord['date'] . ' ' . (new DateTime($workSchedule['end_time'  ]))->format('H:i:s'));
                                     $workScheduleStartTimeDate = new DateTime($workScheduleStartTime->format('Y-m-d'));
 
                                     if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {

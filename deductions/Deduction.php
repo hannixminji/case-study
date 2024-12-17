@@ -3,16 +3,16 @@
 class Deduction
 {
     public function __construct(
-        private readonly ? int    $id         ,
-        private readonly   string $name       ,
-        private readonly   float  $amount     ,
-        private readonly   string $frequency  ,
-        private readonly ? string $description,
-        private readonly   string $status
+        private readonly   int|string|null $id                ,
+        private readonly   string          $name              ,
+        private readonly   float           $amount            ,
+        private readonly   string          $frequency         ,
+        private readonly ? string          $description = null,
+        private readonly   string          $status
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }

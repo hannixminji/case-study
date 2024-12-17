@@ -36,7 +36,7 @@ class HolidayService
         return $this->holidayRepository->getHolidayDatesForPeriod($startDate, $endDate);
     }
 
-    public function deleteHoliday(int $holidayId, bool $isHashedId = false): ActionResult
+    public function deleteHoliday(int|string $holidayId, bool $isHashedId = false): ActionResult
     {
         return $this->holidayRepository->deleteHoliday($holidayId, $isHashedId);
     }

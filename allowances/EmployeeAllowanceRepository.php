@@ -26,7 +26,7 @@ class EmployeeAllowanceRepository
         return $this->employeeAllowanceDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function deleteEmployeeAllowance(int $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    public function deleteEmployeeAllowance(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
         return $this->employeeAllowanceDao->delete($employeeAllowanceId, $isHashedId);
     }

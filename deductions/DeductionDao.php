@@ -246,12 +246,12 @@ class DeductionDao
         }
     }
 
-    public function delete(int $deductionId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $deductionId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($deductionId, $isHashedId);
     }
 
-    private function softDelete(int $deductionId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $deductionId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE deductions

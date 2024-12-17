@@ -31,7 +31,7 @@ class DeductionRepository
         return $this->deductionDao->update($deduction, $isHashedId);
     }
 
-    public function deleteDeduction(int $deductionId, bool $isHashedId = false): ActionResult
+    public function deleteDeduction(int|string $deductionId, bool $isHashedId = false): ActionResult
     {
         return $this->deductionDao->delete($deductionId, $isHashedId);
     }

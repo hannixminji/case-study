@@ -290,8 +290,13 @@ class EmployeeBreakDao
         }
     }
 
-    public function fetchOrderedEmployeeBreaks(int $workScheduleId, int $employeeId, string $startDate, string $endDate, bool $isHashedId = false): ActionResult|array
-    {
+    public function fetchOrderedEmployeeBreaks(
+        int|string $workScheduleId        ,
+        int|string $employeeId            ,
+        string     $startDate             ,
+        string     $endDate               ,
+        bool       $isHashedId     = false
+    ): ActionResult|array {
         $query = "
             SELECT
                 employee_break.id AS id,

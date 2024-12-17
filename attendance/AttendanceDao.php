@@ -383,7 +383,7 @@ class AttendanceDao
         }
     }
 
-    public function approveOvertime(int $attendanceId, bool $isHashedId = false): ActionResult
+    public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE attendance

@@ -31,17 +31,17 @@ class BreakScheduleService
         return $this->breakScheduleDao->update($breakSchedule, $isHashedId);
     }
 
-    public function fetchOrderedBreakSchedules(int $workScheduleId, bool $isHashedId = false): ActionResult|array
+    public function fetchOrderedBreakSchedules(int|string $workScheduleId, bool $isHashedId = false): ActionResult|array
     {
         return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
     }
 
-    public function deleteBreakSchedule(int $breakScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteBreakSchedule(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleDao->delete($breakScheduleId, $isHashedId);
     }
 
-    public function deleteBreakScheduleByWorkScheduleId(int $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteBreakScheduleByWorkScheduleId(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleDao->deleteByWorkScheduleId($workScheduleId, $isHashedId);
     }

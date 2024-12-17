@@ -267,7 +267,7 @@ class BreakScheduleDao
         }
     }
 
-    public function fetchOrderedBreakSchedules(int $workScheduleId, bool $isHashedId = false): ActionResult|array
+    public function fetchOrderedBreakSchedules(int|string $workScheduleId, bool $isHashedId = false): ActionResult|array
     {
         $query = "
             SELECT
@@ -324,7 +324,7 @@ class BreakScheduleDao
         }
     }
 
-    public function deleteByWorkScheduleId(int $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteByWorkScheduleId(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_schedules
@@ -362,12 +362,12 @@ class BreakScheduleDao
         }
     }
 
-    public function delete(int $breakScheduleId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->softDelete($breakScheduleId, $isHashedId);
     }
 
-    private function softDelete(int $breakScheduleId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE break_schedules

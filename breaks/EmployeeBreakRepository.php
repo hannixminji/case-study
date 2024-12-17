@@ -92,11 +92,11 @@ class EmployeeBreakRepository
     }
 
     public function fetchOrderedEmployeeBreaks(
-        int    $workScheduleId        ,
-        int    $employeeId            ,
-        string $startDate             ,
-        string $endDate               ,
-        bool   $isHashedId     = false
+        int|string $workScheduleId        ,
+        int|string $employeeId            ,
+        string     $startDate             ,
+        string     $endDate               ,
+        bool       $isHashedId     = false
     ): ActionResult|array {
         return $this->employeeBreakDao->fetchOrderedEmployeeBreaks($workScheduleId, $employeeId, $startDate, $endDate, $isHashedId);
     }

@@ -3,15 +3,15 @@
 class JobTitle
 {
     public function __construct(
-        private readonly ? int    $id           = null,
-        private readonly   string $title              ,
-        private readonly   int    $departmentId       ,
-        private readonly ? string $description  = null,
-        private readonly   string $status
+        private readonly   int|string|null $id           = null,
+        private readonly   string          $title              ,
+        private readonly   int|string      $departmentId       ,
+        private readonly ? string          $description  = null,
+        private readonly   string          $status
     ) {
     }
 
-    public function getId(): ?int
+    public function getId(): int|string|null
     {
         return $this->id;
     }
@@ -21,7 +21,7 @@ class JobTitle
         return $this->title;
     }
 
-    public function getDepartmentId(): int
+    public function getDepartmentId(): int|string
     {
         return $this->departmentId;
     }

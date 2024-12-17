@@ -60,7 +60,7 @@ class EmployeeRepository
             : (int) $result['result_set'][0]['id'];
     }
 
-    public function changePassword(int $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
+    public function changePassword(int|string $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
         return $this->employeeDao->changePassword($employeeId, $newHashedPassword, $isHashedId);
     }
@@ -70,7 +70,7 @@ class EmployeeRepository
         return $this->employeeDao->countTotalRecords();
     }
 
-    public function deleteEmployee(int $employeeId, bool $isHashedId = false): ActionResult
+    public function deleteEmployee(int|string $employeeId, bool $isHashedId = false): ActionResult
     {
         return $this->employeeDao->delete($employeeId, $isHashedId);
     }
