@@ -26,6 +26,11 @@ class EmployeeService
         return $this->employeeRepository->fetchAllEmployees($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchLastEmployeeId(): int|string
+    {
+        return $this->employeeRepository->fetchLastEmployeeId();
+    }
+
     public function updateEmployee(Employee $employee, bool $isHashedId = false): ActionResult
     {
         return $this->employeeRepository->updateEmployee($employee, $isHashedId);

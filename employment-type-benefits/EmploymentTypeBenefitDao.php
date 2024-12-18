@@ -1,0 +1,297 @@
+<?php
+
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
+require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
+
+class EmploymentTypeBenefitDao
+{
+    private readonly PDO $pdo;
+
+    public function __construct(PDO $pdo)
+    {
+        $this->pdo = $pdo;
+    }
+
+    public function create(EmploymentTypeBenefit $benefit): ActionResult
+    {
+        $query = "
+            INSERT INTO employment_type_benefits (
+                employment_type,
+                leave_type_id  ,
+                allowance_id   ,
+                deduction_id
+            )
+            VALUES (
+                :employment_type,
+                :leave_type_id  ,
+                :allowance_id   ,
+                :deduction_id
+            )
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employment_type", $benefit->getEmploymentType(), Helper::getPdoParameterType($benefit->getEmploymentType()));
+            $statement->bindValue(":leave_type_id"  , $benefit->getLeaveTypeId()   , Helper::getPdoParameterType($benefit->getLeaveTypeId()   ));
+            $statement->bindValue(":allowance_id"   , $benefit->getAllowanceId()   , Helper::getPdoParameterType($benefit->getAllowanceId()   ));
+            $statement->bindValue(":deduction_id"   , $benefit->getDeductionId()   , Helper::getPdoParameterType($benefit->getDeductionId()   ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while creating the employment type benefit. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchAll(
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
+    ): ActionResult|array {
+        $tableColumns = [
+            "id"                                => "employment_type_benefit.id              AS id"                               ,
+            "employment_type"                   => "employment_type_benefit.employment_type AS employment_type"                  ,
+
+            "leave_type_id"                     => "employment_type_benefit.leave_type_id   AS leave_type_id"                    ,
+            "leave_type_name"                   => "leave_type.name                         AS leave_type_name"                  ,
+            "leave_type_maximum_number_of_days" => "leave_type.maximum_number_of_days       AS leave_type_maximum_number_of_days",
+            "leave_type_is_paid"                => "leave_type.is_paid                      AS leave_type_is_paid"               ,
+            "leave_type_status"                 => "leave_type.status                       AS leave_type_status"                ,
+            "leave_type_deleted_at"             => "leave_type.deleted_at                   AS leave_type_deleted_at"            ,
+
+            "allowance_id"                      => "employment_type_benefit.allowance_id    AS allowance_id"                     ,
+            "allowance_name"                    => "allowance.name                          AS allowance_name"                   ,
+            "allowance_amount"                  => "allowance.amount                        AS allowance_amount"                 ,
+            "allowance_frequency"               => "allowance.frequency                     AS allowance_frequency"              ,
+            "allowance_status"                  => "allowance.status                        AS allowance_status"                 ,
+            "allowance_deleted_at"              => "allowance.deleted_at                    AS allowance_deleted_at"             ,
+
+            "deduction_id"                      => "employment_type_benefit.deduction_id    AS deduction_id"                     ,
+            "deduction_name"                    => "deduction.name                          AS deduction_name"                   ,
+            "deduction_amount"                  => "deduction.amount                        AS deduction_amount"                 ,
+            "deduction_frequency"               => "deduction.frequency                     AS deduction_frequency"              ,
+            "deduction_description"             => "deduction.description                   AS deduction_description"            ,
+            "deduction_status"                  => "deduction.status                        AS deduction_status"                 ,
+            "deduction_deleted_at"              => "deduction.deleted_at                    AS deduction_deleted_at"             ,
+
+            "created_at"                        => "employment_type_benefit.created_at      AS created_at"                       ,
+            "deleted_at"                        => "employment_type_benefit.deleted_at      AS deleted_at"
+        ];
+
+        $selectedColumns =
+            empty($columns)
+                ? $tableColumns
+                : array_intersect_key(
+                    $tableColumns,
+                    array_flip($columns)
+                );
+
+        $joinClauses = "";
+
+        if (array_key_exists("leave_type_name"                  , $selectedColumns) ||
+            array_key_exists("leave_type_maximum_number_of_days", $selectedColumns) ||
+            array_key_exists("leave_type_is_paid"               , $selectedColumns) ||
+            array_key_exists("leave_type_status"                , $selectedColumns) ||
+            array_key_exists("leave_type_deleted_at"            , $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    leave_types AS leave_type
+                ON
+                    employment_type_benefit.leave_type_id = leave_type.id
+            ";
+        }
+
+        if (array_key_exists("allowance_name"      , $selectedColumns) ||
+            array_key_exists("allowance_amount"    , $selectedColumns) ||
+            array_key_exists("allowance_frequency" , $selectedColumns) ||
+            array_key_exists("allowance_status"    , $selectedColumns) ||
+            array_key_exists("allowance_deleted_at", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    allowances AS allowance
+                ON
+                    employment_type_benefit.allowance_id = allowance.id
+            ";
+        }
+
+        if (array_key_exists("deduction_name"           , $selectedColumns) ||
+            array_key_exists("deduction_amount"     , $selectedColumns) ||
+            array_key_exists("deduction_frequency"  , $selectedColumns) ||
+            array_key_exists("deduction_description", $selectedColumns) ||
+            array_key_exists("deduction_status"     , $selectedColumns) ||
+            array_key_exists("deduction_deleted_at" , $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    deductions AS deduction
+                ON
+                    employment_type_benefit.deduction_id = deduction.id
+            ";
+        }
+
+        $queryParameters = [];
+
+        $whereClauses = [];
+
+        if (empty($filterCriteria)) {
+            $whereClauses[] = "employment_type_benefit.deleted_at IS NULL";
+        } else {
+            foreach ($filterCriteria as $filterCriterion) {
+                $column   = $filterCriterion["column"  ];
+                $operator = $filterCriterion["operator"];
+
+                switch ($operator) {
+                    case "="   :
+                    case "LIKE":
+                        $whereClauses   [] = "{$column} {$operator} ?";
+                        $queryParameters[] = $filterCriterion["value"];
+                        break;
+
+                    case "BETWEEN":
+                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
+                        $queryParameters[] = $filterCriterion["lower_bound"];
+                        $queryParameters[] = $filterCriterion["upper_bound"];
+                        break;
+
+                    default:
+                        // Do nothing
+                }
+            }
+        }
+
+        $orderByClauses = [];
+
+        if ( ! empty($sortCriteria)) {
+            foreach ($sortCriteria as $sortCriterion) {
+                $column = $sortCriterion["column"];
+
+                if (isset($sortCriterion["direction"])) {
+                    $direction = $sortCriterion["direction"];
+                    $orderByClauses[] = "{$column} {$direction}";
+
+                } elseif (isset($sortCriterion["custom_order"])) {
+                    $customOrder = $sortCriterion["custom_order"];
+                    $caseExpressions = ["CASE {$column}"];
+
+                    foreach ($customOrder as $priority => $value) {
+                        $caseExpressions[] = "WHEN ? THEN {$priority}";
+                        $queryParameters[] = $value;
+                    }
+
+                    $caseExpressions[] = "ELSE " . count($caseExpressions) . " END";
+                    $orderByClauses[] = implode(" ", $caseExpressions);
+                }
+            }
+        }
+
+        $limitClause = "";
+        if ($limit !== null) {
+            $limitClause = " LIMIT ?";
+            $queryParameters[] = $limit;
+        }
+
+        $offsetClause = "";
+        if ($offset !== null) {
+            $offsetClause = " OFFSET ?";
+            $queryParameters[] = $offset;
+        }
+
+        $query = "
+            SELECT SQL_CALC_FOUND_ROWS
+                " . implode(", ", $selectedColumns) . "
+            FROM
+                employment_type_benefits AS employment_type_benefit
+            WHERE
+            " . implode(" AND ", $whereClauses) . "
+            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            {$limitClause}
+            {$offsetClause}
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            foreach ($queryParameters as $index => $parameter) {
+                $statement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
+            }
+
+            $statement->execute();
+
+            $resultSet = [];
+            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                $resultSet[] = $row;
+            }
+
+            $countStatement = $this->pdo->query("SELECT FOUND_ROWS()");
+            $totalRowCount = $countStatement->fetchColumn();
+
+            return [
+                "result_set"      => $resultSet    ,
+                "total_row_count" => $totalRowCount
+            ];
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching employment type benefits. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function delete(int|string $employmentTypeBenefitId, bool $isHashedId = false): ActionResult
+    {
+        return $this->softDelete($employmentTypeBenefitId, $isHashedId);
+    }
+
+    private function softDelete(int|string $employmentTypeBenefitId, bool $isHashedId = false): ActionResult
+    {
+        $query = "
+            UPDATE employment_type_benefits
+            SET
+                deleted_at = CURRENT_TIMESTAMP
+            WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employment_benefit_id";
+        } else {
+            $query .= " id = :employment_benefit_id";
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employment_benefit_id", $employmentTypeBenefitId, Helper::getPdoParameterType($employmentTypeBenefitId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while deleting the employment type benefit. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+}

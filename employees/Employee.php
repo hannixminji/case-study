@@ -34,7 +34,7 @@ class Employee
         private readonly   string          $accessRole                         ,
 
         private readonly   int|string      $payrollGroupId                     ,
-        private readonly ? float           $hourlyRate                   = null,
+        private readonly   float           $basicSalary                        ,
 
         private readonly   string          $tinNumber                          ,
         private readonly   string          $sssNumber                          ,
@@ -188,9 +188,9 @@ class Employee
         return $this->payrollGroupId;
     }
 
-    public function getHourlyRate(): ?float
+    public function getBasicSalary(): float
     {
-        return $this->hourlyRate;
+        return $this->basicSalary;
     }
 
     public function getTinNumber(): string

@@ -1,14 +1,19 @@
 <?php
 
-require_once __DIR__ . '/LeaveRequestRepository.php';
+require_once __DIR__ . '/LeaveRequestRepository.php'          ;
+require_once __DIR__ . '/LeaveRequestAttachmentRepository.php';
 
 class LeaveRequestService
 {
-    private readonly LeaveRequestRepository $leaveRequestRepository;
+    private readonly LeaveRequestRepository           $leaveRequestRepository          ;
+    private readonly LeaveRequestAttachmentRepository $leaveRequestAttachmentRepository;
 
-    public function __construct(LeaveRequestRepository $leaveRequestRepository)
-    {
-        $this->leaveRequestRepository = $leaveRequestRepository;
+    public function __construct(
+        LeaveRequestRepository           $leaveRequestRepository          ,
+        LeaveRequestAttachmentRepository $leaveRequestAttachmentRepository
+    ) {
+        $this->leaveRequestRepository           = $leaveRequestRepository          ;
+        $this->leaveRequestAttachmentRepository = $leaveRequestAttachmentRepository;
     }
 
     public function createLeaveRequest(LeaveRequest $leaveRequest): ActionResult

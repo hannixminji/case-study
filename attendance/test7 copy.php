@@ -90,7 +90,7 @@ foreach ($employees as $employee) {
     $employeeId   = $employee['id'           ];
     $jobTitleId   = $employee['job_title_id' ];
     $departmentId = $employee['department_id'];
-    $hourlyRate   = $employee['hourly_rate'  ];
+    $basicSalary  = $employee['basic_salary' ];
 
     $workSchedules = $workScheduleRepository->getEmployeeWorkSchedules(
         $employeeId,

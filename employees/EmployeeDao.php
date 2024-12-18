@@ -47,8 +47,7 @@ class EmployeeDao
                 access_role                    ,
 
                 payroll_group_id               ,
-                annual_salary                  ,
-                hourly_rate                    ,
+                basic_salary                   ,
 
                 tin_number                     ,
                 sss_number                     ,
@@ -96,7 +95,7 @@ class EmployeeDao
                 :access_role                    ,
 
                 :payroll_group_id               ,
-                :hourly_rate                    ,
+                :basic_salary                   ,
 
                 :tin_number                     ,
                 :sss_number                     ,
@@ -150,7 +149,7 @@ class EmployeeDao
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));
-            $statement->bindValue(":hourly_rate"                    , $employee->getHourlyRate()                  , Helper::getPdoParameterType($employee->getHourlyRate()                  ));
+            $statement->bindValue(":basic_salary"                   , $employee->getBasicSalary()                 , Helper::getPdoParameterType($employee->getBasicSalary()                 ));
 
             $statement->bindValue(":tin_number"                     , $employee->getTinNumber()                   , Helper::getPdoParameterType($employee->getTinNumber()                   ));
             $statement->bindValue(":sss_number"                     , $employee->getSssNumber()                   , Helper::getPdoParameterType($employee->getSssNumber()                   ));
@@ -230,7 +229,7 @@ class EmployeeDao
 
             "payroll_group_id"                => "employee.payroll_group_id                AS payroll_group_id"               ,
             "payroll_group_deleted_at"        => "payroll_group.deleted_at                 AS payroll_group_deleted_at"       ,
-            "hourly_rate"                     => "employee.hourly_rate                     AS hourly_rate"                    ,
+            "basic_salary"                    => "employee.basic_salary                    AS basic_salary"                   ,
 
             "tin_number"                      => "employee.tin_number                      AS tin_number"                     ,
             "sss_number"                      => "employee.sss_number                      AS sss_number"                     ,
@@ -425,6 +424,11 @@ class EmployeeDao
         }
     }
 
+    public function fetchLastInsertedId(): int|string
+    {
+        return $this->pdo->lastInsertId();
+    }
+
     public function update(Employee $employee, bool $isHashedId = false): ActionResult|string
     {
         $query = "
@@ -460,7 +464,7 @@ class EmployeeDao
                 access_role                     = :access_role                    ,
 
                 payroll_group_id                = :payroll_group_id               ,
-                hourly_rate                     = :hourly_rate                    ,
+                basic_salary                    = :basic_salary                   ,
 
                 tin_number                      = :tin_number                     ,
                 sss_number                      = :sss_number                     ,
@@ -520,7 +524,7 @@ class EmployeeDao
             $statement->bindValue(":access_role"                    , $employee->getAccessRole()                  , Helper::getPdoParameterType($employee->getAccessRole()                  ));
 
             $statement->bindValue(":payroll_group_id"               , $employee->getPayrollGroupId()              , Helper::getPdoParameterType($employee->getPayrollGroupId()              ));
-            $statement->bindValue(":hourly_rate"                    , $employee->getHourlyRate()                  , Helper::getPdoParameterType($employee->getHourlyRate()                  ));
+            $statement->bindValue(":basic_salary"                   , $employee->getBasicSalary()                 , Helper::getPdoParameterType($employee->getBasicSalary()                 ));
 
             $statement->bindValue(":tin_number"                     , $employee->getTinNumber()                   , Helper::getPdoParameterType($employee->getTinNumber()                   ));
             $statement->bindValue(":sss_number"                     , $employee->getSssNumber()                   , Helper::getPdoParameterType($employee->getSssNumber()                   ));

@@ -93,7 +93,7 @@ foreach ($employees as $employee) {
     $employeeId   = $employee['id'           ];
     $jobTitleId   = $employee['job_title_id' ];
     $departmentId = $employee['department_id'];
-    $hourlyRate   = $employee['hourly_rate'  ];
+    $basicSalary  = $employee['basic_salary' ];
 
     $workSchedules = $workScheduleRepository->getEmployeeWorkSchedules(
         $employeeId,
@@ -1346,6 +1346,26 @@ foreach ($employees as $employee) {
     $grossPay += $totalAllowances;
 
     echo $grossPay;
+
+    $sssContribution = calculateSssContribution($hourlyRate * $workHoursPerDay * 6 * 52 / 12);
+    $philhealthContribution = calculatePhilhealthContribution($hourlyRate * $workHoursPerDay * 6 * 52 / 12, (int) $cutoffStartDate->format('Y'));
+    $pagibigFundContribution = calculatePagibigFundContribution($hourlyRate * $workHoursPerDay * 6 * 52 / 12);
+
+    $totalSssDeduction = 0;
+    $totalPhilhealthDeduction = 0;
+    $totalPagibigFundDeduction = 0;
+
+    if (strtolower($payrollGroupFrequency) === 'weekly') {
+        $totalSssDeduction = $sssContribution['employee_share'] / 4;
+        $totalPhilhealthDeduction = $philhealthContribution['employee_share'] / 4;
+    } elseif (strtolower($payrollGroupFrequency) === 'bi-weekly' || strtolower($payrollGroupFrequency) === 'semi-monthly') {
+        $totalSssDeduction = $sssContribution['employee_share'] / 2;
+        $totalPhilhealthDeduction = $philhealthContribution['employee_share'] / 2;
+    } elseif (strtolower($payrollGroupFrequency) === 'monthly') {
+        $totalSssDeduction = $sssContribution['employee_share'] / 1;
+        $totalPhilhealthDeduction = $philhealthContribution['employee_share'] / 1;
+    }
+    echo calculateWithholdingTax(33800, 'weekly');
 }
 
 /*
@@ -1566,26 +1586,21 @@ echo '<pre>';
 
     function calculatePhilhealthContribution(float $salary, int $year): array
     {
-        $employeeShare = 0.00;
-        $employerShare = 0.00;
+        $totalContribution = 0.00;
 
         if ($year === 2024 || $year === 2025) {
             if ($salary <= 10000.00) {
-                $employeeShare = 500.00;
-                $employerShare = 500.00;
+                $totalContribution = 500.00;
             } elseif ($salary >= 10000.01 && $salary <= 99999.99) {
-                $employeeShare = max(500.00, $salary * 0.05);
-                $employerShare = max(500.00, $salary * 0.05);
-
-                if ($employeeShare > 5000.00) {
-                    $employeeShare = 5000.00;
-                }
-
-                if ($employerShare > 5000.00) {
-                    $employerShare = 5000.00;
+                $totalContribution = max(500.00, $salary * 0.05);
+                if ($totalContribution > 5000.00) {
+                    $totalContribution = 5000.00;
                 }
             }
         }
+
+        $employeeShare = $totalContribution / 2.0;
+        $employerShare = $totalContribution / 2.0;
 
         return [
             'employee_share' => $employeeShare,

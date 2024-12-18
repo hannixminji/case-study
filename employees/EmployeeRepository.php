@@ -26,6 +26,11 @@ class EmployeeRepository
         return $this->employeeDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchLastEmployeeId(): int|string
+    {
+        return $this->employeeDao->fetchLastInsertedId();
+    }
+
     public function updateEmployee(Employee $employee, bool $isHashedId = false): ActionResult
     {
         return $this->employeeDao->update($employee, $isHashedId);
