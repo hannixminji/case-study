@@ -196,7 +196,7 @@ class LeaveRequestAttachmentDao
         ";
 
         if ($isHashedId) {
-            $query .= " SHA2(id, 256) = :attachment_id";
+            $query .= " SHA2(id, 256) = :leave_request_attachment_id";
         } else {
             $query .= " id = :leave_request_attachment_id";
         }
