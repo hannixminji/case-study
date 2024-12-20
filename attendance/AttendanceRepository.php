@@ -95,4 +95,9 @@ class AttendanceRepository
     {
         return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
     }
+
+    public function checkAttendancePerMonth(int $employeeId): ActionResult|array
+    {
+        return $this->attendanceDao->checkAttendancePerMonth($employeeId);
+    }
 }

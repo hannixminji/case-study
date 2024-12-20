@@ -420,4 +420,48 @@ class AttendanceDao
             return ActionResult::FAILURE;
         }
     }
+
+    public function checkAttendancePerMonth(int $employeeId): ActionResult|array
+    {
+        $query = "
+            SELECT
+                YEAR (date) AS year            ,
+                MONTH(date) AS month           ,
+                COUNT(*   ) AS attendance_count
+            FROM
+                attendance
+            LEFT JOIN
+                work_schedules AS work_schedule
+            ON
+                work_schedule.id = attendance.work_schedule_id
+            WHERE
+                work_schedule.employee_id = :employee_id
+            GROUP BY
+                YEAR(date), MONTH(date)
+            ORDER BY
+                YEAR(date), MONTH(date)
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while fetching attendance per month. " .
+                      "Exception: {$exception->getMessage()}");
+            echo $exception->getMessage();
+            return ActionResult::FAILURE;
+        }
+    }
 }

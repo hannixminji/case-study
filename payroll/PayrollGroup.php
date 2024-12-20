@@ -3,9 +3,9 @@
 class PayrollGroup
 {
     public function __construct(
-        private readonly int|string|null $id           = null,
-        private readonly string          $name               ,
-        private readonly string          $payFrequency       ,
+        private readonly int|string|null $id            = null,
+        private readonly string          $name                ,
+        private readonly string          $payFrequency        ,
         private readonly string          $status
     ) {
     }

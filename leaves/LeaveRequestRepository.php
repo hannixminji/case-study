@@ -36,12 +36,12 @@ class LeaveRequestRepository
         return $this->leaveRequestDao->updateStatus($leaveRequestId, $status, $isHashedId);
     }
 
-    public function updateLeaveRequestStatuses(): ActionResult
+    public function updateLeaveRequestStatuses(string $currentDate): ActionResult
     {
-        return $this->leaveRequestDao->updateLeaveRequestStatuses();
+        return $this->leaveRequestDao->updateLeaveRequestStatuses($currentDate);
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|array|null
     {
         return $this->leaveRequestDao->isEmployeeOnLeave($employeeId, $isHashedId);
     }
@@ -52,6 +52,8 @@ class LeaveRequestRepository
             'leave_type_is_paid',
             'start_date'        ,
             'end_date'          ,
+            'is_half_day'       ,
+            'status'
         ];
 
         $filterCriteria = [
@@ -97,8 +99,9 @@ class LeaveRequestRepository
 
         foreach ($datePeriod as $date) {
             $datesMarkedAsLeave[$date->format('Y-m-d')] = [
-                'is_leave' => false,
-                'is_paid'  => false
+                'is_leave'    => false,
+                'is_paid'     => false,
+                'is_half_day' => false
             ];
         }
 
@@ -107,13 +110,15 @@ class LeaveRequestRepository
             $leaveEndDate    = new DateTime  ($leaveRequest['end_date'  ]);
             $leaveDatePeriod = new DatePeriod($leaveStartDate, new DateInterval('P1D'), $leaveEndDate->modify('+1 day'));
 
-            $isPaid = $leaveRequest['leave_type_is_paid'];
+            $isPaid    = $leaveRequest['leave_type_is_paid'];
+            $isHalfDay = $leaveRequest['is_half_day'       ];
 
             foreach ($leaveDatePeriod as $leaveDate) {
                 if (isset($datesMarkedAsLeave[$leaveDate->format('Y-m-d')])) {
                     $datesMarkedAsLeave[$leaveDate->format('Y-m-d')] = [
-                        'is_leave' => true,
-                        'is_paid'  => $isPaid
+                        'is_leave'    => true      ,
+                        'is_paid'     => $isPaid   ,
+                        'is_half_day' => $isHalfDay
                     ];
                 }
             }

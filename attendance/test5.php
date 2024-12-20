@@ -57,7 +57,7 @@ $employeeBreakService = new EmployeeBreakService(
 $rfidUid = '123456789';
 $payrollGroupFrequency = 'Semi-Monthly';
 
-$cutoffStartDate = '2024-12-02';
+$cutoffStartDate = '2024-11-01';
 $cutoffEndDate   = '2024-12-10';
 
 $cutoffStartDate = new DateTime($cutoffStartDate);
@@ -123,7 +123,7 @@ foreach ($employees as $employee) {
         [
             'column'   => 'attendance.date',
             'operator' => '>=',
-            'value'    => '2024-11-26'
+            'value'    => '2024-11-01'
         ],
                         [
             'column'   => 'attendance.date',
@@ -170,16 +170,16 @@ foreach ($employees as $employee) {
                 echo '<pre>';
 
                     $datesMarkedAsHoliday = $holidayRepository->getHolidayDatesForPeriod(
-                        '2024-11-26',
+                        '2024-11-01',
                         '2024-12-10'
                     );
 
                     $datesMarkedAsLeave = $leaveRequestRepository->getLeaveDatesForPeriod(
                         $employeeId,
-                        '2024-11-26',
+                        '2024-11-01',
                         '2024-12-10'
                     );
-
+                    print_r($datesMarkedAsHoliday);
                     $hourSummary = [
                         'regular_day' => [
                             'non_holiday' => [
@@ -342,6 +342,7 @@ foreach ($employees as $employee) {
                                         $holidayType = 'non_holiday';
 
                                         if ($isHoliday) {
+                                            echo 'ddddddddddddddddddddddddddd';
                                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                 $holidayType = 'double_holiday';
                                             } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
@@ -392,11 +393,13 @@ foreach ($employees as $employee) {
 
                                         $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
                                         $holidayType = 'non_holiday';
-
+                                        echo $currentDate . '<br>';
                                         if ($isHoliday) {
+                                            echo 'ddddddddddddddddddddddddddd';
                                             if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                                 $holidayType = 'double_holiday';
                                             } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                                echo 'ddddddddddddddddddddddddddddddddddddddddddddd';
                                                 $holidayType = 'regular_holiday';
                                             } else {
                                                 $holidayType = 'special_holiday';

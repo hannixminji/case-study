@@ -41,6 +41,9 @@ class AttendanceService
 
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
+        $currentDateTime = new DateTime($currentDateTime );
+        $currentDate     = $currentDateTime->format('Y-m-d');
+
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
         if ($employeeId === ActionResult::FAILURE) {
@@ -50,7 +53,7 @@ class AttendanceService
             ];
         }
 
-        $result = $this->leaveRequestRepository->updateLeaveRequestStatuses();
+        $result = $this->leaveRequestRepository->updateLeaveRequestStatuses($currentDate);
 
         if ($result === ActionResult::FAILURE) {
             return [
@@ -68,7 +71,7 @@ class AttendanceService
             ];
         }
 
-        if ($isOnLeave) {
+        if ($isOnLeave !== null && ( ! $isOnLeave['is_half_day'])) {
             return [
                 'status'  => 'warning',
                 'message' => 'You are currently on leave. You cannot check in or check out.'
@@ -83,9 +86,6 @@ class AttendanceService
                 'message' => 'An unexpected error occurred. Please try again later.',
             ];
         }
-
-        $currentDateTime = new DateTime($currentDateTime );
-        $currentDate     = $currentDateTime->format('Y-m-d');
 
         $isCheckIn = false;
 
@@ -117,8 +117,7 @@ class AttendanceService
                 ];
             }
 
-            $currentWorkSchedule = $this->getCurrentWorkSchedule($workSchedules, $currentDateTime->format('Y-m-d H:i:s'));
-            $currentWorkScheduleDate = (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d');
+            $currentWorkSchedule     = $this->getCurrentWorkSchedule($workSchedules, $currentDateTime->format('Y-m-d H:i:s'));
 
             if (empty($currentWorkSchedule)) {
                 return [
@@ -126,6 +125,8 @@ class AttendanceService
                     'message' => 'Your scheduled work has already ended.'
                 ];
             }
+
+            $currentWorkScheduleDate = (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d');
 
             if ((new DateTime($currentWorkSchedule['end_time']))->format('Y-m-d') > (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d')) {
                 $startTimeDate = (new DateTime($currentWorkSchedule['start_time']))->format('Y-m-d');
@@ -139,7 +140,7 @@ class AttendanceService
                     ];
                 }
 
-                if ($onLeave[$startTimeDate]['is_leave']) {
+                if ($onLeave[$startTimeDate]['is_leave'] && ( ! $onLeave[$startTimeDate]['is_half_day'])) {
                     return [
                         'status'  => 'warning',
                         'message' => 'You are currently on leave. You cannot check in or check out.'

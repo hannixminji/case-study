@@ -28,7 +28,7 @@ class LeaveRequestService
         ? int   $limit          = null,
         ? int   $offset         = null
     ): ActionResult|array {
-        $this->leaveRequestRepository->updateLeaveRequestStatuses();
+        $this->leaveRequestRepository->updateLeaveRequestStatuses((new DateTime())->format('Y-m-d'));
 
         return $this->leaveRequestRepository->fetchAllLeaveRequests($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
@@ -43,12 +43,12 @@ class LeaveRequestService
         return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status, $isHashedId);
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|array|null
     {
         return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId, $isHashedId);
     }
 
-    public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): ActionResult|array
+    public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): ActionResult|array|null
     {
         return $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $startDate, $endDate);
     }

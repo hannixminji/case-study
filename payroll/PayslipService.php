@@ -1,10 +1,11 @@
 <?php
 
 require_once __DIR__ . '/PayrollGroup.php'                                      ;
+require_once __DIR__ . '/Payslip.php'                                           ;
 
 require_once __DIR__ . '/../employees/EmployeeRepository.php'                   ;
 require_once __DIR__ . '/../work-schedules/WorkScheduleRepository.php'          ;
-require_once __DIR__ . '/../AttendanceRepository.php'                           ;
+require_once __DIR__ . '/../attendance/AttendanceRepository.php'                ;
 require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignmentRepository.php';
 require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php'          ;
 require_once __DIR__ . '/../holidays/HolidayRepository.php'                     ;
@@ -13,6 +14,9 @@ require_once __DIR__ . '/../allowances/EmployeeAllowanceRepository.php'         
 require_once __DIR__ . '/../settings/SettingRepository.php'                     ;
 require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'                 ;
 require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'                 ;
+require_once __DIR__ . '/PayslipRepository.php'                                 ;
+require_once __DIR__ . '/EmployeeHourSummaryRepository.php'                     ;
+require_once __DIR__ . '/../leaves/LeaveEntitlementRepository.php'              ;
 
 class PayslipService
 {
@@ -28,6 +32,9 @@ class PayslipService
     private readonly SettingRepository                $settingRepository               ;
     private readonly EmployeeBreakRepository          $employeeBreakRepository         ;
     private readonly BreakScheduleRepository          $breakScheduleRepository         ;
+    private readonly PayslipRepository                $payslipRepository               ;
+    private readonly EmployeeHourSummaryRepository    $employeeHourSummaryRepository   ;
+    private readonly LeaveEntitlementRepository       $leaveEntitlementRepository      ;
 
     public function __construct(
         EmployeeRepository               $employeeRepository              ,
@@ -41,7 +48,10 @@ class PayslipService
         SettingRepository                $settingRepository               ,
         EmployeeBreakRepository          $employeeBreakRepository         ,
         BreakScheduleRepository          $breakScheduleRepository         ,
-        EmployeeDeductionRepository      $employeeDeductionRepository
+        EmployeeDeductionRepository      $employeeDeductionRepository     ,
+        PayslipRepository                $payslipRepository               ,
+        EmployeeHourSummaryRepository    $employeeHourSummaryRepository   ,
+        LeaveEntitlementRepository       $leaveEntitlementRepository
     ) {
         $this->employeeRepository               = $employeeRepository              ;
         $this->workScheduleRepository           = $workScheduleRepository          ;
@@ -55,16 +65,13 @@ class PayslipService
         $this->employeeBreakRepository          = $employeeBreakRepository         ;
         $this->breakScheduleRepository          = $breakScheduleRepository         ;
         $this->employeeDeductionRepository      = $employeeDeductionRepository     ;
+        $this->payslipRepository                = $payslipRepository               ;
+        $this->employeeHourSummaryRepository    = $employeeHourSummaryRepository   ;
+        $this->leaveEntitlementRepository       = $leaveEntitlementRepository      ;
     }
 
-    public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate)
+    public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paymentDate)
     {
-        $rfidUid = '123456789';
-        $payrollGroupFrequency = 'Semi-Monthly';
-
-        $cutoffStartDate = '2024-11-26';
-        $cutoffEndDate   = '2024-12-10';
-
         $cutoffStartDate = new DateTime($cutoffStartDate);
         $cutoffEndDate   = new DateTime($cutoffEndDate);
 
@@ -75,19 +82,19 @@ class PayslipService
             'id'           ,
             'job_title_id' ,
             'department_id',
-            'hourly_rate'
+            'basic_salary'
         ];
 
         $filterCriteria = [
             [
                 'column'   => 'employee.access_role',
                 'operator' => '!=',
-                'value'    => "Admin"
+                'value'    => 'Admin'
             ],
             [
                 'column'   => 'employee.payroll_group_id',
                 'operator' => '=',
-                'value'    => 1
+                'value'    => $payrollGroup->getId()
             ],
         ];
 
@@ -98,7 +105,7 @@ class PayslipService
             $employeeId   = $employee['id'           ];
             $jobTitleId   = $employee['job_title_id' ];
             $departmentId = $employee['department_id'];
-            $hourlyRate   = $employee['hourly_rate'  ];
+            $basicSalary  = $employee['basic_salary' ];
 
             $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
                 $employeeId,
@@ -165,7 +172,9 @@ class PayslipService
                     $end->modify('+1 day');
                 }
 
-                if ($end->format('Y-m-d') !== $dateBeforeCutoffStartDate->format('Y-m-d')) {
+                if ($end->format('Y-m-d') === $dateBeforeCutoffStartDate->format('Y-m-d')) {
+                    unset($workSchedules[$dateBeforeCutoffStartDate->format('Y-m-d')]);
+                } else {
                     $schedules = [$lastSchedule];
                 }
             }
@@ -212,19 +221,15 @@ class PayslipService
                 }
             }
 
-            echo '<pre>';
-            print_r($records);
-            echo '<pre>';
-
             $datesMarkedAsHoliday = $this->holidayRepository->getHolidayDatesForPeriod(
-                '2024-11-26',
-                '2024-12-10'
+                $cutoffStartDate->format('Y-m-d'),
+                $cutoffEndDate->format('Y-m-d')
             );
 
             $datesMarkedAsLeave = $this->leaveRequestRepository->getLeaveDatesForPeriod(
                 $employeeId,
-                '2024-11-26',
-                '2024-12-10'
+                $cutoffStartDate->format('Y-m-d'),
+                $cutoffEndDate->format('Y-m-d')
             );
 
             $hourSummary = [
@@ -310,47 +315,48 @@ class PayslipService
             */
 
             $foundAbsence = false;
-            $totalUnworkedHoursPaid = 0;
-            $totalUnworkedHoursPaidDoubleHoliday = 0;
-            $totalActualHoursWorked = 0;
-
-            $totalNumberOfAbsences = 0;
-            $totalDaysOfPaidLeave = 0;
-            $totalDaysOfUnpaidLeave = 0;
-
-            $isAbsent = false;
 
             $isFirstSchedule = true;
             $workHoursPerDay = 0;
+
+            $hoursWithoutOvertime = 0;
+
+            $totalDaysWorked = 0;
+            $totalActualHoursWorked = 0;
+
             foreach ($records as $date => $recordEntries) {
                 $totalRequiredHours = 0;
-                foreach ($recordEntries as $record) {
-                    $totalRequiredHours += $record['work_schedule']['total_work_hours'];
+
+                if ($recordEntries[0]['work_schedule']['is_flextime']) {
+                    $totalRequiredHours += $recordEntries[0]['work_schedule']['total_hours_per_week'];
+                } else {
+                    foreach ($recordEntries as $record) {
+                        $totalRequiredHours += $record['work_schedule']['total_work_hours'];
+                    }
                 }
-                $hoursWorked = 0;
 
                 if ($isFirstSchedule) {
                     $workHoursPerDay = $totalRequiredHours;
                     $isFirstSchedule = false;
                 }
 
+                $hoursWorked = 0;
+
                 foreach ($recordEntries as $record) {
-                    $workSchedule = $record['work_schedule'];
+                    $workSchedule      = $record['work_schedule'     ];
                     $attendanceRecords = $record['attendance_records'];
 
-                    $workScheduleStartTime = (new DateTime($workSchedule['start_time']))->format('H:i:s');
-                    $workScheduleEndTime   = (new DateTime($workSchedule['end_time'  ]))->format('H:i:s');
-                    $workScheduleStartTime =  new DateTime($date . ' ' . $workScheduleStartTime);
-                    $workScheduleEndTime   =  new DateTime($date . ' ' . $workScheduleEndTime  );
-                    $workScheduleStartTimeDate = new DateTime($workScheduleStartTime->format('Y-m-d'));
+                    $workScheduleStartTime     = (new DateTime($workSchedule['start_time']))->format('H:i:s');
+                    $workScheduleEndTime       = (new DateTime($workSchedule['end_time'  ]))->format('H:i:s');
+                    $workScheduleStartTime     =  new DateTime($date . ' ' . $workScheduleStartTime);
+                    $workScheduleEndTime       =  new DateTime($date . ' ' . $workScheduleEndTime  );
+                    $workScheduleStartTimeDate =  new DateTime($workScheduleStartTime->format('Y-m-d'));
 
                     if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {
                         $workScheduleEndTime->modify('+1 day');
                     }
 
                     if ($attendanceRecords) {
-                        $isFirstRecord = true;
-
                         $result = $this->employeeBreakRepository->fetchOrderedEmployeeBreaks(
                             $workSchedule['id'],
                             $employeeId,
@@ -367,11 +373,183 @@ class PayslipService
 
                         $employeeBreaks = $result;
 
+                        $isFirstRecord = true;
+
                         foreach ($attendanceRecords as $attendanceRecord) {
                             $attendanceCheckInTime = new DateTime($attendanceRecord['check_in_time']);
                             $attendanceCheckOutTime = $attendanceRecord['check_out_time']
                                 ? new DateTime($attendanceRecord['check_out_time'])
                                 : clone $workScheduleEndTime;
+
+                            if ($attendanceRecord['check_out_time'] === null) {
+                                $breakScheduleColumns = [
+                                    'id'                               ,
+                                    'start_time'                       ,
+                                    'break_type_duration_in_minutes'   ,
+                                    'is_require_break_in_and_break_out',
+                                    'is_flexible'                      ,
+                                    'earliest_start_time'              ,
+                                    'latest_end_time'                  ,
+                                    'break_type_is_paid'               ,
+                                    'created_at'
+                                ];
+
+                                $filterCriteria = [
+                                    [
+                                        'column'   => 'break_schedule.deleted_at',
+                                        'operator' => 'IS NULL'
+                                    ],
+                                    [
+                                        'column'   => 'break_schedule.work_schedule_id',
+                                        'operator' => '=',
+                                        'value'    => $workSchedule['id']
+                                    ]
+                                ];
+
+                                $result = $this->breakScheduleRepository->fetchAllBreakSchedules($breakScheduleColumns, $filterCriteria);
+
+                                if ($result === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $breakSchedules = $result['result_set'];
+
+                                $employeeBreakColumns = [
+                                    'id'                                ,
+                                    'break_schedule_id'                 ,
+                                    'start_time'                        ,
+                                    'end_time'                          ,
+                                    'break_duration_in_minutes'         ,
+                                    'created_at'                        ,
+
+                                    'break_schedule_start_time'         ,
+                                    'break_schedule_is_flexible'        ,
+                                    'break_schedule_earliest_start_time',
+
+                                    'employee_id'                       ,
+
+                                    'break_type_duration_in_minutes'    ,
+                                    'break_type_is_paid'                ,
+                                    'is_require_break_in_and_break_out'
+                                ];
+
+                                $filterCriteria = [
+                                    [
+                                        'column'   => 'break_schedule.work_schedule_id',
+                                        'operator' => '=',
+                                        'value'    => $workSchedule['id']
+                                    ],
+                                    [
+                                        'column'   => 'work_schedule.employee_id',
+                                        'operator' => '='                        ,
+                                        'value'    => $employeeId
+                                    ],
+                                    [
+                                        'column'      => 'employee_break.created_at',
+                                        'operator'    => 'BETWEEN'                  ,
+                                        'lower_bound' => $workScheduleStartTime->format('Y-m-d H:i:s'),
+                                        'upper_bound' => $workScheduleEndTime->format('Y-m-d H:i:s')
+                                    ]
+                                ];
+
+                                $sortCriteria = [
+                                    [
+                                        'column'    => 'employee_break.created_at',
+                                        'direction' => 'DESC'
+                                    ],
+                                    [
+                                        'column'    => 'employee_break.start_time',
+                                        'direction' => 'DESC'
+                                    ]
+                                ];
+
+                                $result = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                                    columns       : $employeeBreakColumns,
+                                    filterCriteria: $filterCriteria      ,
+                                    sortCriteria  : $sortCriteria
+                                );
+
+                                if ($result === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $employeeBreaks = $result['result_set'];
+
+                                $completedBreakIds = array_column($employeeBreaks, 'break_schedule_id');
+
+                                foreach ($breakSchedules as $breakSchedule) {
+                                    if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
+                                        $employeeBreak = new EmployeeBreak(
+                                            id                    : null                ,
+                                            breakScheduleId       : $breakSchedule['id'],
+                                            startTime             : null                ,
+                                            endTime               : null                ,
+                                            breakDurationInMinutes: 0,
+                                            createdAt             : $workScheduleEndTime->format('Y-m-d H:i:s')
+                                        );
+
+                                        $result = $this->employeeBreakRepository->breakIn($employeeBreak);
+
+                                        if ($result === ActionResult::FAILURE) {
+                                            return [
+                                                'status'  => 'error',
+                                                'message' => 'An unexpected error occurred. Please try again later.'
+                                            ];
+                                        }
+
+                                        $lastBreakRecord = $this->employeeBreakRepository->fetchEmployeeLastBreakRecord($workSchedule['id'], $employeeId);
+
+                                        if ($lastBreakRecord === ActionResult::FAILURE) {
+                                            return [
+                                                'status'  => 'error',
+                                                'message' => 'An unexpected error occurred. Please try again later.'
+                                            ];
+                                        }
+
+                                        $lastBreakRecord = $lastBreakRecord[0];
+
+                                        $employeeBreak = new EmployeeBreak(
+                                            id                    : $lastBreakRecord['id'               ],
+                                            breakScheduleId       : $lastBreakRecord['break_schedule_id'],
+                                            startTime             : null                                 ,
+                                            endTime               : null                                 ,
+                                            breakDurationInMinutes: 0                                    ,
+                                            createdAt             : $lastBreakRecord['created_at']
+                                        );
+
+                                        $result = $this->employeeBreakRepository->breakOut($employeeBreak);
+
+                                        if ($result === ActionResult::FAILURE) {
+                                            return [
+                                                'status'  => 'error',
+                                                'message' => 'An unexpected error occurred. Please try again later.'
+                                            ];
+                                        }
+                                    }
+                                }
+
+                                $result = $this->employeeBreakRepository->fetchOrderedEmployeeBreaks(
+                                    $workSchedule['id'],
+                                    $employeeId,
+                                    $workScheduleStartTime->format('Y-m-d H:i:s'),
+                                    $workScheduleEndTime->format('Y-m-d H:i:s')
+                                );
+
+                                if ($result === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $employeeBreaks = $result;
+                            }
 
                             if ( ! $workSchedule['is_flextime'] && $isFirstRecord) {
                                 if ($attendanceCheckInTime <= $workScheduleStartTime) {
@@ -618,7 +796,7 @@ class PayslipService
                                             if ($isHoliday) {
                                                 if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                     $holidayType = 'double_holiday';
-                                                } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                                     $holidayType = 'regular_holiday';
                                                 } else {
                                                     $holidayType = 'special_holiday';
@@ -626,7 +804,9 @@ class PayslipService
                                             }
 
                                             $hoursWorked -= $breakDuration / 60;
-
+                                            if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                                $hoursWithoutOvertime -= $breakDuration / 60;
+                                            }
                                             if ($isNightShift) {
                                                 $hourSummary[$dayType][$holidayType]['night_differential'] -= $breakDuration / 60;
                                             } else {
@@ -651,7 +831,7 @@ class PayslipService
                                                 if ($isHoliday) {
                                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                         $holidayType = 'double_holiday';
-                                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                                         $holidayType = 'regular_holiday';
                                                     } else {
                                                         $holidayType = 'special_holiday';
@@ -659,7 +839,9 @@ class PayslipService
                                                 }
 
                                                 $hoursWorked -= $remainingMinutes / 60;
-
+                                                if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                                    $hoursWithoutOvertime -= $remainingMinutes / 60;
+                                                }
                                                 if ($isNightShift) {
                                                     $hourSummary[$dayType][$holidayType]['night_differential'] -= $remainingMinutes / 60;
                                                 } else {
@@ -683,13 +865,13 @@ class PayslipService
                                                 $dayOfWeek = (new DateTime($currentDate))->format('l');
                                                 $dayType = $dayOfWeek === 'Sunday' ? 'rest_day' : 'regular_day';
 
-                                                $isHoliday = !empty($datesMarkedAsHoliday[$currentDate]);
+                                                $isHoliday = ! empty($datesMarkedAsHoliday[$currentDate]);
                                                 $holidayType = 'non_holiday';
 
                                                 if ($isHoliday) {
                                                     if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                                         $holidayType = 'double_holiday';
-                                                    } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                                    } elseif ($datesMarkedAsHoliday[$currentDate][0]['is_paid']) {
                                                         $holidayType = 'regular_holiday';
                                                     } else {
                                                         $holidayType = 'special_holiday';
@@ -697,7 +879,9 @@ class PayslipService
                                                 }
 
                                                 $hoursWorked--;
-
+                                                if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                                    $hoursWithoutOvertime--;
+                                                }
                                                 if ($isNightShift) {
                                                     $hourSummary[$dayType][$holidayType]['night_differential']--;
                                                 } else {
@@ -719,7 +903,7 @@ class PayslipService
                                                 if ($isHoliday) {
                                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                                         $holidayType = 'double_holiday';
-                                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                                         $holidayType = 'regular_holiday';
                                                     } else {
                                                         $holidayType = 'special_holiday';
@@ -727,7 +911,9 @@ class PayslipService
                                                 }
 
                                                 $hoursWorked -= $endMinutes / 60;
-
+                                                if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                                    $hoursWithoutOvertime -= $endMinutes / 60;
+                                                }
                                                 if ($isNightShift) {
                                                     $hourSummary[$dayType][$holidayType]['night_differential'] -= $endMinutes / 60;
                                                 } else {
@@ -740,7 +926,6 @@ class PayslipService
                             }
 
                             $isOvertimeApproved = $attendanceRecord['is_overtime_approved'];
-                            $isOvertimeApproved = 1;
 
                             $startMinutes = (int)$attendanceCheckInTime->format('i');
                             $cloneAttendanceCheckInTime = clone $attendanceCheckInTime;
@@ -759,7 +944,7 @@ class PayslipService
                                 if ($isHoliday) {
                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     } else {
                                         $holidayType = 'special_holiday';
@@ -768,19 +953,25 @@ class PayslipService
 
                                 $hoursWorked += $remainingMinutes / 60;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $remainingMinutes / 60;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime += $remainingMinutes / 60;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours'] += $remainingMinutes / 60;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime += $remainingMinutes / 60;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
                                     }
                                 }
@@ -809,7 +1000,7 @@ class PayslipService
                                 if ($isHoliday) {
                                     if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$currentDate][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     } else {
                                         $holidayType = 'special_holiday';
@@ -818,19 +1009,25 @@ class PayslipService
 
                                 $hoursWorked++;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime']++;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime++;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['night_differential']++;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours']++;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime++;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['regular_hours']++;
                                     }
                                 }
@@ -854,7 +1051,7 @@ class PayslipService
                                 if ($isHoliday) {
                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     } else {
                                         $holidayType = 'special_holiday';
@@ -863,19 +1060,25 @@ class PayslipService
 
                                 $hoursWorked += $endMinutes / 60;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $endMinutes / 60;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime += $endMinutes / 60;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime']))) {
-                                        if ($isOvertimeApproved) {
+                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours'] += $endMinutes / 60;
                                         }
                                     } else {
+                                        if ($holidayType !== 'regular_holiday' && $holidayType !== 'double_holiday') {
+                                            $hoursWithoutOvertime += $endMinutes / 60;
+                                        }
                                         $hourSummary[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
                                     }
                                 }
@@ -977,13 +1180,13 @@ class PayslipService
                                 if ($isHoliday && ! $foundAbsence) {
                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     }
                                 }
 
                                 if ($holidayType === 'non_holiday') {
-                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                         $hourSummary1[$dayType][$holidayType]['regular_hours'] -= $remainingMinutes / 60;
                                     }
                                 } else {
@@ -1012,13 +1215,13 @@ class PayslipService
                                 if ($isHoliday && ! $foundAbsence) {
                                     if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$currentDate][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     }
                                 }
 
                                 if ($holidayType === 'non_holiday') {
-                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                         $hourSummary1[$dayType][$holidayType]['regular_hours']--;
                                     }
                                 } else {
@@ -1038,13 +1241,13 @@ class PayslipService
                                 if ($isHoliday && ! $foundAbsence) {
                                     if (count($datesMarkedAsHoliday[$date]) > 1) {
                                         $holidayType = 'double_holiday';
-                                    } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                                    } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                         $holidayType = 'regular_holiday';
                                     }
                                 }
 
                                 if ($holidayType === 'non_holiday') {
-                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                                    if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                         $hourSummary1[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
                                     }
                                 } else {
@@ -1080,19 +1283,18 @@ class PayslipService
                         if ($isHoliday && ! $foundAbsence) {
                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                 $holidayType = 'double_holiday';
-                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                            } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                 $holidayType = 'regular_holiday';
                             }
                         }
 
                         if ($holidayType === 'non_holiday') {
-                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                 $hourSummary1[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
                             }
                         } else {
                             $hourSummary1[$dayType][$holidayType]['regular_hours'] += $remainingMinutes / 60;
                         }
-
 
                         $cloneWorkScheduleStartTime->modify('+' . $remainingMinutes . ' minutes');
                     }
@@ -1116,13 +1318,13 @@ class PayslipService
                         if ($isHoliday && ! $foundAbsence) {
                             if (count($datesMarkedAsHoliday[$currentDate]) > 1) {
                                 $holidayType = 'double_holiday';
-                            } elseif ($datesMarkedAsHoliday[$currentDate]['is_paid']) {
+                            } elseif ($datesMarkedAsHoliday[$currentDate][0]['is_paid']) {
                                 $holidayType = 'regular_holiday';
                             }
                         }
 
                         if ($holidayType === 'non_holiday') {
-                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                 $hourSummary1[$dayType][$holidayType]['regular_hours']++;
                             }
                         } else {
@@ -1142,13 +1344,13 @@ class PayslipService
                         if ($isHoliday && ! $foundAbsence) {
                             if (count($datesMarkedAsHoliday[$date]) > 1) {
                                 $holidayType = 'double_holiday';
-                            } elseif ($datesMarkedAsHoliday[$date]['is_paid']) {
+                            } elseif ($datesMarkedAsHoliday[$date][0]['is_paid']) {
                                 $holidayType = 'regular_holiday';
                             }
                         }
 
                         if ($holidayType === 'non_holiday') {
-                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && empty($attendanceRecords)) {
+                            if ($datesMarkedAsLeave[$date]['is_leave'] && $datesMarkedAsLeave[$date]['is_paid'] && ( ! $datesMarkedAsLeave[$date]['is_half_day']) && empty($attendanceRecords)) {
                                 $hourSummary1[$dayType][$holidayType]['regular_hours'] += $endMinutes / 60;
                             }
                         } else {
@@ -1157,11 +1359,19 @@ class PayslipService
                     }
                 }
 
+                $totalDaysWorked += $hoursWorked / $totalRequiredHours;
+
+                if ($datesMarkedAsLeave[$date]['is_leave'   ] &&
+                    $datesMarkedAsLeave[$date]['is_paid'    ] &&
+                    $datesMarkedAsLeave[$date]['is_half_day'] &&
+                    empty($datesMarkedAsHoliday[$date      ])) {
+                    $hourSummary1['regular_day']['non_holiday']['regular_hours'] += $totalRequiredHours / 2;
+                }
+
                 $totalActualHoursWorked += $hoursWorked;
             }
 
-            print_r($hourSummary);
-            print_r($hourSummary1);
+            $hourlyRate = $basicSalary / ($workHoursPerDay * 26);
 
             $employeeAllowanceTableColumns = [
                 'allowance_frequency',
@@ -1206,7 +1416,7 @@ class PayslipService
                 'monthly'      => 1
             ];
 
-            $payrollGroupFrequency = strtolower($payrollGroupFrequency);
+            $payrollGroupFrequency = strtolower($payrollGroup->getPayFrequency());
 
             foreach ($employeeAllowances as $employeeAllowance) {
                 $amount = $employeeAllowance['amount'];
@@ -1295,6 +1505,13 @@ class PayslipService
                 ];
             }
 
+            $totalRegularHours              = 0;
+            $totalOvertimeHours             = 0;
+            $totalNightDifferential         = 0;
+            $totalNightDifferentialOvertime = 0;
+            $totalRegularHolidayHours       = 0;
+            $totalSpecialHolidayHours       = 0;
+
             $grossPay = 0;
 
             foreach ($overtimeRates as $rate) {
@@ -1305,25 +1522,31 @@ class PayslipService
                 $nightDifferentialRate = $rate['night_differential_rate'];
 
                 if ($holidayType === 'regular_holiday') {
-                    $regularTimeRate -= 1.0;
+                    $regularTimeRate       -= 1.0;
                     $nightDifferentialRate -= 1.0;
                 } elseif ($holidayType === 'double_holiday') {
-                    $regularTimeRate -= 2.0;
+                    $regularTimeRate       -= 2.0;
                     $nightDifferentialRate -= 2.0;
                 }
 
-                if ($regularTimeRate < 0) {
-                    $regularTimeRate = 0;
-                }
-
-                if ($nightDifferentialRate < 0) {
-                    $nightDifferentialRate = 0;
-                }
+                $regularTimeRate       = max(0, $regularTimeRate      );
+                $nightDifferentialRate = max(0, $nightDifferentialRate);
 
                 $grossPay += $hourSummary[$dayType][$holidayType]['regular_hours'              ] * $hourlyRate * $regularTimeRate                             ;
                 $grossPay += $hourSummary[$dayType][$holidayType]['overtime_hours'             ] * $hourlyRate * $rate['overtime_rate'                       ];
                 $grossPay += $hourSummary[$dayType][$holidayType]['night_differential'         ] * $hourlyRate * $nightDifferentialRate                       ;
                 $grossPay += $hourSummary[$dayType][$holidayType]['night_differential_overtime'] * $hourlyRate * $rate['night_differential_and_overtime_rate'];
+
+                if ($holidayType === 'regular_holiday') {
+                    $totalRegularHolidayHours += $hourSummary[$dayType][$holidayType]['regular_hours'] + $hourSummary[$dayType][$holidayType]['overtime_hours'] + $hourSummary[$dayType][$holidayType]['night_differential'] + $hourSummary[$dayType][$holidayType]['night_differential_overtime'];
+                } elseif ($holidayType === 'special_holiday') {
+                    $totalSpecialHolidayHours += $hourSummary[$dayType][$holidayType]['regular_hours'] + $hourSummary[$dayType][$holidayType]['overtime_hours'] + $hourSummary[$dayType][$holidayType]['night_differential'] + $hourSummary[$dayType][$holidayType]['night_differential_overtime'];
+                }
+
+                $totalRegularHours              += $hourSummary[$dayType][$holidayType]['regular_hours'              ];
+                $totalOvertimeHours             += $hourSummary[$dayType][$holidayType]['overtime_hours'             ];
+                $totalNightDifferential         += $hourSummary[$dayType][$holidayType]['night_differential'         ];
+                $totalNightDifferentialOvertime += $hourSummary[$dayType][$holidayType]['night_differential_overtime'];
             }
 
             foreach ($hourSummary1 as $dayType => $holidayTypes) {
@@ -1340,11 +1563,463 @@ class PayslipService
                 }
             }
 
-            $grossPayWithoutAllowances = $grossPay;
-
             $grossPay += $totalAllowances;
 
-            echo $grossPay;
+            $sssContribution         = $this->calculateSssContribution        ($basicSalary);
+            $philhealthContribution  = $this->calculatePhilhealthContribution ($basicSalary, (int) $cutoffStartDate->format('Y'));
+            $pagibigFundContribution = $this->calculatePagibigFundContribution($basicSalary);
+
+            $totalSssDeduction         = 0;
+            $totalPhilhealthDeduction  = 0;
+            $totalPagibigFundDeduction = 0;
+            $withholdingTax            = 0;
+
+            if (strtolower($payrollGroup->getPayFrequency()) === 'weekly') {
+                $totalSssDeduction         = $sssContribution        ['employee_share'] / 4;
+                $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 4;
+                $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 4;
+            } elseif (strtolower($payrollGroup->getPayFrequency()) === 'bi-weekly' || strtolower($payrollGroup->getPayFrequency()) === 'semi-monthly') {
+                $totalSssDeduction         = $sssContribution        ['employee_share'] / 2;
+                $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 2;
+                $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 2;
+            } elseif (strtolower($payrollGroup->getPayFrequency()) === 'monthly') {
+                $totalSssDeduction         = $sssContribution        ['employee_share'] / 1;
+                $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 1;
+                $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 1;
+            }
+
+            $netPay = $grossPay - ($totalSssDeduction + $totalPhilhealthDeduction + $totalPagibigFundDeduction + $totalDeductions);
+            $withholdingTax = $this->calculateWithholdingTax($netPay, strtolower($payrollGroup->getPayFrequency()));
+            $netPay = $netPay - $withholdingTax;
+
+            $thirteenMonthPay = 0;
+            $leaveSalary = 0;
+
+            switch(strtolower($payrollGroup->getPayFrequency())) {
+                case 'weekly':
+                    if ($cutoffStartDate->format('m') === '12' && $cutoffStartDate->format('W') == 2) {
+                        $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
+                        $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
+                    }
+
+                    break;
+
+                case 'semi-monthly':
+                    if ($cutoffStartDate->format('m') === '12' && $cutoffEndDate->format('m') === '12') {
+                        $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
+                        $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
+                    }
+
+                    break;
+
+                case 'monthly':
+                    if ($cutoffEndDate->format('m') === '12') {
+                        $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
+                            [
+                                'column'   => 'leave_entitlement.employee_id',
+                                'operator' => '=',
+                                'value'    => $employeeId
+                            ]
+                        ]);
+
+                        if ($unusedCredits === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $unusedCredits = $unusedCredits['result_set'];
+
+                        $creditsToEncash = 5;
+
+                        if ( ! empty($unusedCredits)) {
+                            foreach ($unusedCredits as $unusedCredit) {
+                                $creditsToEncash += $unusedCredit['remaining_days'];
+                            }
+                        }
+
+                        $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
+                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
+
+                        $numberOfMonths = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
+
+                        if ($numberOfMonths === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $numberOfMonths = count($numberOfMonths);
+                        $thirteenMonthPay = $basicSalary * $numberOfMonths / 12;
+                    }
+
+                    break;
+
+                default:
+                    // Do nothing
+            }
+
+            $payslip = new Payslip(
+                id                            : null                                     ,
+                employeeId                    : $employeeId                              ,
+                payrollGroupId                : $payrollGroup->getId()                   ,
+                paymentDate                   : $paymentDate                             ,
+                cutoffStartDate               : $cutoffStartDate->format('Y-m-d'),
+                cutoffEndDate                 : $cutoffEndDate  ->format('Y-m-d'),
+                totalRegularHours             : $totalRegularHours                       ,
+                totalOvertimeHours            : $totalOvertimeHours                      ,
+                totalNightDifferential        : $totalNightDifferential                  ,
+                totalNightDifferentialOvertime: $totalNightDifferentialOvertime          ,
+                totalRegularHolidayHours      : $totalRegularHolidayHours                ,
+                totalSpecialHolidayHours      : $totalSpecialHolidayHours                ,
+                totalDaysWorked               : $totalDaysWorked                         ,
+                totalHoursWorked              : $totalActualHoursWorked                  ,
+                grossPay                      : $grossPay                                ,
+                netPay                        : $netPay                                  ,
+                sssDeduction                  : $totalSssDeduction                       ,
+                philhealthDeduction           : $totalPhilhealthDeduction                ,
+                pagibigFundDeduction          : $totalPagibigFundDeduction               ,
+                withholdingTax                : $withholdingTax                          ,
+                thirteenMonthPay              : $thirteenMonthPay                        ,
+                leaveSalary                   : $leaveSalary
+            );
+
+            //$result = $this->payslipRepository->createPayslip($payslip);
+
+            if ($result === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
         }
+    }
+
+    private function isAbsentBefore(int $employeeId, string $date): array|bool
+    {
+        $previousDate = new DateTime($date);
+
+        $foundAbsence = false;
+
+        while ( ! $foundAbsence) {
+            $formattedPreviousDate = $previousDate->format('Y-m-d');
+
+            $employeeWorkSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
+                $employeeId,
+                $formattedPreviousDate,
+                $formattedPreviousDate
+            );
+
+            if ($employeeWorkSchedules === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            if ($employeeWorkSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
+                break;
+            }
+
+            if ( ! empty($employeeWorkSchedules[$formattedPreviousDate])) {
+                if ($previousDate->format('l') !== 'Sunday') {
+                    $datesMarkedAsHoliday = $this->holidayRepository->getHolidayDatesForPeriod(
+                        $formattedPreviousDate,
+                        $formattedPreviousDate
+                    );
+
+                    if ($datesMarkedAsHoliday === ActionResult::FAILURE) {
+                        return [
+                            'status'  => 'error',
+                            'message' => 'An unexpected error occurred. Please try again later.'
+                        ];
+                    }
+
+                    if (empty($datesMarkedAsHoliday[$formattedPreviousDate])) {
+                        $datesMarkedAsLeave = $this->leaveRequestRepository->getLeaveDatesForPeriod(
+                            $employeeId,
+                            $formattedPreviousDate,
+                            $formattedPreviousDate
+                        );
+
+                        if ($datesMarkedAsLeave === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        if (($datesMarkedAsLeave[$formattedPreviousDate]['is_leave'] === true   &&
+                            $datesMarkedAsLeave[$formattedPreviousDate]['is_paid' ] === false) ||
+
+                            ($datesMarkedAsLeave[$formattedPreviousDate]['is_leave'] === false &&
+                            $datesMarkedAsLeave[$formattedPreviousDate]['is_paid' ] === false)) {
+
+                            $attendanceFilterCriteria = [
+                                [
+                                    'column'   => 'work_schedule.employee_id',
+                                    'operator' => '=',
+                                    'value'    => $employeeId
+                                ],
+                                [
+                                    'column'   => 'attendance.date',
+                                    'operator' => '=',
+                                    'value'    => $formattedPreviousDate
+                                ]
+                            ];
+
+                            $employeeAttendanceRecords = $this->attendanceRepository->fetchAllAttendance([], $attendanceFilterCriteria);
+
+                            if ($employeeAttendanceRecords === ActionResult::FAILURE) {
+                                return [
+                                    'status'  => 'error',
+                                    'message' => 'An unexpected error occurred. Please try again later.'
+                                ];
+                            }
+
+                            $employeeAttendanceRecords = $employeeAttendanceRecords['result_set'];
+
+                            foreach ($employeeWorkSchedules as $dateOfSchedule => $workSchedules) {
+                                foreach ($workSchedules as $workSchedule) {
+                                    $workScheduleAttendanceRecords = [];
+
+                                    foreach ($employeeAttendanceRecords as $attendanceRecord) {
+                                        if ($attendanceRecord['date'] === $dateOfSchedule && $attendanceRecord['work_schedule_id'] === $workSchedule['id']) {
+                                            $workScheduleAttendanceRecords[] = $attendanceRecord;
+                                        }
+                                    }
+
+                                    if (empty($workScheduleAttendanceRecords)) {
+                                        $foundAbsence = true;
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $previousDate->modify('-1 day');
+        }
+
+        return $foundAbsence;
+    }
+
+    private function calculateSssContribution(float $salary): array
+    {
+        $contributionTable = [
+            ["range" => [0    , 4249.99 ], "employee_share" => 180.00 , "employer_share" => 390.00 ],
+            ["range" => [4250 , 4749.99 ], "employee_share" => 202.50 , "employer_share" => 437.50 ],
+            ["range" => [4750 , 5249.99 ], "employee_share" => 225.00 , "employer_share" => 485.00 ],
+            ["range" => [5250 , 5749.99 ], "employee_share" => 247.50 , "employer_share" => 532.50 ],
+            ["range" => [5750 , 6249.99 ], "employee_share" => 270.00 , "employer_share" => 580.00 ],
+            ["range" => [6250 , 6749.99 ], "employee_share" => 292.50 , "employer_share" => 627.50 ],
+            ["range" => [6750 , 7249.99 ], "employee_share" => 315.00 , "employer_share" => 675.00 ],
+            ["range" => [7250 , 7749.99 ], "employee_share" => 337.50 , "employer_share" => 722.50 ],
+            ["range" => [7750 , 8249.99 ], "employee_share" => 360.00 , "employer_share" => 770.00 ],
+            ["range" => [8250 , 8749.99 ], "employee_share" => 382.50 , "employer_share" => 817.50 ],
+            ["range" => [8750 , 9249.99 ], "employee_share" => 405.00 , "employer_share" => 865.00 ],
+            ["range" => [9250 , 9749.99 ], "employee_share" => 427.50 , "employer_share" => 912.50 ],
+            ["range" => [9750 , 10249.99], "employee_share" => 450.00 , "employer_share" => 960.00 ],
+            ["range" => [10250, 10749.99], "employee_share" => 472.50 , "employer_share" => 1007.50],
+            ["range" => [10750, 11249.99], "employee_share" => 495.00 , "employer_share" => 1055.00],
+            ["range" => [11250, 11749.99], "employee_share" => 517.50 , "employer_share" => 1102.50],
+            ["range" => [11750, 12249.99], "employee_share" => 540.00 , "employer_share" => 1150.00],
+            ["range" => [12250, 12749.99], "employee_share" => 562.50 , "employer_share" => 1197.50],
+            ["range" => [12750, 13249.99], "employee_share" => 585.00 , "employer_share" => 1245.00],
+            ["range" => [13250, 13749.99], "employee_share" => 607.50 , "employer_share" => 1292.50],
+            ["range" => [13750, 14249.99], "employee_share" => 630.00 , "employer_share" => 1340.00],
+            ["range" => [14250, 14749.99], "employee_share" => 652.50 , "employer_share" => 1387.50],
+            ["range" => [14750, 15249.99], "employee_share" => 675.00 , "employer_share" => 1455.00],
+            ["range" => [15250, 15749.99], "employee_share" => 697.50 , "employer_share" => 1502.50],
+            ["range" => [15750, 16249.99], "employee_share" => 720.00 , "employer_share" => 1550.00],
+            ["range" => [16250, 16749.99], "employee_share" => 742.50 , "employer_share" => 1597.50],
+            ["range" => [16750, 17249.99], "employee_share" => 765.00 , "employer_share" => 1645.00],
+            ["range" => [17250, 17749.99], "employee_share" => 787.50 , "employer_share" => 1692.50],
+            ["range" => [17750, 18249.99], "employee_share" => 810.00 , "employer_share" => 1740.00],
+            ["range" => [18250, 18749.99], "employee_share" => 832.50 , "employer_share" => 1787.50],
+            ["range" => [18750, 19249.99], "employee_share" => 855.00 , "employer_share" => 1835.00],
+            ["range" => [19250, 19749.99], "employee_share" => 877.50 , "employer_share" => 1882.50],
+            ["range" => [19750, 20249.99], "employee_share" => 900.00 , "employer_share" => 1930.00],
+            ["range" => [20250, 20749.99], "employee_share" => 922.50 , "employer_share" => 1977.50],
+            ["range" => [20750, 21249.99], "employee_share" => 945.00 , "employer_share" => 2025.00],
+            ["range" => [21250, 21749.99], "employee_share" => 967.50 , "employer_share" => 2072.50],
+            ["range" => [21750, 22249.99], "employee_share" => 990.00 , "employer_share" => 2120.00],
+            ["range" => [22250, 22749.99], "employee_share" => 1012.50, "employer_share" => 2167.50],
+            ["range" => [22750, 23249.99], "employee_share" => 1035.00, "employer_share" => 2215.00],
+            ["range" => [23250, 23749.99], "employee_share" => 1057.50, "employer_share" => 2262.50],
+            ["range" => [23750, 24249.99], "employee_share" => 1080.00, "employer_share" => 2310.00],
+            ["range" => [24250, 24749.99], "employee_share" => 1102.50, "employer_share" => 2357.50],
+            ["range" => [24750, 25249.99], "employee_share" => 1125.00, "employer_share" => 2405.00],
+            ["range" => [25250, 25749.99], "employee_share" => 1147.50, "employer_share" => 2452.50],
+            ["range" => [25750, 26249.99], "employee_share" => 1170.00, "employer_share" => 2500.00],
+            ["range" => [26250, 26749.99], "employee_share" => 1192.50, "employer_share" => 2547.50],
+            ["range" => [26750, 27249.99], "employee_share" => 1215.00, "employer_share" => 2595.00],
+            ["range" => [27250, 27749.99], "employee_share" => 1237.50, "employer_share" => 2642.50],
+            ["range" => [27750, 28249.99], "employee_share" => 1260.00, "employer_share" => 2690.00],
+            ["range" => [28250, 28749.99], "employee_share" => 1282.50, "employer_share" => 2737.50],
+            ["range" => [28750, 29249.99], "employee_share" => 1305.00, "employer_share" => 2785.00],
+            ["range" => [29250, 29749.99], "employee_share" => 1327.50, "employer_share" => 2832.50],
+            ["range" => [29750, "Over"  ], "employee_share" => 1350.00, "employer_share" => 2880.00]
+        ];
+
+        foreach ($contributionTable as $row) {
+            if ($row['range'][1] === 'Over') {
+                if ($salary >= $row['range'][0]) {
+                    return [
+                        'employee_share' => $row['employee_share'],
+                        'employer_share' => $row['employer_share']
+                    ];
+                }
+            } else {
+                if ($salary >= $row['range'][0] && $salary <= $row['range'][1]) {
+                    return [
+                        'employee_share' => $row['employee_share'],
+                        'employer_share' => $row['employer_share']
+                    ];
+                }
+            }
+        }
+
+        return [];
+    }
+
+    private function calculatePhilhealthContribution(float $salary, int $year): array
+    {
+        $totalContribution = 0.00;
+
+        if ($year === 2024 || $year === 2025) {
+            if ($salary <= 10000.00) {
+                $totalContribution = 500.00;
+            } elseif ($salary >= 10000.01 && $salary <= 99999.99) {
+                $totalContribution = max(500.00, $salary * 0.05);
+                if ($totalContribution > 5000.00) {
+                    $totalContribution = 5000.00;
+                }
+            }
+        }
+
+        $employeeShare = $totalContribution / 2.0;
+        $employerShare = $totalContribution / 2.0;
+
+        return [
+            'employee_share' => $employeeShare,
+            'employer_share' => $employerShare
+        ];
+    }
+
+    private function calculatePagibigFundContribution(float $salary): array
+    {
+        $employeeShare = 0.00;
+        $employerShare = 0.00;
+
+        if ($salary <= 1500) {
+            $employeeShare = $salary * 0.01;
+            $employerShare = $salary * 0.02;
+        } else {
+            $employeeShare = $salary * 0.02;
+            $employerShare = $salary * 0.02;
+        }
+
+        return [
+            'employee_share' => $employeeShare,
+            'employer_share' => $employerShare
+        ];
+    }
+
+    private function calculateWithholdingTax(float $compensation, string $frequency): float
+    {
+        $withholdingTax = 0.00;
+
+        switch ($frequency) {
+            case 'daily':
+                if ($compensation <= 685.00) {
+                    $withholdingTax = 0.00;
+                } elseif ($compensation <= 1095.00) {
+                    $withholdingTax = ($compensation - 685.00) * 0.15;
+                } elseif ($compensation <= 2191.00) {
+                    $withholdingTax = 61.65 + ($compensation - 1095.00) * 0.20;
+                } elseif ($compensation <= 5478.00) {
+                    $withholdingTax = 280.85 + ($compensation - 2191.00) * 0.25;
+                } elseif ($compensation <= 21917.00) {
+                    $withholdingTax = 1102.60 + ($compensation - 5478.00) * 0.30;
+                } else {
+                    $withholdingTax = 6034.30 + ($compensation - 21917.00) * 0.35;
+                }
+                break;
+
+            case 'weekly':
+                if ($compensation <= 4808.00) {
+                    $withholdingTax = 0.00;
+                } elseif ($compensation <= 7691.00) {
+                    $withholdingTax = ($compensation - 4808.00) * 0.15;
+                } elseif ($compensation <= 15384.00) {
+                    $withholdingTax = 432.60 + ($compensation - 7691.00) * 0.20;
+                } elseif ($compensation <= 38461.00) {
+                    $withholdingTax = 1971.20 + ($compensation - 15384.00) * 0.25;
+                } elseif ($compensation <= 153845.00) {
+                    $withholdingTax = 7740.45 + ($compensation - 38461.00) * 0.30;
+                } else {
+                    $withholdingTax = 42355.65 + ($compensation - 153845.00) * 0.35;
+                }
+                break;
+
+            case 'bi-weekly':
+                if ($compensation <= 9616.00) {
+                    $withholdingTax = 0.00;
+                } elseif ($compensation <= 15382.00) {
+                    $withholdingTax = ($compensation - 9616.00) * 0.15;
+                } elseif ($compensation <= 30768.00) {
+                    $withholdingTax = 865.20 + ($compensation - 15382.00) * 0.20;
+                } elseif ($compensation <= 76922.00) {
+                    $withholdingTax = 3942.40 + ($compensation - 30768.00) * 0.25;
+                } elseif ($compensation <= 307690.00) {
+                    $withholdingTax = 15480.90 + ($compensation - 76922.00) * 0.30;
+                } else {
+                    $withholdingTax = 84671.30 + ($compensation - 307690.00) * 0.35;
+                }
+                break;
+
+            case 'semi-monthly':
+                if ($compensation <= 10417.00) {
+                    $withholdingTax = 0.00;
+                } elseif ($compensation <= 16666.00) {
+                    $withholdingTax = ($compensation - 10417.00) * 0.15;
+                } elseif ($compensation <= 33332.00) {
+                    $withholdingTax = 937.50 + ($compensation - 16666.00) * 0.20;
+                } elseif ($compensation <= 83332.00) {
+                    $withholdingTax = 4270.70 + ($compensation - 33332.00) * 0.25;
+                } elseif ($compensation <= 333332.00) {
+                    $withholdingTax = 16770.70 + ($compensation - 83332.00) * 0.30;
+                } else {
+                    $withholdingTax = 91770.70 + ($compensation - 333332.00) * 0.35;
+                }
+                break;
+
+            case 'monthly':
+                if ($compensation <= 20833.00) {
+                    $withholdingTax = 0.00;
+                } elseif ($compensation <= 33332.00) {
+                    $withholdingTax = ($compensation - 20833.00) * 0.15;
+                } elseif ($compensation <= 66666.00) {
+                    $withholdingTax = 1875.00 + ($compensation - 33332.00) * 0.20;
+                } elseif ($compensation <= 166666.00) {
+                    $withholdingTax = 8541.80 + ($compensation - 66666.00) * 0.25;
+                } elseif ($compensation <= 666666.00) {
+                    $withholdingTax = 33541.80 + ($compensation - 166666.00) * 0.30;
+                } else {
+                    $withholdingTax = 183541.80 + ($compensation - 666666.00) * 0.35;
+                }
+                break;
+
+            default:
+                // Do nothing
+        }
+
+        return round($withholdingTax, 2);
     }
 }

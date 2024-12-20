@@ -7,7 +7,15 @@ require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php';
 require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignmentRepository.php';
 require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignment.php';
 require_once __DIR__ . '/../holidays/HolidayRepository.php';
+require_once __DIR__ . '/../allowances/EmployeeAllowanceRepository.php';
+require_once __DIR__ . '/../deductions/EmployeeDeductionRepository.php';
 
+require_once __DIR__ . '/../payroll/PayrollGroup.php';
+require_once __DIR__ . '/../payroll/PayslipService.php';
+
+require_once __DIR__ . '/../payroll/PayslipRepository.php'                                 ;
+require_once __DIR__ . '/../payroll/EmployeeHourSummaryRepository.php'                     ;
+require_once __DIR__ . '/../leaves/LeaveEntitlementRepository.php';
 
 $attendanceDao    = new AttendanceDao($pdo);
 $employeeDao      = new EmployeeDao($pdo);
@@ -19,6 +27,11 @@ $employeeBreakDao = new EmployeeBreakDao($pdo);
 $overtimeRateDao = new OvertimeRateDao($pdo);
 $overtimeRateAssignmentDao = new OvertimeRateAssignmentDao($pdo, $overtimeRateDao);
 $holidayDao = new HolidayDao($pdo);
+$employeeAllowanceDao = new EmployeeAllowanceDao($pdo);
+$employeeDeductionDao = new EmployeeDeductionDao($pdo);
+$payslipDao = new PayslipDao($pdo);
+$employeeHourSummaryDao = new EmployeeHourSummaryDao($pdo);
+$leaveEntitlementDao = new LeaveEntitlementDao($pdo);
 
 $attendanceRepository    = new AttendanceRepository($attendanceDao);
 $employeeRepository      = new EmployeeRepository($employeeDao);
@@ -27,9 +40,14 @@ $workScheduleRepository  = new WorkScheduleRepository($workScheduleDao);
 $settingRepository       = new SettingRepository($settingDao);
 $breakScheduleRepository = new BreakScheduleRepository($breakScheduleDao);
 $employeeBreakRepository = new EmployeeBreakRepository($employeeBreakDao);
-$overtimeRateRepository = new OvertimeRateRepository($overtimeRateDao);
+$overtimeRateRepository  = new OvertimeRateRepository($overtimeRateDao);
 $overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overtimeRateAssignmentDao);
 $holidayRepository = new HolidayRepository($holidayDao);
+$employeeAllowanceRepository = new EmployeeAllowanceRepository($employeeAllowanceDao);
+$employeeDeductionRepository = new EmployeeDeductionRepository($employeeDeductionDao);
+$payslipRepository = new PayslipRepository($payslipDao);
+$employeeHourSummaryRepository = new EmployeeHourSummaryRepository($employeeHourSummaryDao);
+$leaveEntitlementRepository = new LeaveEntitlementRepository($leaveEntitlementDao);
 
 $attendanceService = new AttendanceService(
     $attendanceRepository,
@@ -48,37 +66,32 @@ $employeeBreakService = new EmployeeBreakService(
     $breakScheduleRepository
 );
 
-$rfidUid = '123456789';
+$payslipService = new PayslipService(
+    $employeeRepository,
+    $workScheduleRepository,
+    $attendanceRepository,
+    $overtimeRateAssignmentRepository,
+    $overtimeRateRepository,
+    $holidayRepository,
+    $leaveRequestRepository,
+    $employeeAllowanceRepository,
+    $settingRepository,
+    $employeeBreakRepository,
+    $breakScheduleRepository,
+    $employeeDeductionRepository,
+    $payslipRepository,
+    $employeeHourSummaryRepository,
+    $leaveEntitlementRepository
+);
 
-$currentDateTime = '2024-12-02 08:00:00';
+$cutoffStartDate = '2024-11-01';
+$cutoffEndDate   = '2024-12-07';
 
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+$payrollGroup = new PayrollGroup(
+    1,
+    'sds',
+    'Monthly',
+    'Active'
+);
 
-$currentDateTime = '2024-12-02 17:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-
-
-print_r($response);
-/*
-$currentDateTime = '2024-11-26 08:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-$response = $employeeBreakService->handleRfidTap($rfidUid, '2024-11-26 12:00:00');
-$response = $employeeBreakService->handleRfidTap($rfidUid, '2024-11-26 12:30:00');
-
-$currentDateTime = '2024-11-26 12:40:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-
-$currentDateTime = '2024-12-02 08:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-$currentDateTime = '2024-12-02 17:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-*/
+$payslipService = $payslipService->calculate($payrollGroup, $cutoffStartDate, $cutoffEndDate, '2024-12-10');
