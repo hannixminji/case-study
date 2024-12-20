@@ -16,6 +16,17 @@ class PayslipRepository
         return $this->payslipDao->create($payslip);
     }
 
+    public function fetchAllPayslips(
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
+    ): ActionResult|array
+    {
+        return $this->payslipDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+    }
+
     public function getLastPayslipId(): ActionResult|int|null
     {
         return $this->payslipDao->getLastPayslipId();

@@ -33,7 +33,7 @@ class LeaveEntitlementRepository
 
     public function resetEmployeeAllLeaveBalances(int|string $employeeId, bool $isHashedId = false): ActionResult
     {
-        return $this->resetEmployeeAllLeaveBalances($employeeId, $isHashedId);
+        return $this->leaveEntitlementDao->resetEmployeeAllLeaveBalances($employeeId, $isHashedId);
     }
 
     public function deleteLeaveEntitlement(int|string $leaveEntitlementId, bool $isHashedId = false): ActionResult
