@@ -6,6 +6,8 @@ class PayrollGroup
         private readonly int|string|null $id            = null,
         private readonly string          $name                ,
         private readonly string          $payFrequency        ,
+        private readonly string          $startDate           ,
+        private readonly int             $paydayAfterCutoff   ,
         private readonly string          $status
     ) {
     }
@@ -23,6 +25,16 @@ class PayrollGroup
     public function getPayFrequency(): string
     {
         return $this->payFrequency;
+    }
+
+    public function getStartDate(): string
+    {
+        return $this->startDate;
+    }
+
+    public function getPaydayAfterCutoff(): string
+    {
+        return $this->paydayAfterCutoff;
     }
 
     public function getStatus(): string

@@ -17,13 +17,17 @@ class PayrollGroupDao
     {
         $query = "
             INSERT INTO payroll_groups (
-                name         ,
-                pay_frequency,
+                name                ,
+                pay_frequency       ,
+                start_date          ,
+                pay_day_after_cutoff,
                 status
             )
             VALUES (
-                :name         ,
-                :pay_frequency,
+                :name                ,
+                :pay_frequency       ,
+                :start_date          ,
+                :pay_day_after_cutoff,
                 :status
             )
         ";
@@ -33,9 +37,11 @@ class PayrollGroupDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"         , $payrollGroup->getName()        , Helper::getPdoParameterType($payrollGroup->getName()        ));
-            $statement->bindValue(":pay_frequency", $payrollGroup->getPayFrequency(), Helper::getPdoParameterType($payrollGroup->getPayFrequency()));
-            $statement->bindValue(":status"       , $payrollGroup->getStatus()      , Helper::getPdoParameterType($payrollGroup->getStatus()      ));
+            $statement->bindValue(":name"                , $payrollGroup->getName()             , Helper::getPdoParameterType($payrollGroup->getName()             ));
+            $statement->bindValue(":pay_frequency"       , $payrollGroup->getPayFrequency()     , Helper::getPdoParameterType($payrollGroup->getPayFrequency()     ));
+            $statement->bindValue(":start_date"          , $payrollGroup->getStartDate()        , Helper::getPdoParameterType($payrollGroup->getStartDate()        ));
+            $statement->bindValue(":pay_day_after_cutoff", $payrollGroup->getPayDayAfterCutoff(), Helper::getPdoParameterType($payrollGroup->getPayDayAfterCutoff()));
+            $statement->bindValue(":status"              , $payrollGroup->getStatus()           , Helper::getPdoParameterType($payrollGroup->getStatus()           ));
 
             $statement->execute();
 
@@ -61,13 +67,15 @@ class PayrollGroupDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"            => "payroll_group.id            AS id"           ,
-            "name"          => "payroll_group.name          AS name"         ,
-            "pay_frequency" => "payroll_group.pay_frequency AS pay_frequency",
-            "status"        => "payroll_group.status        AS status"       ,
-            "created_at"    => "payroll_group.created_at    AS created_at"   ,
-            "updated_at"    => "payroll_group.updated_at    AS updated_at"   ,
-            "deleted_at"    => "payroll_group.deleted_at    AS deleted_at"   ,
+            "id"                   => "payroll_group.id                   AS id"                  ,
+            "name"                 => "payroll_group.name                 AS name"                ,
+            "pay_frequency"        => "payroll_group.pay_frequency        AS pay_frequency"       ,
+            "pay_day_after_cutoff" => "payroll_group.pay_day_after_cutoff AS pay_day_after_cutoff",
+            "start_date"           => "payroll_group.start_date           AS start_date"          ,
+            "status"               => "payroll_group.status               AS status"              ,
+            "created_at"           => "payroll_group.created_at           AS created_at"          ,
+            "updated_at"           => "payroll_group.updated_at           AS updated_at"          ,
+            "deleted_at"           => "payroll_group.deleted_at           AS deleted_at"
         ];
 
         $selectedColumns =
@@ -86,7 +94,7 @@ class PayrollGroupDao
             $whereClauses[] = "payroll_group.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
+                $column   = $filterCriterion["column"];
                 $operator = $filterCriterion["operator"];
 
                 switch ($operator) {
@@ -117,6 +125,18 @@ class PayrollGroupDao
                 if (isset($sortCriterion["direction"])) {
                     $direction = $sortCriterion["direction"];
                     $orderByClauses[] = "{$column} {$direction}";
+
+                } elseif (isset($sortCriterion["custom_order"])) {
+                    $customOrder = $sortCriterion["custom_order"];
+                    $caseExpressions = ["CASE {$column}"];
+
+                    foreach ($customOrder as $priority => $value) {
+                        $caseExpressions[] = "WHEN ? THEN {$priority}";
+                        $queryParameters[] = $value;
+                    }
+
+                    $caseExpressions[] = "ELSE " . count($caseExpressions) . " END";
+                    $orderByClauses[] = implode(" ", $caseExpressions);
                 }
             }
         }
@@ -170,7 +190,7 @@ class PayrollGroupDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the payroll groups. " .
                       "Exception: {$exception->getMessage()}");
-
+            echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }
@@ -180,9 +200,11 @@ class PayrollGroupDao
         $query = "
             UPDATE payroll_groups
             SET
-                name          = :name         ,
-                pay_frequency = :pay_frequency,
-                status        = :status
+                name                 = :name                ,
+                pay_frequency        = :pay_frequency       ,
+                start_date           = :start_date          ,
+                pay_day_after_cutoff = :pay_day_after_cutoff,
+                status               = :status
             WHERE
         ";
 
@@ -197,10 +219,12 @@ class PayrollGroupDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"            , $payrollGroup->getName()        , Helper::getPdoParameterType($payrollGroup->getName()        ));
-            $statement->bindValue(":pay_frequency"   , $payrollGroup->getPayFrequency(), Helper::getPdoParameterType($payrollGroup->getPayFrequency()));
-            $statement->bindValue(":status"          , $payrollGroup->getStatus()      , Helper::getPdoParameterType($payrollGroup->getStatus()      ));
-            $statement->bindValue(":payroll_group_id", $payrollGroup->getId()          , Helper::getPdoParameterType($payrollGroup->getId()          ));
+            $statement->bindValue(":name"                , $payrollGroup->getName()             , Helper::getPdoParameterType($payrollGroup->getName()             ));
+            $statement->bindValue(":pay_frequency"       , $payrollGroup->getPayFrequency()     , Helper::getPdoParameterType($payrollGroup->getPayFrequency()     ));
+            $statement->bindValue(":start_date"          , $payrollGroup->getStartDate()        , Helper::getPdoParameterType($payrollGroup->getStartDate()        ));
+            $statement->bindValue(":pay_day_after_cutoff", $payrollGroup->getPayDayAfterCutoff(), Helper::getPdoParameterType($payrollGroup->getPayDayAfterCutoff()));
+            $statement->bindValue(":status"              , $payrollGroup->getStatus()           , Helper::getPdoParameterType($payrollGroup->getStatus()           ));
+            $statement->bindValue(":payroll_group_id"    , $payrollGroup->getId()               , Helper::getPdoParameterType($payrollGroup->getId()               ));
 
             $statement->execute();
 
