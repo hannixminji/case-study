@@ -113,11 +113,17 @@ if ( ! empty($payrollGroups)) {
                         status           : $payrollGroup['status'              ]
                     );
 
-                    $cutoffStartDate = $payrollGroup['start_date'];
-                    $payDate = '';
+                    $payrollGroupStartDate = new DateTime($payrollGroup['start_date']);
 
-                    $result = $payslipService->calculate($payrollGroup, $cutoffStartDate, $currentDate, $payDate);
+                    $cutoffStartDate = clone $payrollGroupStartDate;
+                    $cutoffStartDate->modify('-6 days');
+
+                    $payDate = clone $payrollGroupStartDate;
+                    $payDate->modify("+{$payrollGroup['pay_day_after_cutoff']} days");
+
+                    $result = $payslipService->calculate($payrollGroup, $cutoffStartDate->format('Y-m-d'), $currentDate, $payDate->format('Y-m-d'));
                 }
+
                 break;
 
             case 'Semi-Monthly':
