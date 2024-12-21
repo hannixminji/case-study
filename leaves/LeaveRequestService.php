@@ -57,4 +57,24 @@ class LeaveRequestService
     {
         return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId, $isHashedId);
     }
+
+    public function createLeaveRequestAttachment(LeaveRequestAttachment $leaveRequestAttachment): ActionResult
+    {
+        return $this->leaveRequestAttachmentRepository->createLeaveRequestAttachment($leaveRequestAttachment);
+    }
+
+    public function fetchAllLeaveRequestAttachments(
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
+    ): ActionResult|array {
+        return $this->leaveRequestAttachmentRepository->fetchAllLeaveRequestAttachments($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+    }
+
+    public function deleteLeaveRequestAttachment(int|string $leaveRequestAttachmentId, bool $isHashedId = false): ActionResult
+    {
+        return $this->leaveRequestAttachmentRepository->deleteLeaveRequestAttachment($leaveRequestAttachmentId, $isHashedId);
+    }
 }
