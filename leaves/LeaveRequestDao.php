@@ -185,6 +185,10 @@ class LeaveRequestDao
                         $queryParameters[] = $filterCriterion["value"];
                         break;
 
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
+                        break;
+
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/Attendance.php';
+
+
 
 require_once __DIR__ . '/AttendanceService.php';
 require_once __DIR__ . '/../database/database.php';
@@ -76,6 +79,24 @@ $employeeBreakService = new EmployeeBreakService(
     $attendanceRepository,
     $breakScheduleRepository
 );
+
+$attendance = new Attendance(
+    id: 2,
+    workScheduleId: 1,
+    date: '2024-11-02',
+    checkInTime: '2024-11-02 08:00:00',
+    checkOutTime: '2024-11-02 17:00:00',
+    totalBreakDurationInMinutes: 60,
+    totalHoursWorked: 8.00,
+    lateCheckIn: 0,
+    earlyCheckOut: 0,
+    overtimeHours: 0.00,
+    isOvertimeApproved: null,
+    attendanceStatus: 'Present',
+    remarks: null
+);
+
+print_r($attendanceService->updateAttendance($attendance));
 
 /*
 $currentDateTime = '2024-11-26 08:00:00';

@@ -231,6 +231,7 @@ class AttendanceDao
 
                 switch ($operator) {
                     case "="   :
+                    case "!="  :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];

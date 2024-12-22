@@ -274,9 +274,9 @@ class EmploymentTypeBenefitDao
             AND
                 (leave_type_id = :leave_type_id OR :leave_type_id IS NULL)
             AND
-                (allowance_id = :allowance_id OR :allowance_id IS NULL)
+                (allowance_id  = :allowance_id  OR :allowance_id  IS NULL)
             AND
-                (deduction_id = :deduction_id OR :deduction_id IS NULL)
+                (deduction_id  = :deduction_id  OR :deduction_id  IS NULL)
             AND
                 deleted_at IS NULL
         ";

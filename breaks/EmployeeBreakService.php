@@ -203,7 +203,7 @@ class EmployeeBreakService
 
                 if ($result === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error6',
+                        'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.',
                     ];
                 }
@@ -230,7 +230,7 @@ class EmployeeBreakService
 
                 if ($result === ActionResult::FAILURE) {
                     return [
-                        'status'  => 'error7',
+                        'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.',
                     ];
                 }
