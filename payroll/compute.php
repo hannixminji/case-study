@@ -96,10 +96,20 @@ if ($payrollGroups === ActionResult::FAILURE) {
 
 $payrollGroups = $payrollGroups['result_set'];
 
-// $currentDate = (new DateTime())->format('Y-m-d');
-$currentDate = '2024-11-01';
+$payrollGroups = [
+    [
+        'id'                   => 1               ,
+        'name'                 => 'Weekly Payroll',
+        'pay_frequency'        => 'Semi-Monthly'  ,
+        'start_date'           => '2024-11-01'    ,
+        'pay_day_after_cutoff' => 3               ,
+        'status'               => 'Active'
+    ]
+];
 
-if ( ! empty($payrollGroups)) {
+$currentDate = (new DateTime())->format('Y-m-d');
+
+if ( ! empty($payrollGroups) && (new DateTime())->format('H:i:s') === '11:59:00') {
     foreach ($payrollGroups as $payrollGroup) {
         $payrollGroupModel = new PayrollGroup(
             id               : $payrollGroup['id'                  ],
@@ -121,7 +131,7 @@ if ( ! empty($payrollGroups)) {
                     $payDate = clone new DateTime($currentDate);
                     $payDate->modify("+{$payrollGroup['pay_day_after_cutoff']} days");
 
-                    $result = $payslipService->calculate($payrollGroup, $cutoffStartDate->format('Y-m-d'), $currentDate, $payDate->format('Y-m-d'));
+                    $result = $payslipService->calculate($payrollGroupModel, $cutoffStartDate->format('Y-m-d'), $currentDate, $payDate->format('Y-m-d'), "create");
                 }
 
                 break;
@@ -227,9 +237,44 @@ if ( ! empty($payrollGroups)) {
                     }
                 }
 
+                if ($cutoffStartDay !== 0 || $cutoffEndDay !== 0) {
+                    $year  = (int) (new DateTime($currentDate))->format('Y');
+                    $month = (int) (new DateTime($currentDate))->format('m');
+
+                    if ($cutoffStartDay < 10) {
+                        $cutoffStartDate = new DateTime("$year-$month-0$cutoffStartDay");
+                    } else {
+                        $cutoffStartDate = new DateTime("$year-$month-$cutoffStartDay");
+                    }
+
+                    if ($cutoffEndDay < 10) {
+                        $cutoffEndDate = new DateTime("$year-$month-0$cutoffEndDay");
+                    } else {
+                        $cutoffEndDate = new DateTime("$year-$month-$cutoffEndDay");
+                    }
+
+                    if ($cutoffStartDay > $cutoffEndDay) {
+                        $cutoffStartDate->modify('-1 month');
+                    }
+
+                    $payDate = clone $cutoffEndDate;
+                    $payDate->modify("+{$payrollGroup['pay_day_after_cutoff']} days");
+
+                    $result = $payslipService->calculate($payrollGroupModel, $cutoffStartDate->format('Y-m-d'), $cutoffEndDate->format('Y-m-d'), $payDate->format('Y-m-d'), "create");
+                }
+
                 break;
 
             case 'Monthly':
+                $firstDayOfMonth = (new DateTime('first day of this month'))->format('Y-m-d');
+                $lastDayOfMonth  = (new DateTime('last day of this month' ))->format('Y-m-d');
+
+                if ($currentDate === $lastDayOfMonth) {
+                    $paydate = (new DateTime($lastDayOfMonth))->modify("+{$payrollGroup['pay_day_after_cutoff']} days");
+
+                    $result = $payslipService->calculate($payrollGroupModel, $firstDayOfMonth, $lastDayOfMonth, $payDate->format('Y-m-d'), "create");
+                }
+
                 break;
 
             default:
@@ -238,141 +283,3 @@ if ( ! empty($payrollGroups)) {
 
     }
 }
-
-/*
-<?php
-
-$currentDate = '2022-03-31';
-$payrollGroup = [
-    'start_date' => '2022-01-15'
-];
-
-$currentDay = (int) (new DateTime($currentDate))->format('d');
-$dayOfStartDate = (int) (new DateTime($payrollGroup['start_date']))->format('d');
-
-$firstCutoff  = 0;
-$secondCutoff = 0;
-
-if ($dayOfStartDate <= 15) {
-    $firstCutoff  = $dayOfStartDate;
-    $secondCutoff = $dayOfStartDate + 15;
-} else {
-    $firstCutoff  = $dayOfStartDate - 15;
-    $secondCutoff = $dayOfStartDate;
-}
-
-$cutoffStartDay = 0;
-$cutoffEndDay   = 0;
-
-if ($currentDate >= $payrollGroup['start_date']) {
-    if ($dayOfStartDate <= 12 && $currentDay === $firstCutoff) {
-        $cutoffStartDay = $secondCutoff + 1;
-        $cutoffEndDay   = $firstCutoff    ;
-    } elseif ($dayOfStartDate <= 12 && $currentDay === $secondCutoff) {
-        $cutoffStartDay = $firstCutoff + 1;
-        $cutoffEndDay   = $secondCutoff   ;
-    } elseif ($dayOfStartDate === 13 && $currentDay === $firstCutoff) {
-        if ( (int) (new DateTime($currentDate))->format('m') === 3) {
-            $lastDayOfFebruary = clone new DateTime($currentDate);
-            $lastDayOfFebruary->modify('last day of previous month');
-            $lastDayOfFebruary = (int) $lastDayOfFebruary->format('d');
-
-            if ($lastDayOfFebruary === 28) {
-                $cutoffStartDay = 1           ;
-                $cutoffEndDay   = $firstCutoff;
-            } else {
-                $cutoffStartDay = $secondCutoff + 1;
-                $cutoffEndDay   = $firstCutoff     ;
-            }
-        } else {
-            $cutoffStartDay = $secondCutoff + 1;
-            $cutoffEndDay   = $firstCutoff     ;
-        }
-    } elseif ($dayOfStartDate === 13 && $currentDay === $secondCutoff) {
-        $cutoffStartDay = $firstCutoff + 1;
-        $cutoffEndDay   = $secondCutoff   ;
-    } elseif ($dayOfStartDate === 14 && $currentDay === $firstCutoff) {
-        if ( (int) (new DateTime($currentDate))->format('m') === 3) {
-            $lastDayOfFebruary = clone new DateTime($currentDate);
-            $lastDayOfFebruary->modify('last day of previous month');
-            $lastDayOfFebruary = (int) $lastDayOfFebruary->format('d');
-
-            if ($lastDayOfFebruary === 28) {
-                $cutoffStartDay = 1           ;
-                $cutoffEndDay   = $firstCutoff;
-            } else {
-                $cutoffStartDay = $secondCutoff + 1;
-                $cutoffEndDay   = $firstCutoff     ;
-            }
-        } else {
-            $cutoffStartDay = $secondCutoff + 1;
-            $cutoffEndDay   = $firstCutoff     ;
-        }
-    } elseif ($dayOfStartDate === 14 && $currentDay === $secondCutoff ||
-             ($dayOfStartDate === 14 && (int) (new DateTime($currentDate))->format('m') === 2)) {
-        if ( (int) (new DateTime($currentDate))->format('m') === 2) {
-            $lastDayOfFebruary = clone new DateTime($currentDate);
-            $lastDayOfFebruary = (int) $lastDayOfFebruary->format('d');
-
-            if ($lastDayOfFebruary === 28) {
-                $cutoffStartDay = $firstCutoff + 1;
-                $cutoffEndDay   = 28;
-            } else {
-                $cutoffStartDay = $firstCutoff + 1;
-                $cutoffEndDay   = 29;
-            }
-        } else {
-            $cutoffStartDay = $firstCutoff + 1;
-            $cutoffEndDay   = $secondCutoff   ;
-        }
-    } elseif ($dayOfStartDate === 15 && $currentDay === $firstCutoff) {
-        $cutoffStartDay = 1;
-        $cutoffEndDay   = $firstCutoff;
-    } elseif ($dayOfStartDate === 15) {
-        $lastDayOfCurrentMonth = (int) (new DateTime($currentDate))->modify('last day of this month')->format('d');
-        echo $lastDayOfCurrentMonth;
-        if ($currentDay === $lastDayOfCurrentMonth) {
-            $cutoffStartDay = $firstCutoff + 1;
-            $cutoffEndDay   =  $lastDayOfCurrentMonth;
-        }
-    }
-}
-
-echo "First Cutoff: $firstCutoff\n";
-echo "Second Cutoff: $secondCutoff\n";
-echo "Cutoff Start Day: $cutoffStartDay\n";
-echo "Cutoff End Day: $cutoffEndDay\n";
-
-*/
-
-/*
-                    if ($dayOfStartDate <= 15 && $secondCutoff === 30) {
-                        if ($currentDay === 28 || $currentDay === 29 || $currentDay === 30) {
-                            $cutoffStartDay = $firstCutoff - 15 + 31;
-                            $cutoffEndDay   = $currentDay           ;
-                        }
-                    }
-
-if ($currentDate >= $payrollGroup['start_date'] && ($currentDay === $firstCutoff || $currentDay === $secondCutoff)) {
-
-                }
-
-                if ($currentDate >= $payrollGroup['start_date'] &&
-                   ($currentDay === $dayOfStartDate || $currentDay === ($dayOfStartDate + 15 > 30 ? $dayOfStartDate + 15 - 30 : $dayOfStartDate + 15))
-                ) {
-
-                    if ($currentDay === $dayOfStartDate) {
-                        if ($currentDay <= 13) {
-                            $cutoffStartDate = $currentDay - 15 + 31;
-                            $cutoffEndDate = $currentDay;
-                        } elseif ($currentDay <= 31) {
-                            if ($dayOfStartDate === 29) {
-
-                            }
-
-                        }
-                    }
-                }
-                */
-
-

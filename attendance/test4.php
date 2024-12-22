@@ -8,6 +8,23 @@ require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignmentRepository.php'
 require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignment.php';
 require_once __DIR__ . '/../holidays/HolidayRepository.php';
 
+require_once __DIR__ . '/../leaves/LeaveEntitlement.php';
+require_once __DIR__ . '/../leaves/LeaveEntitlementService.php';
+
+$leaveEntitlementDao = new LeaveEntitlementDao($pdo);
+$leaveEntitlementRepository = new LeaveEntitlementRepository($leaveEntitlementDao);
+$leaveEntitlementService = new LeaveEntitlementService($leaveEntitlementRepository);
+
+$newLeaveEntitlement = new LeaveEntitlement(
+    id: null,
+    employeeId: 6,
+    leaveTypeId: 1,
+    numberOfEntitledDays: 10,
+    numberOfDaysTaken: 0,
+    remainingDays: 10
+);
+
+$assignResult = $leaveEntitlementService->createLeaveEntitlement($newLeaveEntitlement);
 
 $attendanceDao    = new AttendanceDao($pdo);
 $employeeDao      = new EmployeeDao($pdo);
@@ -48,19 +65,6 @@ $employeeBreakService = new EmployeeBreakService(
     $breakScheduleRepository
 );
 
-$rfidUid = '123456789';
-
-$currentDateTime = '2024-12-02 08:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-$currentDateTime = '2024-12-02 17:00:00';
-
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-
-
-
-print_r($response);
 /*
 $currentDateTime = '2024-11-26 08:00:00';
 

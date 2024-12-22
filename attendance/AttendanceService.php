@@ -764,7 +764,18 @@ class AttendanceService
                     }
 
                     $earlyCheckOutInMinutes = ($lastAttendanceRecord['work_schedule_total_work_hours'] - $totalHoursWorked) * 60;
-                    $earlyCheckOutInMinutes -= $gracePeriod;
+
+
+                    $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
+                    $scheduledStartTime = clone $workScheduleStartTime;
+                    $scheduledStartTime->modify("+$gracePeriod minutes");
+
+                    if ($checkInTime > $scheduledStartTime) {
+                        $lateMinutes = $checkInTime->diff($scheduledStartTime);
+                        $lateMinutesInMinutes = $lateMinutes->h * 60 + $lateMinutes->i;
+
+                        $earlyCheckOutInMinutes -= $lateMinutesInMinutes;
+                    }
 
                     $attendanceStatus = 'Undertime';
 
@@ -781,7 +792,7 @@ class AttendanceService
                 workScheduleId             : $lastAttendanceRecord['work_schedule_id']    ,
                 date                       : $lastAttendanceRecord['date']                ,
                 checkInTime                : $lastAttendanceRecord['check_in_time']       ,
-                checkOutTime               : $checkOutTime->format('Y-m-d H:i:s')         ,
+                checkOutTime               : $checkOutTime->format('Y-m-d H:i:s') ,
                 totalBreakDurationInMinutes: $totalBreakDurationInMinutes                 ,
                 totalHoursWorked           : $totalHoursWorked                            ,
                 lateCheckIn                : $lastAttendanceRecord['late_check_in']       ,
@@ -796,7 +807,7 @@ class AttendanceService
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error16',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }

@@ -70,7 +70,7 @@ class PayslipService
         $this->leaveEntitlementRepository       = $leaveEntitlementRepository      ;
     }
 
-    public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paymentDate)
+    public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paymentDate, string $action)
     {
         $cutoffStartDate = new DateTime($cutoffStartDate);
         $cutoffEndDate   = new DateTime($cutoffEndDate);
@@ -115,16 +115,13 @@ class PayslipService
 
             if ($workSchedules === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error11',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
 
             if ($workSchedules === ActionResult::NO_WORK_SCHEDULE_FOUND) {
-                return [
-                    'status'  => 'error',
-                    'message' => 'An unexpected error occurred. Please try again later.'
-                ];
+                continue;
             }
 
             $attendanceColumns = [];
@@ -151,7 +148,7 @@ class PayslipService
 
             if ($attendanceRecords === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error13',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -366,7 +363,7 @@ class PayslipService
 
                         if ($result === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error14',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -507,7 +504,7 @@ class PayslipService
 
                                         if ($lastBreakRecord === ActionResult::FAILURE) {
                                             return [
-                                                'status'  => 'error',
+                                                'status'  => 'error8',
                                                 'message' => 'An unexpected error occurred. Please try again later.'
                                             ];
                                         }
@@ -560,7 +557,7 @@ class PayslipService
 
                                 if ($gracePeriod === ActionResult::FAILURE) {
                                     return [
-                                        'status' => 'error',
+                                        'status' => 'error7',
                                         'message' => 'An unexpected error occurred. Please try again later.'
                                     ];
                                 }
@@ -1400,7 +1397,7 @@ class PayslipService
 
             if ($employeeAllowances === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error6',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -1459,7 +1456,7 @@ class PayslipService
 
             if ($employeeDeductions === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error5',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -1491,7 +1488,7 @@ class PayslipService
 
             if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error4',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -1624,7 +1621,7 @@ class PayslipService
 
                         if ($unusedCredits === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error3',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -1646,7 +1643,7 @@ class PayslipService
 
                         if ($numberOfMonths === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error',
+                                'status'  => 'error2',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
@@ -1686,11 +1683,11 @@ class PayslipService
                 leaveSalary                   : $leaveSalary
             );
 
-            //$result = $this->payslipRepository->createPayslip($payslip);
+            $result = $this->payslipRepository->createPayslip($payslip);
 
             if ($result === ActionResult::FAILURE) {
                 return [
-                    'status'  => 'error',
+                    'status'  => 'error1',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }

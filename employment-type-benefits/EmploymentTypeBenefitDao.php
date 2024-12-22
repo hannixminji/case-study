@@ -13,8 +13,18 @@ class EmploymentTypeBenefitDao
         $this->pdo = $pdo;
     }
 
-    public function create(EmploymentTypeBenefit $benefit): ActionResult
+    public function create(EmploymentTypeBenefit $employeeTypeBenefit): ActionResult
     {
+        $isBenefitAlreadyExists = $this->checkIfExists($employeeTypeBenefit);
+
+        if ($isBenefitAlreadyExists === ActionResult::FAILURE) {
+            return ActionResult::FAILURE;
+        }
+
+        if ($isBenefitAlreadyExists === true) {
+            return ActionResult::SUCCESS;
+        }
+
         $query = "
             INSERT INTO employment_type_benefits (
                 employment_type,
@@ -35,10 +45,10 @@ class EmploymentTypeBenefitDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employment_type", $benefit->getEmploymentType(), Helper::getPdoParameterType($benefit->getEmploymentType()));
-            $statement->bindValue(":leave_type_id"  , $benefit->getLeaveTypeId()   , Helper::getPdoParameterType($benefit->getLeaveTypeId()   ));
-            $statement->bindValue(":allowance_id"   , $benefit->getAllowanceId()   , Helper::getPdoParameterType($benefit->getAllowanceId()   ));
-            $statement->bindValue(":deduction_id"   , $benefit->getDeductionId()   , Helper::getPdoParameterType($benefit->getDeductionId()   ));
+            $statement->bindValue(":employment_type", $employeeTypeBenefit->getEmploymentType(), Helper::getPdoParameterType($employeeTypeBenefit->getEmploymentType()));
+            $statement->bindValue(":leave_type_id"  , $employeeTypeBenefit->getLeaveTypeId()   , Helper::getPdoParameterType($employeeTypeBenefit->getLeaveTypeId()   ));
+            $statement->bindValue(":allowance_id"   , $employeeTypeBenefit->getAllowanceId()   , Helper::getPdoParameterType($employeeTypeBenefit->getAllowanceId()   ));
+            $statement->bindValue(":deduction_id"   , $employeeTypeBenefit->getDeductionId()   , Helper::getPdoParameterType($employeeTypeBenefit->getDeductionId()   ));
 
             $statement->execute();
 
@@ -246,6 +256,45 @@ class EmploymentTypeBenefitDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching employment type benefits. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function checkIfExists(EmploymentTypeBenefit $benefit): ActionResult|bool
+    {
+        $query = "
+            SELECT
+                1
+            FROM
+                employment_type_benefits
+            WHERE
+                employment_type = :employment_type
+            AND
+                leave_type_id = :leave_type_id
+            AND
+                allowance_id = :allowance_id
+            AND
+                deduction_id = :deduction_id
+            AND
+                deleted_at IS NULL
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employment_type", $benefit->getEmploymentType(), Helper::getPdoParameterType($benefit->getEmploymentType()));
+            $statement->bindValue(":leave_type_id"  , $benefit->getLeaveTypeId()   , Helper::getPdoParameterType($benefit->getLeaveTypeId()   ));
+            $statement->bindValue(":allowance_id"   , $benefit->getAllowanceId()   , Helper::getPdoParameterType($benefit->getAllowanceId()   ));
+            $statement->bindValue(":deduction_id"   , $benefit->getDeductionId()   , Helper::getPdoParameterType($benefit->getDeductionId()   ));
+
+            $statement->execute();
+
+            return $statement->rowCount() > 0;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while checking for existing employment type benefit. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

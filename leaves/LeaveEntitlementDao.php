@@ -15,6 +15,33 @@ class LeaveEntitlementDao
 
     public function create(LeaveEntitlement $leaveEntitlement, bool $isHashedId = false): ActionResult
     {
+        $isExistingQuery = "
+            SELECT
+                1
+            FROM
+                leave_entitlements
+            WHERE
+        ";
+
+        if ($isHashedId) {
+            $isExistingQuery .= "
+                SHA2(employee_id, 256) = :employee_id
+            AND
+                SHA2(leave_type_id, 256) = :leave_type_id
+            ";
+        } else {
+            $isExistingQuery .= "
+                employee_id = :employee_id
+            AND
+                leave_type_id = :leave_type_id
+            ";
+        }
+
+        $isExistingQuery .= "
+            AND
+                deleted_at IS NULL
+        ";
+
         $insertQuery = "
             INSERT INTO leave_entitlements (
                 employee_id            ,
@@ -62,17 +89,25 @@ class LeaveEntitlementDao
         try {
             $this->pdo->beginTransaction();
 
-            $updateStatement = $this->pdo->prepare($updateQuery);
+            $isExistingStatement = $this->pdo->prepare($isExistingQuery);
 
-            $updateStatement->bindValue(':number_of_entitled_days', $leaveEntitlement->getNumberOfEntitledDays(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfEntitledDays()));
-            $updateStatement->bindValue(':number_of_days_taken'   , $leaveEntitlement->getNumberOfDaysTaken()   , Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()   ));
-            $updateStatement->bindValue(':remaining_days'         , $leaveEntitlement->getRemainingDays()       , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()       ));
-            $updateStatement->bindValue(':employee_id'            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
-            $updateStatement->bindValue(':leave_type_id'          , $leaveEntitlement->getLeaveTypeId()         , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()         ));
+            $isExistingStatement->bindValue(':employee_id'  , $leaveEntitlement->getEmployeeId() , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId() ));
+            $isExistingStatement->bindValue(':leave_type_id', $leaveEntitlement->getLeaveTypeId(), Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()));
 
-            $updateStatement->execute();
+            $isExistingStatement->execute();
 
-            if ($updateStatement->rowCount() == 0) {
+            if ($isExistingStatement->rowCount() > 0) {
+                $updateStatement = $this->pdo->prepare($updateQuery);
+
+                $updateStatement->bindValue(':number_of_entitled_days', $leaveEntitlement->getNumberOfEntitledDays(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfEntitledDays()));
+                $updateStatement->bindValue(':number_of_days_taken'   , $leaveEntitlement->getNumberOfDaysTaken()   , Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()   ));
+                $updateStatement->bindValue(':remaining_days'         , $leaveEntitlement->getRemainingDays()       , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()       ));
+                $updateStatement->bindValue(':employee_id'            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
+                $updateStatement->bindValue(':leave_type_id'          , $leaveEntitlement->getLeaveTypeId()         , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()         ));
+
+                $updateStatement->execute();
+
+            } else {
                 $insertStatement = $this->pdo->prepare($insertQuery);
 
                 $insertStatement->bindValue(':employee_id'            , $leaveEntitlement->getEmployeeId()          , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()          ));
