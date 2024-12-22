@@ -11,6 +11,18 @@ require_once __DIR__ . '/../holidays/HolidayRepository.php';
 require_once __DIR__ . '/../leaves/LeaveEntitlement.php';
 require_once __DIR__ . '/../leaves/LeaveEntitlementService.php';
 
+require_once __DIR__ . '/../employment-type-benefits/EmploymentTypeBenefit.php';
+require_once __DIR__ . '/../employment-type-benefits/EmploymentTypeBenefitService.php';
+
+$employmentTypeBenefitDao = new EmploymentTypeBenefitDao($pdo);
+$employmentTypeBenefitRepository = new EmploymentTypeBenefitRepository($employmentTypeBenefitDao);
+$employmentTypeBenefitService = new EmploymentTypeBenefitService($employmentTypeBenefitRepository);
+
+$employmentTypeBenefit = new EmploymentTypeBenefit(null, "Regular/Permanent", 1, null, null);
+
+$employmentTypeBenefitService->createEmploymentTypeBenefit($employmentTypeBenefit);
+
+
 $leaveEntitlementDao = new LeaveEntitlementDao($pdo);
 $leaveEntitlementRepository = new LeaveEntitlementRepository($leaveEntitlementDao);
 $leaveEntitlementService = new LeaveEntitlementService($leaveEntitlementRepository);
@@ -24,7 +36,7 @@ $newLeaveEntitlement = new LeaveEntitlement(
     remainingDays: 10
 );
 
-$assignResult = $leaveEntitlementService->createLeaveEntitlement($newLeaveEntitlement);
+//$assignResult = $leaveEntitlementService->createLeaveEntitlement($newLeaveEntitlement);
 
 $attendanceDao    = new AttendanceDao($pdo);
 $employeeDao      = new EmployeeDao($pdo);
