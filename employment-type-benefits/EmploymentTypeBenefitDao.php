@@ -139,7 +139,7 @@ class EmploymentTypeBenefitDao
             ";
         }
 
-        if (array_key_exists("deduction_name"           , $selectedColumns) ||
+        if (array_key_exists("deduction_name"       , $selectedColumns) ||
             array_key_exists("deduction_amount"     , $selectedColumns) ||
             array_key_exists("deduction_frequency"  , $selectedColumns) ||
             array_key_exists("deduction_description", $selectedColumns) ||
@@ -225,6 +225,7 @@ class EmploymentTypeBenefitDao
                 " . implode(", ", $selectedColumns) . "
             FROM
                 employment_type_benefits AS employment_type_benefit
+            {$joinClauses}
             WHERE
             " . implode(" AND ", $whereClauses) . "
             " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "

@@ -73,7 +73,7 @@ class PayslipService
     public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paymentDate, string $action)
     {
         $cutoffStartDate = new DateTime($cutoffStartDate);
-        $cutoffEndDate   = new DateTime($cutoffEndDate);
+        $cutoffEndDate   = new DateTime($cutoffEndDate  );
 
         $dateBeforeCutoffStartDate = clone $cutoffStartDate;
         $dateBeforeCutoffStartDate->modify('-1 day');
@@ -124,7 +124,8 @@ class PayslipService
                 continue;
             }
 
-            $attendanceColumns = [];
+            $attendanceColumns = [
+            ];
 
             $filterCriteria = [
                 [
@@ -1594,7 +1595,35 @@ class PayslipService
 
             switch(strtolower($payrollGroup->getPayFrequency())) {
                 case 'weekly':
-                    if ($cutoffStartDate->format('m') === '12' && $cutoffStartDate->format('W') == 2) {
+                    if ($cutoffEndDate->format('m') === '12' && (int) $cutoffStartDate->format('W') === 2) {
+                        $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
+                            [
+                                'column'   => 'leave_entitlement.employee_id',
+                                'operator' => '=',
+                                'value'    => $employeeId
+                            ]
+                        ]);
+
+                        if ($unusedCredits === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $unusedCredits = $unusedCredits['result_set'];
+
+                        $creditsToEncash = 0;
+
+                        if ( ! empty($unusedCredits)) {
+                            foreach ($unusedCredits as $unusedCredit) {
+                                $creditsToEncash += $unusedCredit['remaining_days'];
+                            }
+                        }
+
+                        $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
+                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
+
                         $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
                         $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
                     }
@@ -1603,6 +1632,34 @@ class PayslipService
 
                 case 'semi-monthly':
                     if ($cutoffStartDate->format('m') === '12' && $cutoffEndDate->format('m') === '12') {
+                        $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
+                            [
+                                'column'   => 'leave_entitlement.employee_id',
+                                'operator' => '=',
+                                'value'    => $employeeId
+                            ]
+                        ]);
+
+                        if ($unusedCredits === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $unusedCredits = $unusedCredits['result_set'];
+
+                        $creditsToEncash = 0;
+
+                        if ( ! empty($unusedCredits)) {
+                            foreach ($unusedCredits as $unusedCredit) {
+                                $creditsToEncash += $unusedCredit['remaining_days'];
+                            }
+                        }
+
+                        $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
+                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
+
                         $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
                         $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
                     }
@@ -1621,14 +1678,14 @@ class PayslipService
 
                         if ($unusedCredits === ActionResult::FAILURE) {
                             return [
-                                'status'  => 'error3',
+                                'status'  => 'error',
                                 'message' => 'An unexpected error occurred. Please try again later.'
                             ];
                         }
 
                         $unusedCredits = $unusedCredits['result_set'];
 
-                        $creditsToEncash = 5;
+                        $creditsToEncash = 0;
 
                         if ( ! empty($unusedCredits)) {
                             foreach ($unusedCredits as $unusedCredit) {

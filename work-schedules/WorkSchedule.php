@@ -5,7 +5,6 @@ class WorkSchedule
     public function __construct(
         private readonly   int|string|null $id                 = null,
         private readonly   int|string      $employeeId               ,
-        private readonly   string          $title                    ,
         private readonly   string          $startTime                ,
         private readonly   string          $endTime                  ,
         private readonly   bool            $isFlextime               ,
@@ -14,8 +13,7 @@ class WorkSchedule
         private readonly ? int             $totalHoursPerWeek  = null,
         private readonly   int             $totalWorkHours           ,
         private readonly   string          $startDate                ,
-        private readonly   string          $recurrenceRule           ,
-        private readonly ? string          $note               = null
+        private readonly   string          $recurrenceRule
     ) {
     }
 
@@ -27,11 +25,6 @@ class WorkSchedule
     public function getEmployeeId(): int|string
     {
         return $this->employeeId;
-    }
-
-    public function getTitle(): string
-    {
-        return $this->title;
     }
 
     public function getStartTime(): string
@@ -82,10 +75,5 @@ class WorkSchedule
     public function setRecurrenceRule(string $recurrenceRule): void
     {
         $this->recurrenceRule = $recurrenceRule;
-    }
-
-    public function getNote(): ?string
-    {
-        return $this->note;
     }
 }
