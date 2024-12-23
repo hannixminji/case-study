@@ -30,8 +30,7 @@ class WorkScheduleDao
                 total_hours_per_week ,
                 total_work_hours     ,
                 start_date           ,
-                recurrence_rule      ,
-                note
+                recurrence_rule
             )
             VALUES (
                 :employee_id          ,
@@ -43,8 +42,7 @@ class WorkScheduleDao
                 :total_hours_per_week ,
                 :total_work_hours     ,
                 :start_date           ,
-                :recurrence_rule      ,
-                :note
+                :recurrence_rule
             )
         ";
 
