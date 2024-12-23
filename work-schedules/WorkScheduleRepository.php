@@ -26,6 +26,11 @@ class WorkScheduleRepository
         return $this->workScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchWorkScheduleLastInsertedId(): ActionResult|int
+    {
+        return $this->workScheduleDao->fetchLastInsertedId();
+    }
+
     public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->workScheduleDao->update($workSchedule, $isHashedId);

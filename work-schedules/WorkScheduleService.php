@@ -28,6 +28,11 @@ class WorkScheduleService
         return $this->workScheduleRepository->fetchAllWorkSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchWorkScheduleLastInsertedId(): ActionResult|int
+    {
+        return $this->workScheduleRepository->fetchWorkScheduleLastInsertedId();
+    }
+
     public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->workScheduleRepository->updateWorkSchedule($workSchedule, $isHashedId);

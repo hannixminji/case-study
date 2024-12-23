@@ -354,6 +354,19 @@ class WorkScheduleDao
         }
     }
 
+    public function fetchLastInsertedId(): ActionResult|int
+    {
+        try {
+            return (int) $this->pdo->lastInsertId();
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while retrieving the last inserted ID. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function update(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         $query = "
