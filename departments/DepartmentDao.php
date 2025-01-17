@@ -223,6 +223,8 @@ class DepartmentDao
             GROUP BY
                 department.id  ,
                 department.name
+            HAVING
+                COUNT(employee.id) > 0
         ";
 
         try {
