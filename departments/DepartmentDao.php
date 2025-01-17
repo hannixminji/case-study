@@ -206,6 +206,45 @@ class DepartmentDao
         }
     }
 
+    public function fetchEmployeeCountsPerDepartment(): ActionResult|array
+    {
+        $query = "
+            SELECT
+                department.name    AS department_name,
+                COUNT(employee.id) AS employee_count
+            FROM
+                departments AS department
+            LEFT JOIN
+                employees AS employee
+            ON
+                department.id = employee.department_id
+            WHERE
+                department.deleted_at IS NULL
+            GROUP BY
+                department.id  ,
+                department.name
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->execute();
+
+            $resultSet = [];
+            while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
+                $resultSet[] = $row;
+            }
+
+            return $resultSet;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching employee counts per department. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function update(Department $department, bool $isHashedId = false): ActionResult
     {
         $query = "

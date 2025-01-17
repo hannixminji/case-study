@@ -43,7 +43,8 @@ class SettingRepository
         $result = $this->fetchAllSettings(
             columns       : $columns       ,
             filterCriteria: $filterCriteria,
-            limit         : 1);
+            limit         : 1
+        );
 
         if ($result === ActionResult::FAILURE) {
             return ActionResult::FAILURE;
