@@ -957,11 +957,11 @@ class AttendanceService
         }
 
         $existingAttendances = $result['result_set'];
-        $newCheckIn = new DateTime($attendance->getCheckInTime());
+        $newCheckIn  = new DateTime($attendance->getCheckInTime() );
         $newCheckOut = new DateTime($attendance->getCheckOutTime());
 
         foreach ($existingAttendances as $existingAttendance) {
-            $existingCheckIn = new DateTime($existingAttendance['check_in_time']);
+            $existingCheckIn  = new DateTime($existingAttendance['check_in_time' ]);
             $existingCheckOut = new DateTime($existingAttendance['check_out_time']);
 
             if (($newCheckIn >= $existingCheckIn && $newCheckIn  < $existingCheckOut ) ||
@@ -1108,7 +1108,7 @@ class AttendanceService
         $unpaidBreakDurationInMinutes = 0;
         $paidBreakDurationInMinutes   = 0;
 
-        $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
+        $checkInTime  = new DateTime($lastAttendanceRecord['check_in_time' ]);
         $checkOutTime = new DateTime($lastAttendanceRecord['check_out_time']);
 
         foreach ($breakSchedules as $breakSchedule) {
@@ -1453,7 +1453,7 @@ class AttendanceService
 
         $totalBreakDurationInMinutes = $unpaidBreakDurationInMinutes + $paidBreakDurationInMinutes;
 
-        $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
+        $checkInTime  = new DateTime($lastAttendanceRecord['check_in_time' ]);
         $checkOutTime = new DateTime($lastAttendanceRecord['check_out_time']);
         $totalWorkDuration = $checkInTime->diff($checkOutTime);
 
