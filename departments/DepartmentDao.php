@@ -210,8 +210,9 @@ class DepartmentDao
     {
         $query = "
             SELECT
-                department.name    AS department_name,
-                COUNT(employee.id) AS employee_count
+                department.name                       AS department_name,
+                COUNT(employee.id)                    AS employee_count ,
+                COUNT(DISTINCT department.id) OVER () AS total_row_count
             FROM
                 departments AS department
             LEFT JOIN
@@ -230,12 +231,18 @@ class DepartmentDao
 
             $statement->execute();
 
-            $resultSet = [];
+            $resultSet     = [];
+            $totalRowCount = 0 ;
+
             while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-                $resultSet[] = $row;
+                $resultSet[]   = $row                   ;
+                $totalRowCount = $row['total_row_count'];
             }
 
-            return $resultSet;
+            return [
+                "result_set"      => $resultSet    ,
+                "total_row_count" => $totalRowCount
+            ];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching employee counts per department. " .
