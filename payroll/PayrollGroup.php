@@ -3,12 +3,16 @@
 class PayrollGroup
 {
     public function __construct(
-        private readonly int|string|null $id            = null,
-        private readonly string          $name                ,
-        private readonly string          $payFrequency        ,
-        private readonly string          $startDate           ,
-        private readonly int             $paydayAfterCutoff   ,
-        private readonly string          $status
+        private readonly   int|string|null $id                      = null,
+        private readonly   string          $name                          ,
+        private readonly   string          $payrollFrequency              ,
+        private readonly ? string          $dayOfWeeklyCutoff       = null,
+        private readonly ? string          $dayOfBiweeklyCutoff     = null,
+        private readonly ? string          $semiMonthlyFirstCutoff  = null,
+        private readonly ? string          $semiMonthlySecondCutoff = null,
+        private readonly   int             $paydayOffset                  ,
+        private readonly   string          $paydayAdjustment              ,
+        private readonly   string          $status
     ) {
     }
 
@@ -22,19 +26,39 @@ class PayrollGroup
         return $this->name;
     }
 
-    public function getPayFrequency(): string
+    public function getPayrollFrequency(): string
     {
-        return $this->payFrequency;
+        return $this->payrollFrequency;
     }
 
-    public function getStartDate(): string
+    public function getDayOfWeeklyCutoff(): ?string
     {
-        return $this->startDate;
+        return $this->dayOfWeeklyCutoff;
     }
 
-    public function getPaydayAfterCutoff(): string
+    public function getDayOfBiweeklyCutoff(): ?string
     {
-        return $this->paydayAfterCutoff;
+        return $this->dayOfBiweeklyCutoff;
+    }
+
+    public function getSemiMonthlyFirstCutoff(): ?string
+    {
+        return $this->semiMonthlyFirstCutoff;
+    }
+
+    public function getSemiMonthlySecondCutoff(): ?string
+    {
+        return $this->semiMonthlySecondCutoff;
+    }
+
+    public function getPaydayOffset(): int
+    {
+        return $this->paydayOffset;
+    }
+
+    public function getPaydayAdjustment(): string
+    {
+        return $this->paydayAdjustment;
     }
 
     public function getStatus(): string

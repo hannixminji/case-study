@@ -59,7 +59,7 @@ class LeaveRequestDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while creating the leave request. " .
-                      "Exception: " . $exception->getMessage());
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

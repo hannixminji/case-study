@@ -46,10 +46,6 @@ class EmployeeBreakService
             ];
         }
 
-        if ( ! empty($lastAttendanceRecord)) {
-            $lastAttendanceRecord = $lastAttendanceRecord[0];
-        }
-
         if ( empty($lastAttendanceRecord) ||
             ($lastAttendanceRecord['check_in_time' ] !== null  &&
              $lastAttendanceRecord['check_out_time'] !== null)) {
@@ -64,8 +60,7 @@ class EmployeeBreakService
         if ($lastAttendanceRecord['check_in_time' ] !== null &&
             $lastAttendanceRecord['check_out_time'] === null) {
 
-            $currentDateTime = new DateTime($currentDateTime );
-            $currentTime     = $currentDateTime->format('H:i:s');
+            $currentDateTime = new DateTime($currentDateTime);
 
             $workScheduleStartTime = $lastAttendanceRecord['work_schedule_start_time'];
             $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_end_time'  ];
@@ -91,10 +86,6 @@ class EmployeeBreakService
                     'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.',
                 ];
-            }
-
-            if ( ! empty($lastBreakRecord)) {
-                $lastBreakRecord = $lastBreakRecord[0];
             }
 
             if ( empty($lastBreakRecord) ||
@@ -182,7 +173,7 @@ class EmployeeBreakService
 
                 if ($currentDateTime < $breakScheduleStartTime) {
                     $formattedStartTime = (new DateTime($breakScheduleStartTime->format('Y-m-d H:i:s')))->format('g:i A');
-                    $formattedEndTime = (new DateTime($breakScheduleEndTime->format('Y-m-d H:i:s')))->format('g:i A');
+                    $formattedEndTime   = (new DateTime($breakScheduleEndTime  ->format('Y-m-d H:i:s')))->format('g:i A');
 
                     return [
                         'status'  => 'warning',
@@ -191,11 +182,11 @@ class EmployeeBreakService
                 }
 
                 $employeeBreak = new EmployeeBreak(
-                    id                    : null                       ,
-                    breakScheduleId       : $currentBreakSchedule['id'],
+                    id                    : null                                           ,
+                    breakScheduleId       : $currentBreakSchedule['id']                    ,
                     startTime             : $currentDateTime->format('Y-m-d H:i:s'),
-                    endTime               : null                       ,
-                    breakDurationInMinutes: 0,
+                    endTime               : null                                           ,
+                    breakDurationInMinutes: 0                                              ,
                     createdAt             : $currentDateTime->format('Y-m-d H:i:s')
                 );
 
@@ -212,17 +203,17 @@ class EmployeeBreakService
                       $lastBreakRecord['end_time'  ] === null) {
 
                 $startTime = new DateTime($lastBreakRecord['start_time']);
-                $endTime = clone $currentDateTime;
+                $endTime   = clone $currentDateTime;
 
                 $interval = $startTime->diff($endTime);
                 $breakDurationInMinutes = $interval->h * 60 + $interval->i;
 
                 $employeeBreak = new EmployeeBreak(
-                    id                    : $lastBreakRecord['id'                 ],
-                    breakScheduleId       : $lastBreakRecord['break_schedule_id'  ],
-                    startTime             : $lastBreakRecord['start_time'         ],
+                    id                    : $lastBreakRecord['id'               ]          ,
+                    breakScheduleId       : $lastBreakRecord['break_schedule_id']          ,
+                    startTime             : $lastBreakRecord['start_time'       ]          ,
                     endTime               : $currentDateTime->format('Y-m-d H:i:s'),
-                    breakDurationInMinutes: $breakDurationInMinutes                ,
+                    breakDurationInMinutes: $breakDurationInMinutes                        ,
                     createdAt             : $lastBreakRecord['created_at']
                 );
 
@@ -255,11 +246,11 @@ class EmployeeBreakService
         $currentBreakSchedule = [];
         $nextBreakSchedule    = [];
 
-        $workScheduleStartTime = new DateTime($workScheduleStartTime   );
-        $workScheduleEndTime   = new DateTime($workScheduleEndTime     );
-        $workScheduleDate      = $workScheduleStartTime->format('Y-m-d');
-
         $currentTime = new DateTime($currentTime);
+
+        $workScheduleStartTime = new DateTime($workScheduleStartTime );
+        $workScheduleEndTime   = new DateTime($workScheduleEndTime   );
+        $workScheduleDate      = $workScheduleStartTime->format('Y-m-d');
 
         foreach ($breakSchedules as $breakSchedule) {
             if ( ! $breakSchedule['is_flexible']) {

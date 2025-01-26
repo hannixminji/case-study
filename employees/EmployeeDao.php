@@ -255,8 +255,8 @@ class EmployeeDao
             empty($columns)
                 ? $tableColumns
                 : array_intersect_key(
-                $tableColumns,
-                array_flip($columns)
+                    $tableColumns,
+                    array_flip($columns)
                 );
 
         $joinClauses = "";
@@ -389,7 +389,7 @@ class EmployeeDao
             {$joinClauses}
             WHERE
                 " . implode(" ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";

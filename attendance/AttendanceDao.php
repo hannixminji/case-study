@@ -128,6 +128,7 @@ class AttendanceDao
             "employee_code"                   => "employee.employee_code                     AS employee_code"                  ,
             "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
             "employee_supervisor_id"          => "employee.supervisor_id                     AS employee_supervisor_id"         ,
+            "employee_deleted_at"             => "employee.deleted_at                        AS employee_deleted_at"            ,
             "department_id"                   => "department.id                              AS department_id"                  ,
             "department_name"                 => "department.name                            AS department_name"                ,
             "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
@@ -168,6 +169,7 @@ class AttendanceDao
             array_key_exists("employee_code"                 , $selectedColumns) ||
             array_key_exists("employee_full_name"            , $selectedColumns) ||
             array_key_exists("employee_supervisor_id"        , $selectedColumns) ||
+            array_key_exists("employee_deleted_at"           , $selectedColumns) ||
 
             array_key_exists("department_id"                 , $selectedColumns) ||
             array_key_exists("department_name"               , $selectedColumns) ||
@@ -235,6 +237,10 @@ class AttendanceDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+                        break;
+
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
                         break;
 
                     case "BETWEEN":
@@ -418,50 +424,6 @@ class AttendanceDao
             error_log("Database Error: An error occurred while approving overtime. " .
                       "Exception: {$exception->getMessage()}");
 
-            return ActionResult::FAILURE;
-        }
-    }
-
-    public function checkAttendancePerMonth(int $employeeId): ActionResult|array
-    {
-        $query = "
-            SELECT
-                YEAR (date) AS year            ,
-                MONTH(date) AS month           ,
-                COUNT(*   ) AS attendance_count
-            FROM
-                attendance
-            LEFT JOIN
-                work_schedules AS work_schedule
-            ON
-                work_schedule.id = attendance.work_schedule_id
-            WHERE
-                work_schedule.employee_id = :employee_id
-            GROUP BY
-                YEAR(date), MONTH(date)
-            ORDER BY
-                YEAR(date), MONTH(date)
-        ";
-
-        try {
-            $this->pdo->beginTransaction();
-
-            $statement = $this->pdo->prepare($query);
-
-            $statement->bindValue(":employee_id", $employeeId, Helper::getPdoParameterType($employeeId));
-
-            $statement->execute();
-
-            $this->pdo->commit();
-
-            return $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
-            error_log("Database Error: An error occurred while fetching attendance per month. " .
-                      "Exception: {$exception->getMessage()}");
-            echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

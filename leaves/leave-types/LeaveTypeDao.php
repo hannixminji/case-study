@@ -20,6 +20,7 @@ class LeaveTypeDao
                 name                  ,
                 maximum_number_of_days,
                 is_paid               ,
+                is_encashable         ,
                 description           ,
                 status
             )
@@ -27,6 +28,7 @@ class LeaveTypeDao
                 :name                  ,
                 :maximum_number_of_days,
                 :is_paid               ,
+                :is_encashable         ,
                 :description           ,
                 :status
             )
@@ -40,6 +42,7 @@ class LeaveTypeDao
             $statement->bindValue(":name"                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
             $statement->bindValue(":maximum_number_of_days", $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
             $statement->bindValue(":is_paid"               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(":is_encashable"         , $leaveType->isEncashable()          , Helper::getPdoParameterType($leaveType->isEncashable()          ));
             $statement->bindValue(":description"           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
             $statement->bindValue(":status"                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
 
@@ -71,6 +74,7 @@ class LeaveTypeDao
             "name"                   => "leave_type.name                   AS name"                  ,
             "maximum_number_of_days" => "leave_type.maximum_number_of_days AS maximum_number_of_days",
             "is_paid"                => "leave_type.is_paid                AS is_paid"               ,
+            "is_encashable"          => "leave_type.is_encashable          AS is_encashable"         ,
             "description"            => "leave_type.description            AS description"           ,
             "status"                 => "leave_type.status                 AS status"                ,
             "created_at"             => "leave_type.created_at             AS created_at"            ,
@@ -203,6 +207,7 @@ class LeaveTypeDao
                 name                   = :name                  ,
                 maximum_number_of_days = :maximum_number_of_days,
                 is_paid                = :is_paid               ,
+                is_encashable          = :is_encashable         ,
                 description            = :description           ,
                 status                 = :status
             WHERE
@@ -222,6 +227,7 @@ class LeaveTypeDao
             $statement->bindValue(":name"                  , $leaveType->getName()               , Helper::getPdoParameterType($leaveType->getName()               ));
             $statement->bindValue(":maximum_number_of_days", $leaveType->getMaximumNumberOfDays(), Helper::getPdoParameterType($leaveType->getMaximumNumberOfDays()));
             $statement->bindValue(":is_paid"               , $leaveType->isPaid()                , Helper::getPdoParameterType($leaveType->isPaid()                ));
+            $statement->bindValue(":is_encashable"         , $leaveType->isEncashable()          , Helper::getPdoParameterType($leaveType->isEncashable()          ));
             $statement->bindValue(":description"           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
             $statement->bindValue(":status"                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
             $statement->bindValue(":leave_type_id"         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));

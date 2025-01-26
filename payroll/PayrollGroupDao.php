@@ -17,17 +17,25 @@ class PayrollGroupDao
     {
         $query = "
             INSERT INTO payroll_groups (
-                name                ,
-                pay_frequency       ,
-                start_date          ,
-                pay_day_after_cutoff,
+                name                      ,
+                payroll_frequency         ,
+                day_of_weekly_cutoff      ,
+                day_of_biweekly_cutoff    ,
+                semi_monthly_first_cutoff ,
+                semi_monthly_second_cutoff,
+                payday_offset             ,
+                payday_adjustment         ,
                 status
             )
             VALUES (
-                :name                ,
-                :pay_frequency       ,
-                :start_date          ,
-                :pay_day_after_cutoff,
+                :name                      ,
+                :payroll_frequency         ,
+                :day_of_weekly_cutoff      ,
+                :day_of_biweekly_cutoff    ,
+                :semi_monthly_first_cutoff ,
+                :semi_monthly_second_cutoff,
+                :payday_offset             ,
+                :payday_adjustment         ,
                 :status
             )
         ";
@@ -37,11 +45,15 @@ class PayrollGroupDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"                , $payrollGroup->getName()             , Helper::getPdoParameterType($payrollGroup->getName()             ));
-            $statement->bindValue(":pay_frequency"       , $payrollGroup->getPayFrequency()     , Helper::getPdoParameterType($payrollGroup->getPayFrequency()     ));
-            $statement->bindValue(":start_date"          , $payrollGroup->getStartDate()        , Helper::getPdoParameterType($payrollGroup->getStartDate()        ));
-            $statement->bindValue(":pay_day_after_cutoff", $payrollGroup->getPayDayAfterCutoff(), Helper::getPdoParameterType($payrollGroup->getPayDayAfterCutoff()));
-            $statement->bindValue(":status"              , $payrollGroup->getStatus()           , Helper::getPdoParameterType($payrollGroup->getStatus()           ));
+            $statement->bindValue(":name"                      , $payrollGroup->getName()                   , Helper::getPdoParameterType($payrollGroup->getName()                   ));
+            $statement->bindValue(":payroll_frequency"         , $payrollGroup->getPayrollFrequency()       , Helper::getPdoParameterType($payrollGroup->getPayrollFrequency()       ));
+            $statement->bindValue(":day_of_weekly_cutoff"      , $payrollGroup->getDayOfWeeklyCutoff()      , Helper::getPdoParameterType($payrollGroup->getDayOfWeeklyCutoff()      ));
+            $statement->bindValue(":day_of_biweekly_cutoff"    , $payrollGroup->getDayOfBiweeklyCutoff()    , Helper::getPdoParameterType($payrollGroup->getDayOfBiweeklyCutoff()    ));
+            $statement->bindValue(":semi_monthly_first_cutoff" , $payrollGroup->getSemiMonthlyFirstCutoff() , Helper::getPdoParameterType($payrollGroup->getSemiMonthlyFirstCutoff() ));
+            $statement->bindValue(":semi_monthly_second_cutoff", $payrollGroup->getSemiMonthlySecondCutoff(), Helper::getPdoParameterType($payrollGroup->getSemiMonthlySecondCutoff()));
+            $statement->bindValue(":payday_offset"             , $payrollGroup->getPaydayOffset()           , Helper::getPdoParameterType($payrollGroup->getPaydayOffset()           ));
+            $statement->bindValue(":payday_adjustment"         , $payrollGroup->getPaydayAdjustment()       , Helper::getPdoParameterType($payrollGroup->getPaydayAdjustment()       ));
+            $statement->bindValue(":status"                    , $payrollGroup->getStatus()                 , Helper::getPdoParameterType($payrollGroup->getStatus()                 ));
 
             $statement->execute();
 
@@ -67,15 +79,19 @@ class PayrollGroupDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                   => "payroll_group.id                   AS id"                  ,
-            "name"                 => "payroll_group.name                 AS name"                ,
-            "pay_frequency"        => "payroll_group.pay_frequency        AS pay_frequency"       ,
-            "pay_day_after_cutoff" => "payroll_group.pay_day_after_cutoff AS pay_day_after_cutoff",
-            "start_date"           => "payroll_group.start_date           AS start_date"          ,
-            "status"               => "payroll_group.status               AS status"              ,
-            "created_at"           => "payroll_group.created_at           AS created_at"          ,
-            "updated_at"           => "payroll_group.updated_at           AS updated_at"          ,
-            "deleted_at"           => "payroll_group.deleted_at           AS deleted_at"
+            "id"                         => "payroll_group.id                         AS id"                        ,
+            "name"                       => "payroll_group.name                       AS name"                      ,
+            "payroll_frequency"          => "payroll_group.payroll_frequency          AS payroll_frequency"         ,
+            "day_of_weekly_cutoff"       => "payroll_group.day_of_weekly_cutoff       AS day_of_weekly_cutoff"      ,
+            "day_of_biweekly_cutoff"     => "payroll_group.day_of_biweekly_cutoff     AS day_of_biweekly_cutoff"    ,
+            "semi_monthly_first_cutoff"  => "payroll_group.semi_monthly_first_cutoff  AS semi_monthly_first_cutoff" ,
+            "semi_monthly_second_cutoff" => "payroll_group.semi_monthly_second_cutoff AS semi_monthly_second_cutoff",
+            "payday_offset"              => "payroll_group.payday_offset              AS payday_offset"             ,
+            "payday_adjustment"          => "payroll_group.payday_adjustment          AS payday_adjustment"         ,
+            "status"                     => "payroll_group.status                     AS status"                    ,
+            "created_at"                 => "payroll_group.created_at                 AS created_at"                ,
+            "updated_at"                 => "payroll_group.updated_at                 AS updated_at"                ,
+            "deleted_at"                 => "payroll_group.deleted_at                 AS deleted_at"
         ];
 
         $selectedColumns =
@@ -94,14 +110,23 @@ class PayrollGroupDao
             $whereClauses[] = "payroll_group.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"];
+                $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
+                $boolean  = isset($filterCriterion["boolean"])
+                    ? strtoupper($filterCriterion["boolean"])
+                    : 'AND';
 
                 switch ($operator) {
                     case "="   :
+                    case "!="  :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+                        break;
+
+                    case "IS NOT NULL":
+                    case "IS NULL"    :
+                        $whereClauses[] = "{$column} {$operator}";
                         break;
 
                     case "BETWEEN":
@@ -113,7 +138,13 @@ class PayrollGroupDao
                     default:
                         // Do nothing
                 }
+
+                $whereClauses[] = " {$boolean}";
             }
+        }
+
+        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+            array_pop($whereClauses);
         }
 
         $orderByClauses = [];
@@ -159,7 +190,7 @@ class PayrollGroupDao
             FROM
                 payroll_groups AS payroll_group
             WHERE
-                " . implode(" AND ", $whereClauses) . "
+                " . implode(" ", $whereClauses) . "
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -190,7 +221,7 @@ class PayrollGroupDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the payroll groups. " .
                       "Exception: {$exception->getMessage()}");
-            echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }
@@ -200,31 +231,34 @@ class PayrollGroupDao
         $query = "
             UPDATE payroll_groups
             SET
-                name                 = :name                ,
-                pay_frequency        = :pay_frequency       ,
-                start_date           = :start_date          ,
-                pay_day_after_cutoff = :pay_day_after_cutoff,
-                status               = :status
+                name                       = :name                      ,
+                payroll_frequency          = :payroll_frequency         ,
+                day_of_weekly_cutoff       = :day_of_weekly_cutoff      ,
+                day_of_biweekly_cutoff     = :day_of_biweekly_cutoff    ,
+                semi_monthly_first_cutoff  = :semi_monthly_first_cutoff ,
+                semi_monthly_second_cutoff = :semi_monthly_second_cutoff,
+                payday_offset              = :payday_offset             ,
+                payday_adjustment          = :payday_adjustment        ,
+                status                     = :status
             WHERE
+                id = :id
         ";
-
-        if ($isHashedId) {
-            $query .= " SHA2(id, 256) = :payroll_group_id";
-        } else {
-            $query .= " id = :payroll_group_id";
-        }
 
         try {
             $this->pdo->beginTransaction();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":name"                , $payrollGroup->getName()             , Helper::getPdoParameterType($payrollGroup->getName()             ));
-            $statement->bindValue(":pay_frequency"       , $payrollGroup->getPayFrequency()     , Helper::getPdoParameterType($payrollGroup->getPayFrequency()     ));
-            $statement->bindValue(":start_date"          , $payrollGroup->getStartDate()        , Helper::getPdoParameterType($payrollGroup->getStartDate()        ));
-            $statement->bindValue(":pay_day_after_cutoff", $payrollGroup->getPayDayAfterCutoff(), Helper::getPdoParameterType($payrollGroup->getPayDayAfterCutoff()));
-            $statement->bindValue(":status"              , $payrollGroup->getStatus()           , Helper::getPdoParameterType($payrollGroup->getStatus()           ));
-            $statement->bindValue(":payroll_group_id"    , $payrollGroup->getId()               , Helper::getPdoParameterType($payrollGroup->getId()               ));
+            $statement->bindValue(":name"                      , $payrollGroup->getName()                   , Helper::getPdoParameterType($payrollGroup->getName()                   ));
+            $statement->bindValue(":payroll_frequency"         , $payrollGroup->getPayrollFrequency()       , Helper::getPdoParameterType($payrollGroup->getPayrollFrequency()       ));
+            $statement->bindValue(":day_of_weekly_cutoff"      , $payrollGroup->getDayOfWeeklyCutoff()      , Helper::getPdoParameterType($payrollGroup->getDayOfWeeklyCutoff()      ));
+            $statement->bindValue(":day_of_biweekly_cutoff"    , $payrollGroup->getDayOfBiweeklyCutoff()    , Helper::getPdoParameterType($payrollGroup->getDayOfBiweeklyCutoff()    ));
+            $statement->bindValue(":semi_monthly_first_cutoff" , $payrollGroup->getSemiMonthlyFirstCutoff() , Helper::getPdoParameterType($payrollGroup->getSemiMonthlyFirstCutoff() ));
+            $statement->bindValue(":semi_monthly_second_cutoff", $payrollGroup->getSemiMonthlySecondCutoff(), Helper::getPdoParameterType($payrollGroup->getSemiMonthlySecondCutoff()));
+            $statement->bindValue(":payday_offset"             , $payrollGroup->getPaydayOffset()           , Helper::getPdoParameterType($payrollGroup->getPaydayOffset()           ));
+            $statement->bindValue(":payday_adjustment"         , $payrollGroup->getPaydayAdjustment()       , Helper::getPdoParameterType($payrollGroup->getPaydayAdjustment()       ));
+            $statement->bindValue(":status"                    , $payrollGroup->getStatus()                 , Helper::getPdoParameterType($payrollGroup->getStatus()                 ));
+            $statement->bindValue(":id"                        , $payrollGroup->getId()                     , Helper::getPdoParameterType($payrollGroup->getId()                     ));
 
             $statement->execute();
 

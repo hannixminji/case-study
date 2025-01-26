@@ -19,7 +19,7 @@ class PayslipDao
             INSERT INTO payslips (
                 employee_id                      ,
                 payroll_group_id                 ,
-                payment_date                     ,
+                payday_date                      ,
                 cutoff_start_date                ,
                 cutoff_end_date                  ,
                 total_regular_hours              ,
@@ -42,7 +42,7 @@ class PayslipDao
             VALUES (
                 :employee_id                      ,
                 :payroll_group_id                 ,
-                :payment_date                     ,
+                :payday_date                      ,
                 :cutoff_start_date                ,
                 :cutoff_end_date                  ,
                 :total_regular_hours              ,
@@ -71,7 +71,7 @@ class PayslipDao
 
             $statement->bindValue(":employee_id"                      , $payslip->getEmployeeId()                    , Helper::getPdoParameterType($payslip->getEmployeeId()                    ));
             $statement->bindValue(":payroll_group_id"                 , $payslip->getPayrollGroupId()                , Helper::getPdoParameterType($payslip->getPayrollGroupId()                ));
-            $statement->bindValue(":payment_date"                     , $payslip->getPaymentDate()                   , Helper::getPdoParameterType($payslip->getPaymentDate()                   ));
+            $statement->bindValue(":payday_date"                      , $payslip->getpaydayDate()                    , Helper::getPdoParameterType($payslip->getpaydayDate()                    ));
             $statement->bindValue(":cutoff_start_date"                , $payslip->getCutoffStartDate()               , Helper::getPdoParameterType($payslip->getCutoffStartDate()               ));
             $statement->bindValue(":cutoff_end_date"                  , $payslip->getCutoffEndDate()                 , Helper::getPdoParameterType($payslip->getCutoffEndDate()                 ));
             $statement->bindValue(":total_regular_hours"              , $payslip->getTotalRegularHours()             , Helper::getPdoParameterType($payslip->getTotalRegularHours()             ));
@@ -118,20 +118,20 @@ class PayslipDao
             "id"                                => "payslip.id                                AS id"                               ,
 
             "employee_id"                       => "payslip.employee_id                       AS employee_id"                      ,
-            "employee_full_name"                => "employee.full_name                         AS full_name"                        ,
-            "employee_code"                     => "employee.employee_code                     AS employee_code"                    ,
-            "employee_job_title"                => "job_title.title                            AS job_title_title"                  ,
-            "employee_department_name"          => "department.name                            AS department_name"                  ,
-            "employee_employment_type"          => "employee.employment_type                   AS employment_type"                  ,
-            "employee_basic_salary"             => "employee.basic_salary                      AS basic_salary"                     ,
-            "employee_bank_name"                => "employee.bank_name                         AS bank_name"                        ,
-            "employee_bank_branch_name"         => "employee.bank_branch_name                  AS bank_branch_name"                 ,
-            "employee_bank_account_number"      => "employee.bank_account_number               AS bank_account_number"              ,
-            "employee_bank_account_type"        => "employee.bank_account_type                 AS bank_account_type"                ,
+            "employee_full_name"                => "employee.full_name                        AS full_name"                        ,
+            "employee_code"                     => "employee.employee_code                    AS employee_code"                    ,
+            "employee_job_title"                => "job_title.title                           AS job_title_title"                  ,
+            "employee_department_name"          => "department.name                           AS department_name"                  ,
+            "employee_employment_type"          => "employee.employment_type                  AS employment_type"                  ,
+            "employee_basic_salary"             => "employee.basic_salary                     AS basic_salary"                     ,
+            "employee_bank_name"                => "employee.bank_name                        AS bank_name"                        ,
+            "employee_bank_branch_name"         => "employee.bank_branch_name                 AS bank_branch_name"                 ,
+            "employee_bank_account_number"      => "employee.bank_account_number              AS bank_account_number"              ,
+            "employee_bank_account_type"        => "employee.bank_account_type                AS bank_account_type"                ,
 
             "payroll_group_id"                  => "payslip.payroll_group_id                  AS payroll_group_id"                 ,
 
-            "payment_date"                      => "payslip.payment_date                      AS payment_date"                     ,
+            "payday_date"                       => "payslip.payday_date                       AS payday_date"                      ,
             "cutoff_start_date"                 => "payslip.cutoff_start_date                 AS cutoff_start_date"                ,
             "cutoff_end_date"                   => "payslip.cutoff_end_date                   AS cutoff_end_date"                  ,
             "total_regular_hours"               => "payslip.total_regular_hours               AS total_regular_hours"              ,
@@ -305,23 +305,6 @@ class PayslipDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the payslips. " .
-                      "Exception: {$exception->getMessage()}");
-            echo $exception->getMessage();
-            return ActionResult::FAILURE;
-        }
-    }
-
-    public function getLastPayslipId(): ActionResult|int|null
-    {
-        try {
-            $lastInsertedId = $this->pdo->lastInsertId();
-
-            return $lastInsertedId !== false
-                ? (int) $lastInsertedId
-                : null;
-
-        } catch (PDOException $exception) {
-            error_log("Database Error: Unable to retrieve the last inserted ID. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

@@ -106,8 +106,7 @@ class WorkScheduleRepository
         $workSchedules = [];
 
         $start = new DateTime($startDate);
-        $end = (new DateTime($endDate))
-            ->modify('+1 day');
+        $end   = (new DateTime($endDate))->modify('+1 day');
 
         $interval = new DateInterval('P1D');
         $dateRange = new DatePeriod($start, $interval, $end);

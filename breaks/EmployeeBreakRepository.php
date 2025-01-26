@@ -88,7 +88,7 @@ class EmployeeBreakRepository
             return ActionResult::FAILURE;
         }
 
-        return $result['result_set'];
+        return $result['result_set'][0];
     }
 
     public function fetchOrderedEmployeeBreaks(

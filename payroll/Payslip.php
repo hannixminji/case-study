@@ -6,7 +6,7 @@ class Payslip
         private readonly   int|string|null $id                             = null,
         private readonly   int|string      $employeeId                           ,
         private readonly   int|string      $payrollGroupId                       ,
-        private readonly   string          $paymentDate                          ,
+        private readonly   string          $paydayDate                          ,
         private readonly   string          $cutoffStartDate                      ,
         private readonly   string          $cutoffEndDate                        ,
         private readonly   float           $totalRegularHours                    ,
@@ -43,9 +43,9 @@ class Payslip
         return $this->payrollGroupId;
     }
 
-    public function getPaymentDate(): string
+    public function getpaydayDate(): string
     {
-        return $this->paymentDate;
+        return $this->paydayDate;
     }
 
     public function getCutoffStartDate(): string

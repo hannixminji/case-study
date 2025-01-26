@@ -43,6 +43,7 @@ class AttendanceRepository
             'work_schedule_total_work_hours' ,
 
             'employee_id'                    ,
+            "employee_deleted_at"            ,
 
             'date'                           ,
             'check_in_time'                  ,
@@ -56,6 +57,10 @@ class AttendanceRepository
         ];
 
         $filterCriteria = [
+            [
+                'column'   => 'employee.deleted_at',
+                'operator' => 'IS NULL'
+            ],
             [
                 'column'   => 'work_schedule.employee_id',
                 'operator' => '=',
@@ -94,10 +99,5 @@ class AttendanceRepository
     public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
     {
         return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
-    }
-
-    public function checkAttendancePerMonth(int $employeeId): ActionResult|array
-    {
-        return $this->attendanceDao->checkAttendancePerMonth($employeeId);
     }
 }

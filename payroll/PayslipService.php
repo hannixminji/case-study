@@ -1,76 +1,73 @@
 <?php
 
-require_once __DIR__ . '/PayrollGroup.php'                                      ;
 require_once __DIR__ . '/Payslip.php'                                           ;
+
+require_once __DIR__ . '/PayslipRepository.php'                                 ;
 
 require_once __DIR__ . '/../employees/EmployeeRepository.php'                   ;
 require_once __DIR__ . '/../work-schedules/WorkScheduleRepository.php'          ;
 require_once __DIR__ . '/../attendance/AttendanceRepository.php'                ;
-require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignmentRepository.php';
-require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php'          ;
 require_once __DIR__ . '/../holidays/HolidayRepository.php'                     ;
 require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'                  ;
-require_once __DIR__ . '/../allowances/EmployeeAllowanceRepository.php'         ;
-require_once __DIR__ . '/../settings/SettingRepository.php'                     ;
-require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'                 ;
 require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'                 ;
-require_once __DIR__ . '/PayslipRepository.php'                                 ;
-require_once __DIR__ . '/EmployeeHourSummaryRepository.php'                     ;
+require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'                 ;
+require_once __DIR__ . '/../settings/SettingRepository.php'                     ;
+require_once __DIR__ . '/../allowances/EmployeeAllowanceRepository.php'         ;
+require_once __DIR__ . '/../deductions/EmployeeDeductionRepository.php'         ;
+require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php'          ;
+require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignmentRepository.php';
 require_once __DIR__ . '/../leaves/LeaveEntitlementRepository.php'              ;
 
 class PayslipService
 {
+    private readonly PayslipRepository                $payslipRepository               ;
     private readonly EmployeeRepository               $employeeRepository              ;
     private readonly WorkScheduleRepository           $workScheduleRepository          ;
     private readonly AttendanceRepository             $attendanceRepository            ;
-    private readonly OvertimeRateAssignmentRepository $overtimeRateAssignmentRepository;
-    private readonly OvertimeRateRepository           $overtimeRateRepository          ;
     private readonly HolidayRepository                $holidayRepository               ;
     private readonly LeaveRequestRepository           $leaveRequestRepository          ;
+    private readonly BreakScheduleRepository          $breakScheduleRepository         ;
+    private readonly EmployeeBreakRepository          $employeeBreakRepository         ;
+    private readonly SettingRepository                $settingRepository               ;
     private readonly EmployeeAllowanceRepository      $employeeAllowanceRepository     ;
     private readonly EmployeeDeductionRepository      $employeeDeductionRepository     ;
-    private readonly SettingRepository                $settingRepository               ;
-    private readonly EmployeeBreakRepository          $employeeBreakRepository         ;
-    private readonly BreakScheduleRepository          $breakScheduleRepository         ;
-    private readonly PayslipRepository                $payslipRepository               ;
-    private readonly EmployeeHourSummaryRepository    $employeeHourSummaryRepository   ;
+    private readonly OvertimeRateRepository           $overtimeRateRepository          ;
+    private readonly OvertimeRateAssignmentRepository $overtimeRateAssignmentRepository;
     private readonly LeaveEntitlementRepository       $leaveEntitlementRepository      ;
 
     public function __construct(
+        PayslipRepository                $payslipRepository               ,
         EmployeeRepository               $employeeRepository              ,
         WorkScheduleRepository           $workScheduleRepository          ,
         AttendanceRepository             $attendanceRepository            ,
-        OvertimeRateAssignmentRepository $overtimeRateAssignmentRepository,
-        OvertimeRateRepository           $overtimeRateRepository          ,
         HolidayRepository                $holidayRepository               ,
         LeaveRequestRepository           $leaveRequestRepository          ,
-        EmployeeAllowanceRepository      $employeeAllowanceRepository     ,
-        SettingRepository                $settingRepository               ,
-        EmployeeBreakRepository          $employeeBreakRepository         ,
         BreakScheduleRepository          $breakScheduleRepository         ,
+        EmployeeBreakRepository          $employeeBreakRepository         ,
+        SettingRepository                $settingRepository               ,
+        EmployeeAllowanceRepository      $employeeAllowanceRepository     ,
         EmployeeDeductionRepository      $employeeDeductionRepository     ,
-        PayslipRepository                $payslipRepository               ,
-        EmployeeHourSummaryRepository    $employeeHourSummaryRepository   ,
+        OvertimeRateRepository           $overtimeRateRepository          ,
+        OvertimeRateAssignmentRepository $overtimeRateAssignmentRepository,
         LeaveEntitlementRepository       $leaveEntitlementRepository
     ) {
+        $this->payslipRepository                = $payslipRepository               ;
         $this->employeeRepository               = $employeeRepository              ;
         $this->workScheduleRepository           = $workScheduleRepository          ;
         $this->attendanceRepository             = $attendanceRepository            ;
-        $this->overtimeRateAssignmentRepository = $overtimeRateAssignmentRepository;
-        $this->overtimeRateRepository           = $overtimeRateRepository          ;
         $this->holidayRepository                = $holidayRepository               ;
         $this->leaveRequestRepository           = $leaveRequestRepository          ;
-        $this->employeeAllowanceRepository      = $employeeAllowanceRepository     ;
-        $this->settingRepository                = $settingRepository               ;
-        $this->employeeBreakRepository          = $employeeBreakRepository         ;
         $this->breakScheduleRepository          = $breakScheduleRepository         ;
+        $this->employeeBreakRepository          = $employeeBreakRepository         ;
+        $this->settingRepository                = $settingRepository               ;
+        $this->employeeAllowanceRepository      = $employeeAllowanceRepository     ;
         $this->employeeDeductionRepository      = $employeeDeductionRepository     ;
-        $this->payslipRepository                = $payslipRepository               ;
-        $this->employeeHourSummaryRepository    = $employeeHourSummaryRepository   ;
+        $this->overtimeRateRepository           = $overtimeRateRepository          ;
+        $this->overtimeRateAssignmentRepository = $overtimeRateAssignmentRepository;
         $this->leaveEntitlementRepository       = $leaveEntitlementRepository      ;
     }
 
-    public function calculate(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paymentDate, string $action)
+    public function generatePayslip(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paydayDate, string $action = "create")
     {
         $cutoffStartDate = new DateTime($cutoffStartDate);
         $cutoffEndDate   = new DateTime($cutoffEndDate  );
@@ -85,7 +82,7 @@ class PayslipService
             'basic_salary'
         ];
 
-        $filterCriteria = [
+        $employeeFilterCriteria = [
             [
                 'column'   => 'employee.access_role',
                 'operator' => '!=',
@@ -98,7 +95,11 @@ class PayslipService
             ],
         ];
 
-        $employees = $this->employeeRepository->fetchAllEmployees($employeeColumns, $filterCriteria);
+        $employees = $this->employeeRepository->fetchAllEmployees(
+            columns       : $employeeColumns       ,
+            filterCriteria: $employeeFilterCriteria
+        );
+
         $employees = $employees['result_set'];
 
         foreach ($employees as $employee) {
@@ -161,10 +162,10 @@ class PayslipService
                 $lastSchedule = $schedules[count($schedules) - 1];
 
                 $start = (new DateTime($lastSchedule['start_time']))->format('H:i:s');
-                $end   = (new DateTime($lastSchedule['end_time']))->format('H:i:s');
+                $end   = (new DateTime($lastSchedule['end_time'  ]))->format('H:i:s');
 
                 $start = new DateTime($dateBeforeCutoffStartDate->format('Y-m-d') . ' ' . $start);
-                $end   = new DateTime($dateBeforeCutoffStartDate->format('Y-m-d') . ' ' . $end);
+                $end   = new DateTime($dateBeforeCutoffStartDate->format('Y-m-d') . ' ' . $end  );
 
                 if ($end->format('H:i:s') < $start->format('H:i:s')) {
                     $end->modify('+1 day');
@@ -326,7 +327,7 @@ class PayslipService
                 $totalRequiredHours = 0;
 
                 if ($recordEntries[0]['work_schedule']['is_flextime']) {
-                    $totalRequiredHours += $recordEntries[0]['work_schedule']['total_hours_per_week'];
+                    $totalRequiredHours += $recordEntries[0]['work_schedule']['total_hours_per_week'] / 6;
                 } else {
                     foreach ($recordEntries as $record) {
                         $totalRequiredHours += $record['work_schedule']['total_work_hours'];
@@ -379,7 +380,7 @@ class PayslipService
                                 ? new DateTime($attendanceRecord['check_out_time'])
                                 : clone $workScheduleEndTime;
 
-                            if ($attendanceRecord['check_out_time'] === null) {
+                            if ($attendanceRecord['check_out_time'] === null && ( ! $workSchedule['is_flextime'])) {
                                 $breakScheduleColumns = [
                                     'id'                               ,
                                     'start_time'                       ,
@@ -951,8 +952,8 @@ class PayslipService
 
                                 $hoursWorked += $remainingMinutes / 60;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
-                                        if ($isOvertimeApproved || $workSchedule['is_flextime']) {
+                                    if ($hoursWorked > $totalRequiredHours) {
+                                        if ($isOvertimeApproved) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $remainingMinutes / 60;
                                         }
                                     } else {
@@ -962,7 +963,7 @@ class PayslipService
                                         $hourSummary[$dayType][$holidayType]['night_differential'] += $remainingMinutes / 60;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                    if ($hoursWorked > $totalRequiredHours) {
                                         if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours'] += $remainingMinutes / 60;
                                         }
@@ -1007,7 +1008,7 @@ class PayslipService
 
                                 $hoursWorked++;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                    if ($hoursWorked > $totalRequiredHours) {
                                         if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime']++;
                                         }
@@ -1018,7 +1019,7 @@ class PayslipService
                                         $hourSummary[$dayType][$holidayType]['night_differential']++;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                    if ($hoursWorked > $totalRequiredHours) {
                                         if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours']++;
                                         }
@@ -1058,7 +1059,7 @@ class PayslipService
 
                                 $hoursWorked += $endMinutes / 60;
                                 if ($isNightShift) {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                    if ($hoursWorked > $totalRequiredHours) {
                                         if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['night_differential_overtime'] += $endMinutes / 60;
                                         }
@@ -1069,7 +1070,7 @@ class PayslipService
                                         $hourSummary[$dayType][$holidayType]['night_differential'] += $endMinutes / 60;
                                     }
                                 } else {
-                                    if (($hoursWorked > $totalRequiredHours && ( ! $workSchedule['is_flextime'])) || ($hoursWorked > $totalRequiredHours && $workSchedule['is_flextime'])) {
+                                    if ($hoursWorked > $totalRequiredHours) {
                                         if ($isOvertimeApproved || $workSchedule['is_flextime']) {
                                             $hourSummary[$dayType][$holidayType]['overtime_hours'] += $endMinutes / 60;
                                         }
@@ -1414,7 +1415,7 @@ class PayslipService
                 'monthly'      => 1
             ];
 
-            $payrollGroupFrequency = strtolower($payrollGroup->getPayFrequency());
+            $payrollGroupFrequency = strtolower($payrollGroup->getPayrollFrequency());
 
             foreach ($employeeAllowances as $employeeAllowance) {
                 $amount = $employeeAllowance['amount'];
@@ -1485,7 +1486,7 @@ class PayslipService
                 employeeId  : $employeeId
             );
 
-            $overtimeRateAssignmentId = $this->overtimeRateAssignmentRepository->findId($overtimeRateAssignment);
+            $overtimeRateAssignmentId = $this->overtimeRateAssignmentRepository->findOvertimeRateAssignmentId($overtimeRateAssignment);
 
             if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
                 return [
@@ -1572,28 +1573,28 @@ class PayslipService
             $totalPagibigFundDeduction = 0;
             $withholdingTax            = 0;
 
-            if (strtolower($payrollGroup->getPayFrequency()) === 'weekly') {
+            if (strtolower($payrollGroup->getPayrollFrequency()) === 'weekly') {
                 $totalSssDeduction         = $sssContribution        ['employee_share'] / 4;
                 $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 4;
                 $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 4;
-            } elseif (strtolower($payrollGroup->getPayFrequency()) === 'bi-weekly' || strtolower($payrollGroup->getPayFrequency()) === 'semi-monthly') {
+            } elseif (strtolower($payrollGroup->getPayrollFrequency()) === 'bi-weekly' || strtolower($payrollGroup->getPayrollFrequency()) === 'semi-monthly') {
                 $totalSssDeduction         = $sssContribution        ['employee_share'] / 2;
                 $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 2;
                 $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 2;
-            } elseif (strtolower($payrollGroup->getPayFrequency()) === 'monthly') {
+            } elseif (strtolower($payrollGroup->getPayrollFrequency()) === 'monthly') {
                 $totalSssDeduction         = $sssContribution        ['employee_share'] / 1;
                 $totalPhilhealthDeduction  = $philhealthContribution ['employee_share'] / 1;
                 $totalPagibigFundDeduction = $pagibigFundContribution['employee_share'] / 1;
             }
 
             $netPay = $grossPay - ($totalSssDeduction + $totalPhilhealthDeduction + $totalPagibigFundDeduction + $totalDeductions);
-            $withholdingTax = $this->calculateWithholdingTax($netPay, strtolower($payrollGroup->getPayFrequency()));
+            $withholdingTax = $this->calculateWithholdingTax($netPay, strtolower($payrollGroup->getPayrollFrequency()));
             $netPay = $netPay - $withholdingTax;
 
             $thirteenMonthPay = 0;
             $leaveSalary = 0;
 
-            switch(strtolower($payrollGroup->getPayFrequency())) {
+            switch(strtolower($payrollGroup->getPayrollFrequency())) {
                 case 'weekly':
                     if ($cutoffEndDate->format('m') === '12' && (int) $cutoffStartDate->format('W') === 2) {
                         $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
@@ -1624,8 +1625,8 @@ class PayslipService
                         $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
                         $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
 
-                        $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
-                        $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
+                        //$numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
+                        //$thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
                     }
 
                     break;
@@ -1660,8 +1661,8 @@ class PayslipService
                         $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
                         $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
 
-                        $numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
-                        $thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
+                        //$numberOfMonthsWorked = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
+                        //$thirteenMonthPay = $basicSalary * count($numberOfMonthsWorked) / 12;
                     }
 
                     break;
@@ -1696,6 +1697,7 @@ class PayslipService
                         $leaveSalary = ($basicSalary / 26) * $creditsToEncash;
                         $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
 
+                        /*
                         $numberOfMonths = $this->attendanceRepository->checkAttendancePerMonth($employeeId);
 
                         if ($numberOfMonths === ActionResult::FAILURE) {
@@ -1707,6 +1709,7 @@ class PayslipService
 
                         $numberOfMonths = count($numberOfMonths);
                         $thirteenMonthPay = $basicSalary * $numberOfMonths / 12;
+                        */
                     }
 
                     break;
@@ -1719,7 +1722,7 @@ class PayslipService
                 id                            : null                                     ,
                 employeeId                    : $employeeId                              ,
                 payrollGroupId                : $payrollGroup->getId()                   ,
-                paymentDate                   : $paymentDate                             ,
+                paydayDate                   : $paydayDate                             ,
                 cutoffStartDate               : $cutoffStartDate->format('Y-m-d'),
                 cutoffEndDate                 : $cutoffEndDate  ->format('Y-m-d'),
                 totalRegularHours             : $totalRegularHours                       ,

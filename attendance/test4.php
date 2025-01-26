@@ -1,7 +1,6 @@
 <?php
+
 require_once __DIR__ . '/Attendance.php';
-
-
 
 require_once __DIR__ . '/AttendanceService.php';
 require_once __DIR__ . '/../database/database.php';
@@ -80,6 +79,13 @@ $employeeBreakService = new EmployeeBreakService(
     $breakScheduleRepository
 );
 
+$rfidUid = '123456789';
+$currentDateTime = '2025-01-03 17:00:00';
+
+$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+print_r($response);
+
+/*
 $attendance = new Attendance(
     id: 2,
     workScheduleId: 1,
@@ -98,7 +104,6 @@ $attendance = new Attendance(
 
 print_r($attendanceService->updateAttendance($attendance));
 
-/*
 $currentDateTime = '2024-11-26 08:00:00';
 
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);

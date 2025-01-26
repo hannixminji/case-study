@@ -116,9 +116,10 @@ class LeaveRequestRepository
             foreach ($leaveDatePeriod as $leaveDate) {
                 if (isset($datesMarkedAsLeave[$leaveDate->format('Y-m-d')])) {
                     $datesMarkedAsLeave[$leaveDate->format('Y-m-d')] = [
-                        'is_leave'    => true      ,
-                        'is_paid'     => $isPaid   ,
-                        'is_half_day' => $isHalfDay
+                        'is_leave'    => true                   ,
+                        'is_paid'     => $isPaid                ,
+                        'is_half_day' => $isHalfDay             ,
+                        'status'      => $leaveRequest['status']
                     ];
                 }
             }

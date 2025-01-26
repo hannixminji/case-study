@@ -8,8 +8,6 @@ class WorkSchedule
         private readonly   string          $startTime                ,
         private readonly   string          $endTime                  ,
         private readonly   bool            $isFlextime               ,
-        private readonly ? string          $coreHoursStartTime = null,
-        private readonly ? string          $coreHoursEndTime   = null,
         private readonly ? int             $totalHoursPerWeek  = null,
         private readonly   int             $totalWorkHours           ,
         private readonly   string          $startDate                ,
@@ -40,16 +38,6 @@ class WorkSchedule
     public function isFlextime(): bool
     {
         return $this->isFlextime;
-    }
-
-    public function getCoreHoursStartTime(): ?string
-    {
-        return $this->coreHoursStartTime;
-    }
-
-    public function getCoreHoursEndTime(): ?string
-    {
-        return $this->coreHoursEndTime;
     }
 
     public function getTotalHoursPerWeek(): ?int

@@ -1,38 +1,38 @@
 <?php
 
-require_once __DIR__ . '/BreakTypeDao.php';
+require_once __DIR__ . '/BreakTypeRepository.php';
 
 class BreakTypeService
 {
-    private readonly BreakTypeDao $breakTypeDao;
+    private readonly BreakTypeRepository $breakTypeRepository;
 
-    public function __construct(BreakTypeDao $breakTypeDao)
+    public function __construct(BreakTypeRepository $breakTypeRepository)
     {
-        $this->breakTypeDao = $breakTypeDao;
+        $this->breakTypeRepository = $breakTypeRepository;
     }
 
     public function createBreakType(BreakType $breakType): ActionResult
     {
-        return $this->breakTypeDao->create($breakType);
+        return $this->breakTypeRepository->createBreakType($breakType);
     }
 
     public function fetchAllBreakTypes(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ?array $columns        = null,
+        ?array $filterCriteria = null,
+        ?array $sortCriteria   = null,
+        ?int   $limit          = null,
+        ?int   $offset         = null
     ): ActionResult|array {
-        return $this->breakTypeDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+        return $this->breakTypeRepository->fetchAllBreakTypes($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
     public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
-        return $this->breakTypeDao->update($breakType, $isHashedId);
+        return $this->breakTypeRepository->updateBreakType($breakType, $isHashedId);
     }
 
     public function deleteBreakType(int|string $breakTypeId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakTypeDao->delete($breakTypeId, $isHashedId);
+        return $this->breakTypeRepository->deleteBreakType($breakTypeId, $isHashedId);
     }
 }

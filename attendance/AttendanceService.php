@@ -101,7 +101,8 @@ class AttendanceService
             $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
                 $employeeId,
                 $previousDate->format('Y-m-d'),
-                $currentDate);
+                $currentDate
+            );
 
             if ($workSchedules === ActionResult::FAILURE) {
                 return [
@@ -117,7 +118,7 @@ class AttendanceService
                 ];
             }
 
-            $currentWorkSchedule     = $this->getCurrentWorkSchedule($workSchedules, $currentDateTime->format('Y-m-d H:i:s'));
+            $currentWorkSchedule = $this->getCurrentWorkSchedule($workSchedules, $currentDateTime->format('Y-m-d H:i:s'));
 
             if (empty($currentWorkSchedule)) {
                 return [
@@ -352,7 +353,7 @@ class AttendanceService
                     'column'      => 'employee_break.created_at',
                     'operator'    => 'BETWEEN'                  ,
                     'lower_bound' => $workScheduleStartTime->format('Y-m-d H:i:s'),
-                    'upper_bound' => $workScheduleEndTime->format('Y-m-d H:i:s')
+                    'upper_bound' => $workScheduleEndTime  ->format('Y-m-d H:i:s')
                 ]
             ];
 
@@ -740,7 +741,8 @@ class AttendanceService
             $totalMinutesWorked -= $unpaidBreakDurationInMinutes;
 
             $totalHoursWorked = $totalMinutesWorked / 60;
-            $totalHoursWorked = round($totalHoursWorked, 2);
+            $totalHoursWorked = floor($totalHoursWorked * 100) / 100;
+            //$totalHoursWorked = round($totalHoursWorked, 2);
 
             $earlyCheckOutInMinutes = 0;
             $overtimeHours          = 0;
@@ -850,7 +852,12 @@ class AttendanceService
 
                 if ($currentTime >= $startTime && $currentTime < $endTime) {
                     $currentWorkSchedule = $schedule;
-                    break 2;
+
+                    if (empty($currentWorkSchedule) && ! empty($nextWorkSchedule)) {
+                        $currentWorkSchedule = $nextWorkSchedule;
+                    }
+
+                    return $currentWorkSchedule;
                 }
 
                 if (empty($nextWorkSchedule) && $currentTime < $startTime) {
@@ -1073,7 +1080,7 @@ class AttendanceService
                 'column'      => 'employee_break.created_at',
                 'operator'    => 'BETWEEN'                  ,
                 'lower_bound' => $workScheduleStartTime->format('Y-m-d H:i:s'),
-                'upper_bound' => $workScheduleEndTime->format('Y-m-d H:i:s')
+                'upper_bound' => $workScheduleEndTime  ->format('Y-m-d H:i:s')
             ]
         ];
 

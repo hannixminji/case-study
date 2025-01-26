@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/AllowanceDao.php';
+require_once __DIR__ . '/AllowanceRepository.php';
 
 class AllowanceService
 {

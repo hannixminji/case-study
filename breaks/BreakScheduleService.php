@@ -1,19 +1,19 @@
 <?php
 
-require_once __DIR__ . "/BreakScheduleDao.php";
+require_once __DIR__ . "/BreakScheduleRepository.php";
 
 class BreakScheduleService
 {
-    private readonly BreakScheduleDao $breakScheduleDao;
+    private readonly BreakScheduleRepository $breakScheduleRepository;
 
-    public function __construct(BreakScheduleDao $breakScheduleDao)
+    public function __construct(BreakScheduleRepository $breakScheduleRepository)
     {
-        $this->breakScheduleDao = $breakScheduleDao;
+        $this->breakScheduleRepository = $breakScheduleRepository;
     }
 
     public function createBreakSchedule(BreakSchedule $breakSchedule): ActionResult
     {
-        return $this->breakScheduleDao->create($breakSchedule);
+        return $this->breakScheduleRepository->createBreakSchedule($breakSchedule);
     }
 
     public function fetchAllBreakSchedules(
@@ -23,26 +23,26 @@ class BreakScheduleService
         ? int   $limit          = null,
         ? int   $offset         = null
     ): ActionResult|array {
-        return $this->breakScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+        return $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
     public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
-        return $this->breakScheduleDao->update($breakSchedule, $isHashedId);
+        return $this->breakScheduleRepository->updateBreakSchedule($breakSchedule, $isHashedId);
     }
 
     public function fetchOrderedBreakSchedules(int|string $workScheduleId, bool $isHashedId = false): ActionResult|array
     {
-        return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
+        return $this->breakScheduleRepository->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
     }
 
     public function deleteBreakSchedule(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakScheduleDao->delete($breakScheduleId, $isHashedId);
+        return $this->breakScheduleRepository->deleteBreakSchedule($breakScheduleId, $isHashedId);
     }
 
     public function deleteBreakScheduleByWorkScheduleId(int|string $workScheduleId, bool $isHashedId = false): ActionResult
     {
-        return $this->breakScheduleDao->deleteByWorkScheduleId($workScheduleId, $isHashedId);
+        return $this->breakScheduleRepository->deleteBreakScheduleByWorkScheduleId($workScheduleId, $isHashedId);
     }
 }
