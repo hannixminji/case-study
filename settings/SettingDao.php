@@ -37,9 +37,8 @@ class SettingDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if ( ! empty($filterCriteria)) {
             foreach ($filterCriteria as $filterCriterion) {
@@ -51,12 +50,14 @@ class SettingDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
+
                         break;
                 }
             }
@@ -104,7 +105,7 @@ class SettingDao
             FROM
                 settings AS setting
             " . ( ! empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "") . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -157,6 +158,7 @@ class SettingDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":setting_value", $setting->getSettingValue(), Helper::getPdoParameterType($setting->getSettingValue()));
+
             $statement->bindValue(":setting_key"  , $setting->getSettingKey()  , Helper::getPdoParameterType($setting->getSettingKey()  ));
             $statement->bindValue(":group_name"   , $setting->getGroupName()   , Helper::getPdoParameterType($setting->getGroupName()   ));
 

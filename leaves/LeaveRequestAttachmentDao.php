@@ -73,9 +73,8 @@ class LeaveRequestAttachmentDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "attachment.deleted_at IS NULL";
@@ -89,16 +88,15 @@ class LeaveRequestAttachmentDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -146,7 +144,7 @@ class LeaveRequestAttachmentDao
                 leave_request_attachments AS leave_request_attachment
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";

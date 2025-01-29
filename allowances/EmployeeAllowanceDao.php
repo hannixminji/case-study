@@ -61,17 +61,16 @@ class EmployeeAllowanceDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                       => "employee_allowance.id           AS id"                 ,
-            "employee_id"              => "employee_allowance.employee_id  AS employee_id"        ,
+            "id"                  => "employee_allowance.id           AS id"                 ,
+            "employee_id"         => "employee_allowance.employee_id  AS employee_id"        ,
+            "allowance_id"        => "employee_allowance.allowance_id AS allowance_id"       ,
+            "amount"              => "employee_allowance.amount       AS amount"             ,
+            "created_at"          => "employee_allowance.created_at   AS created_at"         ,
+            "deleted_at"          => "employee_allowance.deleted_at   AS employee_deleted_at",
 
-            "allowance_id"             => "employee_allowance.allowance_id AS allowance_id"       ,
-            "allowance_name"           => "allowance.name                  AS allowance_name"     ,
-            "allowance_frequency"      => "allowance.frequency             AS allowance_frequency",
-            "allowance_status"         => "allowance.status                AS allowance_status"   ,
-
-            "amount"                   => "employee_allowance.amount       AS amount"             ,
-            "created_at"               => "employee_allowance.created_at   AS created_at"         ,
-            "deleted_at"               => "employee_allowance.deleted_at   AS employee_deleted_at"
+            "allowance_name"      => "allowance.name                  AS allowance_name"     ,
+            "allowance_frequency" => "allowance.frequency             AS allowance_frequency",
+            "allowance_status"    => "allowance.status                AS allowance_status"
         ];
 
         $selectedColumns =
@@ -84,9 +83,9 @@ class EmployeeAllowanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("allowance_name"          , $selectedColumns) ||
-            array_key_exists("allowance_frequency"     , $selectedColumns) ||
-            array_key_exists("allowance_status"        , $selectedColumns)) {
+        if (array_key_exists("allowance_name"     , $selectedColumns) ||
+            array_key_exists("allowance_frequency", $selectedColumns) ||
+            array_key_exists("allowance_status"   , $selectedColumns)) {
             $joinClauses = "
                 LEFT JOIN
                     allowances AS allowance
@@ -95,9 +94,8 @@ class EmployeeAllowanceDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "employee_allowance.deleted_at IS NULL";
@@ -111,20 +109,20 @@ class EmployeeAllowanceDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -174,7 +172,7 @@ class EmployeeAllowanceDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -197,7 +195,7 @@ class EmployeeAllowanceDao
             $totalRowCount = $countStatement->fetchColumn();
 
             return [
-                "result_set"      => $resultSet,
+                "result_set"      => $resultSet    ,
                 "total_row_count" => $totalRowCount
             ];
 
@@ -216,12 +214,12 @@ class EmployeeAllowanceDao
 
     private function softDelete(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
     {
-        $query = '
+        $query = "
             UPDATE employee_allowances
             SET
                 deleted_at = CURRENT_TIMESTAMP
             WHERE
-        ';
+        ";
 
         if ($isHashedId) {
             $query .= " SHA2(id, 256) = :employee_allowance_id";
@@ -234,7 +232,7 @@ class EmployeeAllowanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':employee_allowance_id', $employeeAllowanceId, PDO::PARAM_INT);
+            $statement->bindValue(":employee_allowance_id", $employeeAllowanceId, Helper::getPdoParameterType($employeeAllowanceId));
 
             $statement->execute();
 
@@ -245,8 +243,8 @@ class EmployeeAllowanceDao
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
-            error_log('Database Error: An error occurred while deleting the employee allowance. ' .
-                    'Exception: ' . $exception->getMessage());
+            error_log("Database Error: An error occurred while fetching employee allowances. " .
+                      "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
         }

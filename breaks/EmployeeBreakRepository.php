@@ -35,6 +35,7 @@ class EmployeeBreakRepository
     {
         $columns = [
             'id'                               ,
+            'attendance_id'                    ,
             'break_schedule_id'                ,
             'start_time'                       ,
             'end_time'                         ,
@@ -50,6 +51,10 @@ class EmployeeBreakRepository
         ];
 
         $filterCriteria = [
+            [
+                'column'   => 'employee_break.deleted_at',
+                'operator' => 'IS NULL'
+            ],
             [
                 'column'   => 'break_schedule.work_schedule_id',
                 'operator' => '='                              ,
@@ -88,7 +93,9 @@ class EmployeeBreakRepository
             return ActionResult::FAILURE;
         }
 
-        return $result['result_set'][0];
+        return ! empty($result['result_set'])
+            ? $result['result_set'][0]
+            : [];
     }
 
     public function fetchOrderedEmployeeBreaks(

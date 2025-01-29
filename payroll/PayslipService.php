@@ -67,12 +67,12 @@ class PayslipService
         $this->leaveEntitlementRepository       = $leaveEntitlementRepository      ;
     }
 
-    public function generatePayslip(PayrollGroup $payrollGroup, string $cutoffStartDate, string $cutoffEndDate, string $paydayDate, string $action = "create")
+    public function generatePayslip(PayrollGroup $payrollGroup, string $cutoffPeriodStartDate, string $cutoffPeriodEndDate, string $paydayDate, string $action = "create")
     {
-        $cutoffStartDate = new DateTime($cutoffStartDate);
-        $cutoffEndDate   = new DateTime($cutoffEndDate  );
+        $cutoffPeriodStartDate = new DateTime($cutoffPeriodStartDate);
+        $cutoffPeriodEndDate   = new DateTime($cutoffPeriodEndDate  );
 
-        $dateBeforeCutoffStartDate = clone $cutoffStartDate;
+        $dateBeforeCutoffStartDate = clone $cutoffPeriodStartDate;
         $dateBeforeCutoffStartDate->modify('-1 day');
 
         $employeeColumns = [
@@ -111,7 +111,7 @@ class PayslipService
             $workSchedules = $this->workScheduleRepository->getEmployeeWorkSchedules(
                 $employeeId,
                 $dateBeforeCutoffStartDate->format('Y-m-d'),
-                $cutoffEndDate->format('Y-m-d')
+                $cutoffPeriodEndDate->format('Y-m-d')
             );
 
             if ($workSchedules === ActionResult::FAILURE) {
@@ -142,7 +142,7 @@ class PayslipService
                 [
                     'column'   => 'attendance.date',
                     'operator' => '<=',
-                    'value'    => $cutoffEndDate->format('Y-m-d')
+                    'value'    => $cutoffPeriodEndDate->format('Y-m-d')
                 ]
             ];
 
@@ -178,21 +178,21 @@ class PayslipService
                 }
             }
 
-            if ( ! empty($workSchedules[$cutoffEndDate->format('Y-m-d')])) {
-                $schedules = &$workSchedules[$cutoffEndDate->format('Y-m-d')];
+            if ( ! empty($workSchedules[$cutoffPeriodEndDate->format('Y-m-d')])) {
+                $schedules = &$workSchedules[$cutoffPeriodEndDate->format('Y-m-d')];
                 $lastSchedule = end($schedules);
 
                 $start = (new DateTime($lastSchedule['start_time']))->format('H:i:s');
                 $end   = (new DateTime($lastSchedule['end_time'  ]))->format('H:i:s');
 
-                $start = new DateTime($cutoffEndDate->format('Y-m-d') . ' ' . $start);
-                $end   = new DateTime($cutoffEndDate->format('Y-m-d') . ' ' . $end  );
+                $start = new DateTime($cutoffPeriodEndDate->format('Y-m-d') . ' ' . $start);
+                $end   = new DateTime($cutoffPeriodEndDate->format('Y-m-d') . ' ' . $end  );
 
                 if ($end->format('H:i:s') < $start->format('H:i:s')) {
                     $end->modify('+1 day');
                 }
 
-                if ($end->format('Y-m-d') !== $cutoffEndDate->format('Y-m-d')) {
+                if ($end->format('Y-m-d') !== $cutoffPeriodEndDate->format('Y-m-d')) {
                     array_pop($schedules);
                     unset($schedules);
                 }
@@ -221,14 +221,14 @@ class PayslipService
             }
 
             $datesMarkedAsHoliday = $this->holidayRepository->getHolidayDatesForPeriod(
-                $cutoffStartDate->format('Y-m-d'),
-                $cutoffEndDate->format('Y-m-d')
+                $cutoffPeriodStartDate->format('Y-m-d'),
+                $cutoffPeriodEndDate->format('Y-m-d')
             );
 
             $datesMarkedAsLeave = $this->leaveRequestRepository->getLeaveDatesForPeriod(
                 $employeeId,
-                $cutoffStartDate->format('Y-m-d'),
-                $cutoffEndDate->format('Y-m-d')
+                $cutoffPeriodStartDate->format('Y-m-d'),
+                $cutoffPeriodEndDate->format('Y-m-d')
             );
 
             $hourSummary = [
@@ -301,7 +301,7 @@ class PayslipService
             ];
 
             /*
-            $previousCutoffStartDate = clone $cutoffStartDate;
+            $previousCutoffStartDate = clone $cutoffPeriodStartDate;
             $previousCutoffStartDate->modify('-1 day');
             $foundAbsence = isAbsentBefore(
                 $employeeId,
@@ -485,11 +485,12 @@ class PayslipService
                                 foreach ($breakSchedules as $breakSchedule) {
                                     if ( ! in_array($breakSchedule['id'], $completedBreakIds)) {
                                         $employeeBreak = new EmployeeBreak(
-                                            id                    : null                ,
-                                            breakScheduleId       : $breakSchedule['id'],
-                                            startTime             : null                ,
-                                            endTime               : null                ,
-                                            breakDurationInMinutes: 0,
+                                            id                    : null                   ,
+                                            attendanceId          : $attendanceRecord['id'],
+                                            breakScheduleId       : $breakSchedule['id'   ],
+                                            startTime             : null                   ,
+                                            endTime               : null                   ,
+                                            breakDurationInMinutes: 0                      ,
                                             createdAt             : $workScheduleEndTime->format('Y-m-d H:i:s')
                                         );
 
@@ -515,6 +516,7 @@ class PayslipService
 
                                         $employeeBreak = new EmployeeBreak(
                                             id                    : $lastBreakRecord['id'               ],
+                                            attendanceId          : $attendanceRecord['id'              ],
                                             breakScheduleId       : $lastBreakRecord['break_schedule_id'],
                                             startTime             : null                                 ,
                                             endTime               : null                                 ,
@@ -1565,7 +1567,7 @@ class PayslipService
             $grossPay += $totalAllowances;
 
             $sssContribution         = $this->calculateSssContribution        ($basicSalary);
-            $philhealthContribution  = $this->calculatePhilhealthContribution ($basicSalary, (int) $cutoffStartDate->format('Y'));
+            $philhealthContribution  = $this->calculatePhilhealthContribution ($basicSalary, (int) $cutoffPeriodStartDate->format('Y'));
             $pagibigFundContribution = $this->calculatePagibigFundContribution($basicSalary);
 
             $totalSssDeduction         = 0;
@@ -1596,7 +1598,7 @@ class PayslipService
 
             switch(strtolower($payrollGroup->getPayrollFrequency())) {
                 case 'weekly':
-                    if ($cutoffEndDate->format('m') === '12' && (int) $cutoffStartDate->format('W') === 2) {
+                    if ($cutoffPeriodEndDate->format('m') === '12' && (int) $cutoffPeriodStartDate->format('W') === 2) {
                         $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
                             [
                                 'column'   => 'leave_entitlement.employee_id',
@@ -1632,7 +1634,7 @@ class PayslipService
                     break;
 
                 case 'semi-monthly':
-                    if ($cutoffStartDate->format('m') === '12' && $cutoffEndDate->format('m') === '12') {
+                    if ($cutoffPeriodStartDate->format('m') === '12' && $cutoffPeriodEndDate->format('m') === '12') {
                         $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
                             [
                                 'column'   => 'leave_entitlement.employee_id',
@@ -1668,7 +1670,7 @@ class PayslipService
                     break;
 
                 case 'monthly':
-                    if ($cutoffEndDate->format('m') === '12') {
+                    if ($cutoffPeriodEndDate->format('m') === '12') {
                         $unusedCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(['remaining_days'], [
                             [
                                 'column'   => 'leave_entitlement.employee_id',
@@ -1722,9 +1724,9 @@ class PayslipService
                 id                            : null                                     ,
                 employeeId                    : $employeeId                              ,
                 payrollGroupId                : $payrollGroup->getId()                   ,
-                paydayDate                   : $paydayDate                             ,
-                cutoffStartDate               : $cutoffStartDate->format('Y-m-d'),
-                cutoffEndDate                 : $cutoffEndDate  ->format('Y-m-d'),
+                paydayDate                    : $paydayDate                             ,
+                cutoffStartDate               : $cutoffPeriodStartDate->format('Y-m-d'),
+                cutoffEndDate                 : $cutoffPeriodEndDate  ->format('Y-m-d'),
                 totalRegularHours             : $totalRegularHours                       ,
                 totalOvertimeHours            : $totalOvertimeHours                      ,
                 totalNightDifferential        : $totalNightDifferential                  ,

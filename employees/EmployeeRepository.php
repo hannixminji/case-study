@@ -44,10 +44,14 @@ class EmployeeRepository
 
         $filterCriteria = [
             [
+                'column'   => 'employee.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
                 'column'   => $column,
                 'operator' => '='    ,
                 'value'    => $value
-            ],
+            ]
         ];
 
         $result = $this->fetchAllEmployees(

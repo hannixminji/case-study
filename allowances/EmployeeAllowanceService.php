@@ -17,11 +17,11 @@ class EmployeeAllowanceService
     }
 
     public function fetchAllEmployeeAllowances(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->employeeAllowanceRepository->fetchAllEmployeeAllowances($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }

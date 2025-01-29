@@ -86,9 +86,8 @@ class AllowanceDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "allowance.deleted_at IS NULL";
@@ -102,16 +101,15 @@ class AllowanceDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -224,6 +222,7 @@ class AllowanceDao
             $statement->bindValue(":frequency"   , $allowance->getFrequency()  , Helper::getPdoParameterType($allowance->getFrequency()  ));
             $statement->bindValue(":description" , $allowance->getDescription(), Helper::getPdoParameterType($allowance->getDescription()));
             $statement->bindValue(":status"      , $allowance->getStatus()     , Helper::getPdoParameterType($allowance->getStatus()     ));
+
             $statement->bindValue(":allowance_id", $allowance->getId()         , Helper::getPdoParameterType($allowance->getId()         ));
 
             $statement->execute();

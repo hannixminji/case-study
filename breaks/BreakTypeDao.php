@@ -82,9 +82,8 @@ class BreakTypeDao
                     array_flip($columns
                 ));
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "break_type.deleted_at IS NULL";
@@ -98,12 +97,14 @@ class BreakTypeDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
+
                         break;
                 }
             }
@@ -152,7 +153,7 @@ class BreakTypeDao
                 break_types AS break_type
             WHERE
             " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -213,8 +214,9 @@ class BreakTypeDao
             $statement->bindValue(":name"                             , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
             $statement->bindValue(":duration_in_minutes"              , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
             $statement->bindValue(":is_paid"                          , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
-            $statement->bindValue(":break_type_id"                    , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
             $statement->bindValue(":is_require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
+            
+            $statement->bindValue(":break_type_id"                    , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
 
             $statement->execute();
 

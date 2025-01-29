@@ -94,9 +94,8 @@ class HolidayDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "holiday.deleted_at IS NULL";
@@ -112,12 +111,14 @@ class HolidayDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
+
                         break;
                 }
             }
@@ -166,7 +167,7 @@ class HolidayDao
                 holidays AS holiday
             WHERE
             " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -234,6 +235,7 @@ class HolidayDao
             $statement->bindValue(":is_recurring_annually", $holiday->getIsRecurringAnnually(), Helper::getPdoParameterType($holiday->getIsRecurringAnnually()));
             $statement->bindValue(":description"          , $holiday->getDescription()        , Helper::getPdoParameterType($holiday->getDescription()        ));
             $statement->bindValue(":status"               , $holiday->getStatus()             , Helper::getPdoParameterType($holiday->getStatus()             ));
+
             $statement->bindValue(":holiday_id"           , $holiday->getId()                 , Helper::getPdoParameterType($holiday->getId()                 ));
 
             $statement->execute();

@@ -142,19 +142,19 @@ class LeaveEntitlementDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                      => "leave_entitlement.id                      AS id"                     ,
-
             "employee_id"             => "leave_entitlement.employee_id             AS employee_id"            ,
-            "employee_first_name"     => "employee.first_name                       AS employee_first_name"    ,
-            "employee_middle_name"    => "employee.middle_name                      AS employee_middle_name"   ,
-            "employee_last_name"      => "employee.last_name                        AS employee_last_name"     ,
-
             "leave_type_id"           => "leave_entitlement.leave_type_id           AS leave_type_id"          ,
-            "leave_type_name"         => "leave_type.name                           AS leave_type_name"        ,
             "number_of_entitled_days" => "leave_entitlement.number_of_entitled_days AS number_of_entitled_days",
             "number_of_days_taken"    => "leave_entitlement.number_of_days_taken    AS number_of_days_taken"   ,
             "remaining_days"          => "leave_entitlement.remaining_days          AS remaining_days"         ,
             "created_at"              => "leave_entitlement.created_at              AS created_at"             ,
-            "deleted_at"              => "leave_entitlement.deleted_at              AS deleted_at"
+            "deleted_at"              => "leave_entitlement.deleted_at              AS deleted_at"             ,
+
+            "employee_first_name"     => "employee.first_name                       AS employee_first_name"    ,
+            "employee_middle_name"    => "employee.middle_name                      AS employee_middle_name"   ,
+            "employee_last_name"      => "employee.last_name                        AS employee_last_name"     ,
+
+            "leave_type_name"         => "leave_type.name                           AS leave_type_name"
         ];
 
         $selectedColumns =
@@ -187,9 +187,8 @@ class LeaveEntitlementDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "leave_entitlement.deleted_at IS NULL";
@@ -203,20 +202,20 @@ class LeaveEntitlementDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -266,7 +265,7 @@ class LeaveEntitlementDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -332,8 +331,9 @@ class LeaveEntitlementDao
 
             $statement->bindValue(":number_of_days_taken", $leaveEntitlement->getNumberOfDaysTaken(), Helper::getPdoParameterType($leaveEntitlement->getNumberOfDaysTaken()));
             $statement->bindValue(":remaining_days"      , $leaveEntitlement->getRemainingDays()    , Helper::getPdoParameterType($leaveEntitlement->getRemainingDays()    ));
-            $statement->bindValue(":leave_type_id"       , $leaveEntitlement->getLeaveTypeId()      , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()      ));
+
             $statement->bindValue(":employee_id"         , $leaveEntitlement->getEmployeeId()       , Helper::getPdoParameterType($leaveEntitlement->getEmployeeId()       ));
+            $statement->bindValue(":leave_type_id"       , $leaveEntitlement->getLeaveTypeId()      , Helper::getPdoParameterType($leaveEntitlement->getLeaveTypeId()      ));
 
             $statement->execute();
 

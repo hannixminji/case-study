@@ -66,15 +66,14 @@ class JobTitleDao
         $tableColumns = [
             "id"              => "job_title.id            AS id"             ,
             "title"           => "job_title.title         AS title"          ,
-
             "department_id"   => "job_title.department_id AS department_id"  ,
-            "department_name" => "department.name         AS department_name",
-
             "description"     => "job_title.description   AS description"    ,
             "status"          => "job_title.status        AS status"         ,
             "created_at"      => "job_title.created_at    AS created_at"     ,
             "updated_at"      => "job_title.updated_at    AS updated_at"     ,
-            "deleted_at"      => "job_title.deleted_at    AS deleted_at"
+            "deleted_at"      => "job_title.deleted_at    AS deleted_at"     ,
+
+            "department_name" => "department.name         AS department_name"
         ];
 
         $selectedColumns =
@@ -96,9 +95,8 @@ class JobTitleDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "job_title.deleted_at IS NULL";
@@ -112,15 +110,15 @@ class JobTitleDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
+                        break;
                 }
             }
         }
@@ -170,7 +168,7 @@ class JobTitleDao
             {$joinClauses}
             WHERE
             " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -232,6 +230,7 @@ class JobTitleDao
             $statement->bindValue(":department_id", $jobTitle->getDepartmentId(), Helper::getPdoParameterType($jobTitle->getDepartmentId()));
             $statement->bindValue(":description"  , $jobTitle->getDescription() , Helper::getPdoParameterType($jobTitle->getDescription() ));
             $statement->bindValue(":status"       , $jobTitle->getStatus()      , Helper::getPdoParameterType($jobTitle->getStatus()      ));
+
             $statement->bindValue(":job_title_id" , $jobTitle->getId()          , Helper::getPdoParameterType($jobTitle->getId()          ));
 
             $statement->execute();
@@ -293,5 +292,4 @@ class JobTitleDao
             return ActionResult::FAILURE;
         }
     }
-
 }

@@ -26,7 +26,11 @@ class EmployeeBreakService
         $this->breakScheduleRepository = $breakScheduleRepository;
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentDateTime): ActionResult|array
+    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false)
+    {
+    }
+
+    public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
 
@@ -37,21 +41,35 @@ class EmployeeBreakService
             ];
         }
 
+        if ($employeeId === ActionResult::NO_RECORD_FOUND) {
+            return [
+                'status'  => 'warning',
+                'message' => 'No employee found for the provided RFID UID. Please verify the UID and try again.'
+            ];
+        }
+
         $lastAttendanceRecord = $this->attendanceRepository->getLastAttendanceRecord($employeeId);
 
         if ($lastAttendanceRecord === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.',
+                'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
 
-        if ( empty($lastAttendanceRecord) ||
-            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-             $lastAttendanceRecord['check_out_time'] !== null)) {
+        if ( ! empty($lastAttendanceRecord) && $lastAttendanceRecord['work_schedule_is_flextime']) {
+            return [
+                'status'  => 'warning',
+                'message' => 'You\'re not required to log time for breaks.'
+            ];
+        }
+
+        if (empty($lastAttendanceRecord) ||
+           ($lastAttendanceRecord['check_in_time' ] !== null  &&
+            $lastAttendanceRecord['check_out_time'] !== null)) {
             return [
                 'status'  => 'error',
-                'message' => 'You cannot take a break without checking in first.',
+                'message' => 'You must check in before taking a break.'
             ];
         }
 
@@ -68,7 +86,9 @@ class EmployeeBreakService
             $workScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleStartTime))->format('H:i:s'));
             $workScheduleEndDateTime   = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleEndTime  ))->format('H:i:s'));
 
-            if ($workScheduleEndDateTime < $workScheduleStartDateTime) {
+            if ($workScheduleEndDateTime < $workScheduleStartDateTime               ||
+               ($workScheduleStartDateTime->format('H:i:s') === '00:00:00'  &&
+                $workScheduleEndDateTime  ->format('H:i:s') === '00:00:00')) {
                 $workScheduleEndDateTime->modify('+1 day');
             }
 
@@ -88,12 +108,12 @@ class EmployeeBreakService
                 ];
             }
 
-            if ( empty($lastBreakRecord) ||
-                ($lastBreakRecord['start_time'] !== null  &&
-                 $lastBreakRecord['end_time'  ] !== null) ||
+            if (empty($lastBreakRecord) ||
+               ($lastBreakRecord['start_time'] !== null  &&
+                $lastBreakRecord['end_time'  ] !== null) ||
 
-                ($lastBreakRecord['start_time'] === null &&
-                 $lastBreakRecord['end_time'  ] === null)) {
+               ($lastBreakRecord['start_time'] === null  &&
+                $lastBreakRecord['end_time'  ] === null)) {
 
                 $isBreakIn = true;
 
@@ -140,10 +160,10 @@ class EmployeeBreakService
                 $breakSchedules = $breakSchedules['result_set'];
 
                 $currentBreakSchedule = $this->getCurrentBreakSchedule(
-                    $breakSchedules,
-                    $currentDateTime->format('Y-m-d H:i:s'),
-                    $workScheduleStartDateTime->format('Y-m-d H:i:s'),
-                    $workScheduleEndDateTime->format('Y-m-d H:i:s')
+                    breakSchedules       : $breakSchedules                                          ,
+                    currentTime          : $currentDateTime          ->format('Y-m-d H:i:s'),
+                    workScheduleStartTime: $workScheduleStartDateTime->format('Y-m-d H:i:s'),
+                    workScheduleEndTime  : $workScheduleEndDateTime  ->format('Y-m-d H:i:s')
                 );
 
                 if (empty($currentBreakSchedule)) {
@@ -183,6 +203,7 @@ class EmployeeBreakService
 
                 $employeeBreak = new EmployeeBreak(
                     id                    : null                                           ,
+                    attendanceId          : $lastAttendanceRecord['id']                    ,
                     breakScheduleId       : $currentBreakSchedule['id']                    ,
                     startTime             : $currentDateTime->format('Y-m-d H:i:s'),
                     endTime               : null                                           ,
@@ -210,6 +231,7 @@ class EmployeeBreakService
 
                 $employeeBreak = new EmployeeBreak(
                     id                    : $lastBreakRecord['id'               ]          ,
+                    attendanceId          : $lastAttendanceRecord['id'          ]          ,
                     breakScheduleId       : $lastBreakRecord['break_schedule_id']          ,
                     startTime             : $lastBreakRecord['start_time'       ]          ,
                     endTime               : $currentDateTime->format('Y-m-d H:i:s'),
@@ -325,10 +347,5 @@ class EmployeeBreakService
         }
 
         return $currentBreakSchedule;
-    }
-
-    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
-    {
-        return $this->employeeBreakRepository->updateEmployeeBreak($employeeBreak, $isHashedId);
     }
 }

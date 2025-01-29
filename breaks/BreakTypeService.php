@@ -17,11 +17,11 @@ class BreakTypeService
     }
 
     public function fetchAllBreakTypes(
-        ?array $columns        = null,
-        ?array $filterCriteria = null,
-        ?array $sortCriteria   = null,
-        ?int   $limit          = null,
-        ?int   $offset         = null
+        ? array $columns        = null,
+        ? array $filterCriteria = null,
+        ? array $sortCriteria   = null,
+        ? int   $limit          = null,
+        ? int   $offset         = null
     ): ActionResult|array {
         return $this->breakTypeRepository->fetchAllBreakTypes($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }

@@ -117,25 +117,8 @@ class AttendanceDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                              => "attendance.id                              AS id"                             ,
-
             "work_schedule_id"                => "attendance.work_schedule_id                AS work_schedule_id"               ,
-            "work_schedule_start_time"        => "work_schedule.start_time                   AS work_schedule_start_time"       ,
-            "work_schedule_end_time"          => "work_schedule.end_time                     AS work_schedule_end_time"         ,
-            "work_schedule_is_flextime"       => "work_schedule.is_flextime                  AS work_schedule_is_flextime"      ,
-            "work_schedule_total_work_hours"  => "work_schedule.total_work_hours             AS work_schedule_total_work_hours" ,
-
-            "employee_id"                     => "work_schedule.employee_id                  AS employee_id"                    ,
-            "employee_code"                   => "employee.employee_code                     AS employee_code"                  ,
-            "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
-            "employee_supervisor_id"          => "employee.supervisor_id                     AS employee_supervisor_id"         ,
-            "employee_deleted_at"             => "employee.deleted_at                        AS employee_deleted_at"            ,
-            "department_id"                   => "department.id                              AS department_id"                  ,
-            "department_name"                 => "department.name                            AS department_name"                ,
-            "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
-            "job_title"                       => "job_title.title                            AS job_title"                      ,
-
             "date"                            => "attendance.date                            AS date"                           ,
-            "day_of_the_week"                 => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                ,
             "check_in_time"                   => "attendance.check_in_time                   AS check_in_time"                  ,
             "check_out_time"                  => "attendance.check_out_time                  AS check_out_time"                 ,
             "total_break_duration_in_minutes" => "attendance.total_break_duration_in_minutes AS total_break_duration_in_minutes",
@@ -147,7 +130,27 @@ class AttendanceDao
             "attendance_status"               => "attendance.attendance_status               AS attendance_status"              ,
             "remarks"                         => "attendance.remarks                         AS remarks"                        ,
             "created_at"                      => "attendance.created_at                      AS created_at"                     ,
-            "updated_at"                      => "attendance.updated_at                      AS updated_at"
+            "updated_at"                      => "attendance.updated_at                      AS updated_at"                     ,
+            "deleted_at"                      => "attendance.deleted_at                      AS deleted_at"                     ,
+
+            "day_of_the_week"                 => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                ,
+
+            "employee_id"                     => "work_schedule.employee_id                  AS employee_id"                    ,
+            "work_schedule_start_time"        => "work_schedule.start_time                   AS work_schedule_start_time"       ,
+            "work_schedule_end_time"          => "work_schedule.end_time                     AS work_schedule_end_time"         ,
+            "work_schedule_is_flextime"       => "work_schedule.is_flextime                  AS work_schedule_is_flextime"      ,
+            "work_schedule_total_work_hours"  => "work_schedule.total_work_hours             AS work_schedule_total_work_hours" ,
+
+            "employee_code"                   => "employee.employee_code                     AS employee_code"                  ,
+            "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
+            "employee_supervisor_id"          => "employee.supervisor_id                     AS employee_supervisor_id"         ,
+            "employee_deleted_at"             => "employee.deleted_at                        AS employee_deleted_at"            ,
+
+            "department_id"                   => "department.id                              AS department_id"                  ,
+            "department_name"                 => "department.name                            AS department_name"                ,
+
+            "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
+            "job_title"                       => "job_title.title                            AS job_title"
         ];
 
         $selectedColumns =
@@ -160,12 +163,12 @@ class AttendanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("work_schedule_start_time"      , $selectedColumns) ||
+        if (array_key_exists("employee_id"                   , $selectedColumns) ||
+            array_key_exists("work_schedule_start_time"      , $selectedColumns) ||
             array_key_exists("work_schedule_end_time"        , $selectedColumns) ||
             array_key_exists("work_schedule_is_flextime"     , $selectedColumns) ||
             array_key_exists("work_schedule_total_work_hours", $selectedColumns) ||
 
-            array_key_exists("employee_id"                   , $selectedColumns) ||
             array_key_exists("employee_code"                 , $selectedColumns) ||
             array_key_exists("employee_full_name"            , $selectedColumns) ||
             array_key_exists("employee_supervisor_id"        , $selectedColumns) ||
@@ -184,10 +187,10 @@ class AttendanceDao
             ";
         }
 
-        if (array_key_exists("employee_id"           , $selectedColumns) ||
-            array_key_exists("employee_code"         , $selectedColumns) ||
+        if (array_key_exists("employee_code"         , $selectedColumns) ||
             array_key_exists("employee_full_name"    , $selectedColumns) ||
             array_key_exists("employee_supervisor_id", $selectedColumns) ||
+            array_key_exists("employee_deleted_at"   , $selectedColumns) ||
 
             array_key_exists("department_id"         , $selectedColumns) ||
             array_key_exists("department_name"       , $selectedColumns) ||
@@ -222,9 +225,8 @@ class AttendanceDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if ( ! empty($filterCriteria)) {
             foreach ($filterCriteria as $filterCriterion) {
@@ -237,20 +239,20 @@ class AttendanceDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -298,7 +300,7 @@ class AttendanceDao
                 attendance
             {$joinClauses}
             " . (empty($whereClauses) ? "" : "WHERE " . implode(" AND ", $whereClauses)) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -372,6 +374,7 @@ class AttendanceDao
             $statement->bindValue(":is_overtime_approved"           , $attendance->isOvertimeApproved()            , Helper::getPdoParameterType($attendance->isOvertimeApproved()            ));
             $statement->bindValue(":attendance_status"              , $attendance->getAttendanceStatus()           , Helper::getPdoParameterType($attendance->getAttendanceStatus()           ));
             $statement->bindValue(":remarks"                        , $attendance->getRemarks()                    , Helper::getPdoParameterType($attendance->getRemarks()                    ));
+
             $statement->bindValue(":attendance_id"                  , $attendance->getId()                         , Helper::getPdoParameterType($attendance->getId()                         ));
 
             $statement->execute();
@@ -422,6 +425,49 @@ class AttendanceDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while approving overtime. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function delete(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    {
+        return $this->softDelete($attendanceId, $isHashedId);
+    }
+
+    private function softDelete(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    {
+        $query = "
+            UPDATE attendance
+            SET
+                deleted_at = CURRENT_TIMESTAMP
+            WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :attendance_id";
+        } else {
+            $query .= " id = :attendance_id";
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":attendance_id", $attendanceId, Helper::getPdoParameterType($attendanceId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while deleting the attendance record. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

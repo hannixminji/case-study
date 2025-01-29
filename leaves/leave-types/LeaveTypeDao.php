@@ -90,9 +90,8 @@ class LeaveTypeDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "leave_type.deleted_at IS NULL";
@@ -106,16 +105,15 @@ class LeaveTypeDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -164,7 +162,7 @@ class LeaveTypeDao
                 leave_types AS leave_type
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -230,6 +228,7 @@ class LeaveTypeDao
             $statement->bindValue(":is_encashable"         , $leaveType->isEncashable()          , Helper::getPdoParameterType($leaveType->isEncashable()          ));
             $statement->bindValue(":description"           , $leaveType->getDescription()        , Helper::getPdoParameterType($leaveType->getDescription()        ));
             $statement->bindValue(":status"                , $leaveType->getStatus()             , Helper::getPdoParameterType($leaveType->getStatus()             ));
+
             $statement->bindValue(":leave_type_id"         , $leaveType->getId()                 , Helper::getPdoParameterType($leaveType->getId()                 ));
 
             $statement->execute();

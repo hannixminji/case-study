@@ -89,9 +89,9 @@ class AttendanceService
 
         $isCheckIn = false;
 
-        if ( empty($lastAttendanceRecord) ||
-            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-             $lastAttendanceRecord['check_out_time'] !== null)) {
+        if (empty($lastAttendanceRecord) ||
+           ($lastAttendanceRecord['check_in_time' ] !== null  &&
+            $lastAttendanceRecord['check_out_time'] !== null)) {
 
             $isCheckIn = true;
 
@@ -205,23 +205,25 @@ class AttendanceService
                 }
 
             } else {
-                $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
+                if ( ! $currentWorkSchedule['is_flextime']) {
+                    $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
-                if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
-                    return [
-                        'status' => 'error',
-                        'message' => 'An unexpected error occurred. Please try again later.'
-                    ];
-                }
+                    if ($minutesCanCheckInBeforeShift === ActionResult::FAILURE) {
+                        return [
+                            'status' => 'error',
+                            'message' => 'An unexpected error occurred. Please try again later.'
+                        ];
+                    }
 
-                $earliestCheckInTime = (new DateTime($currentWorkSchedule['start_time']))
-                    ->modify("-{$minutesCanCheckInBeforeShift} minutes");
+                    $earliestCheckInTime = (new DateTime($currentWorkSchedule['start_time']))
+                        ->modify("-{$minutesCanCheckInBeforeShift} minutes");
 
-                if ($currentDateTime < $earliestCheckInTime) {
-                    return [
-                        'status' => 'warning',
-                        'message' => 'You are not allowed to check in early.'
-                    ];
+                    if ($currentDateTime < $earliestCheckInTime) {
+                        return [
+                            'status' => 'warning',
+                            'message' => 'You are not allowed to check in early.'
+                        ];
+                    }
                 }
 
                 $attendanceStatus = 'Present';
@@ -280,7 +282,9 @@ class AttendanceService
             $workScheduleStartTime = new DateTime($lastAttendanceDate->format('Y:m:d') . ' ' . (new DateTime($lastAttendanceRecord['work_schedule_start_time']))->format('H:i:s'));
             $workScheduleEndTime   = new DateTime($lastAttendanceDate->format('Y:m:d') . ' ' . (new DateTime($lastAttendanceRecord['work_schedule_end_time'  ]))->format('H:i:s'));
 
-            if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s')) {
+            if ($workScheduleEndTime->format('H:i:s') < $workScheduleStartTime->format('H:i:s') ||
+               ($workScheduleStartTime->format('H:i:s') === '00:00:00' &&
+                $workScheduleEndTime  ->format('H:i:s') === '00:00:00')) {
                 $workScheduleEndTime->modify('+1 day');
             }
 
@@ -339,6 +343,10 @@ class AttendanceService
             ];
 
             $filterCriteria = [
+                [
+                    'column'   => 'employee_break.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
                 [
                     'column'   => 'break_schedule.work_schedule_id',
                     'operator' => '=',
@@ -438,11 +446,12 @@ class AttendanceService
                         }
 
                         $employeeBreak = new EmployeeBreak(
-                            id                    : null                ,
-                            breakScheduleId       : $breakSchedule['id'],
-                            startTime             : null                ,
-                            endTime               : null                ,
-                            breakDurationInMinutes: 0,
+                            id                    : null                       ,
+                            attendanceId          : $lastAttendanceRecord['id'],
+                            breakScheduleId       : $breakSchedule['id']       ,
+                            startTime             : null                       ,
+                            endTime               : null                       ,
+                            breakDurationInMinutes: 0                          ,
                             createdAt             : $currentDateTime->format('Y-m-d H:i:s')
                         );
 
@@ -468,6 +477,7 @@ class AttendanceService
 
                         $employeeBreak = new EmployeeBreak(
                             id                    : $lastBreakRecord['id'               ],
+                            attendanceId          : $lastAttendanceRecord['id'          ],
                             breakScheduleId       : $lastBreakRecord['break_schedule_id'],
                             startTime             : null                                 ,
                             endTime               : null                                 ,
@@ -843,7 +853,10 @@ class AttendanceService
                 $startTime = new DateTime($date . ' ' . $startTime);
                 $endTime   = new DateTime($date . ' ' . $endTime  );
 
-                if ($endTime->format('H:i:s') < $startTime->format('H:i:s')) {
+                if ($endTime->format('H:i:s') < $startTime->format('H:i:s') ||
+
+                   ($startTime->format('H:i:s') === '00:00:00'  &&
+                    $endTime  ->format('H:i:s') === '00:00:00')) {
                     $endTime->modify('+1 day');
                 }
 
@@ -952,7 +965,7 @@ class AttendanceService
         ];
 
         $result = $this->attendanceRepository->fetchAllAttendance(
-            columns       : $columns,
+            columns       : $columns       ,
             filterCriteria: $filterCriteria
         );
 
@@ -1165,10 +1178,11 @@ class AttendanceService
                     }
 
                     $employeeBreak = new EmployeeBreak(
-                        id                    : null                ,
-                        breakScheduleId       : $breakSchedule['id'],
-                        startTime             : null                ,
-                        endTime               : null                ,
+                        id                    : null                       ,
+                        attendanceId          : $lastAttendanceRecord['id'],
+                        breakScheduleId       : $breakSchedule['id'       ],
+                        startTime             : null                       ,
+                        endTime               : null                       ,
                         breakDurationInMinutes: 0,
                         createdAt             : $lastAttendanceRecord['created_at']
                     );
@@ -1195,6 +1209,7 @@ class AttendanceService
 
                     $employeeBreak = new EmployeeBreak(
                         id                    : $lastBreakRecord['id'               ],
+                        attendanceId          : $lastAttendanceRecord['id'          ],
                         breakScheduleId       : $lastBreakRecord['break_schedule_id'],
                         startTime             : null                                 ,
                         endTime               : null                                 ,
@@ -1507,12 +1522,14 @@ class AttendanceService
 
                 $attendanceStatus = 'Undertime';
 
-            } elseif ($totalHoursWorked > $lastAttendanceRecord['work_schedule_total_work_hours']) {
-                $overtimeHours = $totalHoursWorked - $lastAttendanceRecord['work_schedule_total_work_hours'];
-                $overtimeHours = round($overtimeHours, 2);
-
-                $attendanceStatus = 'Overtime';
             }
+        }
+
+        if ($totalHoursWorked > $lastAttendanceRecord['work_schedule_total_work_hours']) {
+            $overtimeHours = $totalHoursWorked - $lastAttendanceRecord['work_schedule_total_work_hours'];
+            $overtimeHours = round($overtimeHours, 2);
+
+            $attendanceStatus = 'Overtime';
         }
 
         $attendance = new Attendance(

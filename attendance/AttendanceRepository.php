@@ -58,6 +58,10 @@ class AttendanceRepository
 
         $filterCriteria = [
             [
+                'column'   => 'attendance.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
                 'column'   => 'employee.deleted_at',
                 'operator' => 'IS NULL'
             ],

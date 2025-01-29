@@ -9,7 +9,7 @@ class OvertimeRateAssignmentDao
 
     public function __construct(PDO $pdo, OvertimeRateDao $overtimeRateDao)
     {
-        $this->pdo = $pdo;
+        $this->pdo             = $pdo            ;
         $this->overtimeRateDao = $overtimeRateDao;
     }
 

@@ -102,9 +102,8 @@ class PayrollGroupDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "payroll_group.deleted_at IS NULL";
@@ -122,21 +121,21 @@ class PayrollGroupDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NOT NULL":
                     case "IS NULL"    :
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
 
                 $whereClauses[] = " {$boolean}";
@@ -238,11 +237,16 @@ class PayrollGroupDao
                 semi_monthly_first_cutoff  = :semi_monthly_first_cutoff ,
                 semi_monthly_second_cutoff = :semi_monthly_second_cutoff,
                 payday_offset              = :payday_offset             ,
-                payday_adjustment          = :payday_adjustment        ,
+                payday_adjustment          = :payday_adjustment         ,
                 status                     = :status
             WHERE
-                id = :id
         ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :payroll_group_id";
+        } else {
+            $query .= " id = :payroll_group_id";
+        }
 
         try {
             $this->pdo->beginTransaction();
@@ -258,7 +262,8 @@ class PayrollGroupDao
             $statement->bindValue(":payday_offset"             , $payrollGroup->getPaydayOffset()           , Helper::getPdoParameterType($payrollGroup->getPaydayOffset()           ));
             $statement->bindValue(":payday_adjustment"         , $payrollGroup->getPaydayAdjustment()       , Helper::getPdoParameterType($payrollGroup->getPaydayAdjustment()       ));
             $statement->bindValue(":status"                    , $payrollGroup->getStatus()                 , Helper::getPdoParameterType($payrollGroup->getStatus()                 ));
-            $statement->bindValue(":id"                        , $payrollGroup->getId()                     , Helper::getPdoParameterType($payrollGroup->getId()                     ));
+
+            $statement->bindValue(":payroll_group_id"          , $payrollGroup->getId()                     , Helper::getPdoParameterType($payrollGroup->getId()                     ));
 
             $statement->execute();
 

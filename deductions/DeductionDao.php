@@ -17,17 +17,17 @@ class DeductionDao
     {
         $query = "
             INSERT INTO deductions (
-                name          ,
-                amount        ,
-                frequency     ,
-                description   ,
+                name       ,
+                amount     ,
+                frequency  ,
+                description,
                 status
             )
             VALUES (
-                :name          ,
-                :amount        ,
-                :frequency     ,
-                :description   ,
+                :name       ,
+                :amount     ,
+                :frequency  ,
+                :description,
                 :status
             )
         ";
@@ -86,9 +86,8 @@ class DeductionDao
                     array_flip($columns)
                 );
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "deduction.deleted_at IS NULL";
@@ -102,20 +101,20 @@ class DeductionDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -164,7 +163,7 @@ class DeductionDao
                 deductions AS deduction
             WHERE
             " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -228,6 +227,7 @@ class DeductionDao
             $statement->bindValue(":frequency"   , $deduction->getFrequency()  , Helper::getPdoParameterType($deduction->getFrequency()  ));
             $statement->bindValue(":description" , $deduction->getDescription(), Helper::getPdoParameterType($deduction->getDescription()));
             $statement->bindValue(":status"      , $deduction->getStatus()     , Helper::getPdoParameterType($deduction->getStatus()     ));
+
             $statement->bindValue(":deduction_id", $deduction->getId()         , Helper::getPdoParameterType($deduction->getId()         ));
 
             $statement->execute();

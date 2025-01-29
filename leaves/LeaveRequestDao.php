@@ -74,31 +74,31 @@ class LeaveRequestDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                       => "leave_request.id            AS id"                      ,
-
             "employee_id"              => "leave_request.employee_id   AS employee_id"             ,
-            "employee_full_name"       => "employee.full_name          AS employee_full_name"      ,
-            "employee_department_id"   => "employee.department_id      AS employee_department_id"  ,
-            "employee_department_name" => "department.name             AS employee_department_name",
-            "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
-            "employee_job_title"       => "job_title.title             AS employee_job_title"      ,
-            "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
-
             "leave_type_id"            => "leave_request.leave_type_id AS leave_type_id"           ,
-            "leave_type_name"          => "leave_type.name             AS leave_type_name"         ,
-            "leave_type_is_paid"       => "leave_type.is_paid          AS leave_type_is_paid"      ,
-
             "start_date"               => "leave_request.start_date    AS start_date"              ,
             "end_date"                 => "leave_request.end_date      AS end_date"                ,
             "reason"                   => "leave_request.reason        AS reason"                  ,
             "is_half_day"              => "leave_request.is_half_day   AS is_half_day"             ,
             "status"                   => "leave_request.status        AS status"                  ,
-
             "approved_at"              => "leave_request.approved_at   AS approved_at"             ,
-            "approved_by"              => "approved_by.full_name       AS approved_by"             ,
-
             "created_at"               => "leave_request.created_at    AS created_at"              ,
             "updated_at"               => "leave_request.updated_at    AS updated_at"              ,
-            "deleted_at"               => "leave_request.deleted_at    AS deleted_at"
+            "deleted_at"               => "leave_request.deleted_at    AS deleted_at"              ,
+
+            "employee_full_name"       => "employee.full_name          AS employee_full_name"      ,
+            "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
+            "employee_department_id"   => "employee.department_id      AS employee_department_id"  ,
+            "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
+
+            "employee_job_title"       => "job_title.title             AS employee_job_title"      ,
+
+            "employee_department_name" => "department.name             AS employee_department_name",
+
+            "leave_type_name"          => "leave_type.name             AS leave_type_name"         ,
+            "leave_type_is_paid"       => "leave_type.is_paid          AS leave_type_is_paid"      ,
+
+            "approved_by"              => "approved_by.full_name       AS approved_by"
         ];
 
         $selectedColumns =
@@ -112,14 +112,13 @@ class LeaveRequestDao
         $joinClauses = "";
 
         if (array_key_exists("employee_full_name"      , $selectedColumns) ||
-
-            array_key_exists("employee_department_id"  , $selectedColumns) ||
-            array_key_exists("employee_department_name", $selectedColumns) ||
-
             array_key_exists("employee_job_title_id"   , $selectedColumns) ||
+            array_key_exists("employee_department_id"  , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"  , $selectedColumns) ||
+
             array_key_exists("employee_job_title"      , $selectedColumns) ||
 
-            array_key_exists("supervisor_id"           , $selectedColumns) ||
+            array_key_exists("employee_department_name", $selectedColumns) ||
 
             array_key_exists("approved_by"             , $selectedColumns)) {
             $joinClauses .= "
@@ -139,7 +138,7 @@ class LeaveRequestDao
             ";
         }
 
-        if (array_key_exists("employee_job_title"   , $selectedColumns)) {
+        if (array_key_exists("employee_job_title", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     job_titles AS job_title
@@ -167,9 +166,8 @@ class LeaveRequestDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "leave_request.deleted_at IS NULL";
@@ -183,20 +181,20 @@ class LeaveRequestDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -245,9 +243,9 @@ class LeaveRequestDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-                " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
-                {$limitClause}
-                {$offsetClause}
+                " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            {$limitClause}
+            {$offsetClause}
         ";
 
         try {
@@ -311,6 +309,7 @@ class LeaveRequestDao
             $statement->bindValue(":end_date"        , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
             $statement->bindValue(":reason"          , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
             $statement->bindValue(":is_half_day"     , $leaveRequest->isHalfDay()     , Helper::getPdoParameterType($leaveRequest->isHalfDay()     ));
+
             $statement->bindValue(":leave_request_id", $leaveRequest->getId()         , Helper::getPdoParameterType($leaveRequest->getId()         ));
 
             $statement->execute();
@@ -350,6 +349,7 @@ class LeaveRequestDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":status"          , $status        , Helper::getPdoParameterType($status        ));
+
             $statement->bindValue(":leave_request_id", $leaveRequestId, Helper::getPdoParameterType($leaveRequestId));
 
             $statement->execute();

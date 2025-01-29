@@ -66,15 +66,14 @@ class DepartmentDao
         $tableColumns = [
             "id"                        => "department.id                 AS id"                       ,
             "name"                      => "department.name               AS name"                     ,
-
             "department_head_id"        => "department.department_head_id AS department_head_id"       ,
-            "department_head_full_name" => "department_head.full_name     AS department_head_full_name",
-
             "description"               => "department.description        AS description"              ,
             "status"                    => "department.status             AS status"                   ,
             "created_at"                => "department.created_at         AS created_at"               ,
             "updated_at"                => "department.updated_at         AS updated_at"               ,
-            "deleted_at"                => "department.deleted_at         AS deleted_at"
+            "deleted_at"                => "department.deleted_at         AS deleted_at"               ,
+
+            "department_head_full_name" => "department_head.full_name     AS department_head_full_name"
         ];
 
         $selectedColumns =
@@ -96,9 +95,8 @@ class DepartmentDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "department.deleted_at IS NULL";
@@ -112,16 +110,15 @@ class DepartmentDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -171,7 +168,7 @@ class DepartmentDao
             {$joinClauses}
             WHERE
             " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -280,6 +277,7 @@ class DepartmentDao
             $statement->bindValue(":department_head_id", $department->getDepartmentHeadId(), Helper::getPdoParameterType($department->getDepartmentHeadId()));
             $statement->bindValue(":description"       , $department->getDescription()     , Helper::getPdoParameterType($department->getDescription()     ));
             $statement->bindValue(":status"            , $department->getStatus()          , Helper::getPdoParameterType($department->getStatus()          ));
+
             $statement->bindValue(":department_id"     , $department->getId()              , Helper::getPdoParameterType($department->getId()              ));
 
             $statement->execute();

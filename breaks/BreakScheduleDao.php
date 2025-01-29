@@ -72,21 +72,20 @@ class BreakScheduleDao
         $tableColumns = [
             "id"                                => "break_schedule.id                            AS id"                               ,
             "work_schedule_id"                  => "break_schedule.work_schedule_id              AS work_schedule_id"                 ,
-
             "break_type_id"                     => "break_schedule.break_type_id                 AS break_type_id"                    ,
-            "break_type_name"                   => "break_type.name                              AS break_type_name"                  ,
-            "break_type_duration_in_minutes"    => "break_type.duration_in_minutes               AS break_type_duration_in_minutes"   ,
-            "break_type_is_paid"                => "break_type.is_paid                           AS break_type_is_paid"               ,
-            "is_require_break_in_and_break_out" => "break_type.is_require_break_in_and_break_out AS is_require_break_in_and_break_out",
-            "break_type_deleted_at"             => "break_type.deleted_at                        AS break_type_deleted_at"            ,
-
             "start_time"                        => "break_schedule.start_time                    AS start_time"                       ,
             "is_flexible"                       => "break_schedule.is_flexible                   AS is_flexible"                      ,
             "earliest_start_time"               => "break_schedule.earliest_start_time           AS earliest_start_time"              ,
             "latest_end_time"                   => "break_schedule.latest_end_time               AS latest_end_time"                  ,
             "created_at"                        => "break_schedule.created_at                    AS created_at"                       ,
             "updated_at"                        => "break_schedule.updated_at                    AS updated_at"                       ,
-            "deleted_at"                        => "break_schedule.deleted_at                    AS deleted_at"
+            "deleted_at"                        => "break_schedule.deleted_at                    AS deleted_at"                       ,
+
+            "break_type_name"                   => "break_type.name                              AS break_type_name"                  ,
+            "break_type_duration_in_minutes"    => "break_type.duration_in_minutes               AS break_type_duration_in_minutes"   ,
+            "break_type_is_paid"                => "break_type.is_paid                           AS break_type_is_paid"               ,
+            "is_require_break_in_and_break_out" => "break_type.is_require_break_in_and_break_out AS is_require_break_in_and_break_out",
+            "break_type_deleted_at"             => "break_type.deleted_at                        AS break_type_deleted_at"
         ];
 
         $selectedColumns =
@@ -112,9 +111,8 @@ class BreakScheduleDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "break_schedule.deleted_at IS NULL";
@@ -128,16 +126,19 @@ class BreakScheduleDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
+
                         break;
                 }
             }
@@ -187,7 +188,7 @@ class BreakScheduleDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -249,6 +250,7 @@ class BreakScheduleDao
             $statement->bindValue(":is_flexible"        , $breakSchedule->isFlexible()          , Helper::getPdoParameterType($breakSchedule->isFlexible()          ));
             $statement->bindValue(":earliest_start_time", $breakSchedule->getEarliestStartTime(), Helper::getPdoParameterType($breakSchedule->getEarliestStartTime()));
             $statement->bindValue(":latest_end_time"    , $breakSchedule->getLatestEndTime()    , Helper::getPdoParameterType($breakSchedule->getLatestEndTime()    ));
+
             $statement->bindValue(":break_schedule_id"  , $breakSchedule->getId()               , Helper::getPdoParameterType($breakSchedule->getId()               ));
 
             $statement->execute();

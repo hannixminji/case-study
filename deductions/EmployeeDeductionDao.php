@@ -63,15 +63,14 @@ class EmployeeDeductionDao
         $tableColumns = [
             "id"                  => "employee_deduction.id           AS id"                 ,
             "employee_id"         => "employee_deduction.employee_id  AS employee_id"        ,
-
             "deduction_id"        => "employee_deduction.deduction_id AS deduction_id"       ,
-            "deduction_name"      => "deduction.name                  AS deduction_name"     ,
-            "deduction_frequency" => "deduction.frequency             AS deduction_frequency",
-            "deduction_status"    => "deduction.status                AS deduction_status"   ,
-
             "amount"              => "employee_deduction.amount       AS amount"             ,
             "created_at"          => "employee_deduction.created_at   AS created_at"         ,
-            "deleted_at"          => "employee_deduction.deleted_at   AS deleted_at"
+            "deleted_at"          => "employee_deduction.deleted_at   AS deleted_at"         ,
+
+            "deduction_name"      => "deduction.name                  AS deduction_name"     ,
+            "deduction_frequency" => "deduction.frequency             AS deduction_frequency",
+            "deduction_status"    => "deduction.status                AS deduction_status"
         ];
 
         $selectedColumns =
@@ -95,9 +94,8 @@ class EmployeeDeductionDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "employee_deduction.deleted_at IS NULL";
@@ -111,20 +109,20 @@ class EmployeeDeductionDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -159,7 +157,7 @@ class EmployeeDeductionDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -182,7 +180,7 @@ class EmployeeDeductionDao
             $totalRowCount = $countStatement->fetchColumn();
 
             return [
-                "result_set"      => $resultSet,
+                "result_set"      => $resultSet    ,
                 "total_row_count" => $totalRowCount
             ];
 

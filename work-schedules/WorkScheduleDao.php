@@ -81,16 +81,7 @@ class WorkScheduleDao
     ): ActionResult|array {
         $tableColumns = [
             "id"                       => "work_schedule.id                   AS id"                      ,
-
             "employee_id"              => "work_schedule.employee_id          AS employee_id"             ,
-            "employee_rfid_uid"        => "employee.rfid_uid                  AS employee_rfid_uid"       ,
-            "employee_full_name"       => "employee.full_name                 AS employee_full_name"      ,
-            "employee_job_title_id"    => "employee.job_title_id              AS employee_job_title_id"   ,
-            "employee_job_title"       => "job_title.title                    AS employee_job_title"      ,
-            "employee_department_id"   => "employee.department_id             AS employee_department_id"  ,
-            "employee_department_name" => "department.name                    AS employee_department_name",
-            "employee_profile_picture" => "employee.profile_picture           AS employee_profile_picture",
-
             "start_time"               => "work_schedule.start_time           AS start_time"              ,
             "end_time"                 => "work_schedule.end_time             AS end_time"                ,
             "is_flextime"              => "work_schedule.is_flextime          AS is_flextime"             ,
@@ -100,7 +91,17 @@ class WorkScheduleDao
             "recurrence_rule"          => "work_schedule.recurrence_rule      AS recurrence_rule"         ,
             "created_at"               => "work_schedule.created_at           AS created_at"              ,
             "updated_at"               => "work_schedule.updated_at           AS updated_at"              ,
-            "deleted_at"               => "work_schedule.deleted_at           AS deleted_at"
+            "deleted_at"               => "work_schedule.deleted_at           AS deleted_at"              ,
+
+            "employee_rfid_uid"        => "employee.rfid_uid                  AS employee_rfid_uid"       ,
+            "employee_full_name"       => "employee.full_name                 AS employee_full_name"      ,
+            "employee_job_title_id"    => "employee.job_title_id              AS employee_job_title_id"   ,
+            "employee_department_id"   => "employee.department_id             AS employee_department_id"  ,
+            "employee_profile_picture" => "employee.profile_picture           AS employee_profile_picture",
+
+            "employee_job_title"       => "job_title.title                    AS employee_job_title"      ,
+
+            "employee_department_name" => "department.name                    AS employee_department_name"
         ];
 
         $selectedColumns =
@@ -115,13 +116,12 @@ class WorkScheduleDao
 
         if (array_key_exists("employee_rfid_uid"       , $selectedColumns) ||
             array_key_exists("employee_full_name"      , $selectedColumns) ||
-            array_key_exists("employee_department_name", $selectedColumns) ||
+            array_key_exists("employee_job_title_id"   , $selectedColumns) ||
+            array_key_exists("employee_department_id"  , $selectedColumns) ||
             array_key_exists("employee_profile_picture", $selectedColumns) ||
 
-            array_key_exists("employee_job_title_id"   , $selectedColumns) ||
             array_key_exists("employee_job_title"      , $selectedColumns) ||
 
-            array_key_exists("employee_department_id"  , $selectedColumns) ||
             array_key_exists("employee_department_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
@@ -149,9 +149,8 @@ class WorkScheduleDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
-
-        $whereClauses = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "work_schedule.deleted_at IS NULL";
@@ -167,20 +166,20 @@ class WorkScheduleDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
                         break;
 
                     case "IS NULL":
                         $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
-                        break;
 
-                    default:
-                        // Do nothing
+                        break;
                 }
             }
         }
@@ -229,7 +228,7 @@ class WorkScheduleDao
             {$joinClauses}
             WHERE
             " . (empty($whereClauses) ? "1=1" : implode(" AND ", $whereClauses)) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -394,6 +393,7 @@ class WorkScheduleDao
             $statement->bindValue(":total_work_hours"    , $workSchedule->getTotalWorkHours()   , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()   ));
             $statement->bindValue(":start_date"          , $workSchedule->getStartDate()        , Helper::getPdoParameterType($workSchedule->getStartDate()        ));
             $statement->bindValue(":recurrence_rule"     , $workSchedule->getRecurrenceRule()   , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()   ));
+
             $statement->bindValue(":work_schedule_id"    , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
 
             $statement->execute();

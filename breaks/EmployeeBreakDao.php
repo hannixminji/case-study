@@ -17,11 +17,13 @@ class EmployeeBreakDao
     {
         $query = "
             INSERT INTO employee_breaks (
+                attendance_id    ,
                 break_schedule_id,
                 start_time       ,
                 created_at
             )
             VALUES (
+                :attendance_id    ,
                 :break_schedule_id,
                 :start_time       ,
                 :created_at
@@ -33,6 +35,7 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
+            $statement->bindValue(":attendance_id"    , $employeeBreak->getAttendanceId()   , Helper::getPdoParameterType($employeeBreak->getAttendanceId()   ));
             $statement->bindValue(":break_schedule_id", $employeeBreak->getBreakScheduleId(), Helper::getPdoParameterType($employeeBreak->getBreakScheduleId()));
             $statement->bindValue(":start_time"       , $employeeBreak->getStartTime()      , Helper::getPdoParameterType($employeeBreak->getStartTime()      ));
             $statement->bindValue(":created_at"       , $employeeBreak->getCreatedAt()      , Helper::getPdoParameterType($employeeBreak->getCreatedAt()      ));
@@ -58,7 +61,7 @@ class EmployeeBreakDao
         $query = "
             UPDATE employee_breaks
             SET
-                end_time = :end_time,
+                end_time                  = :end_time                 ,
                 break_duration_in_minutes = :break_duration_in_minutes
             WHERE
         ";
@@ -76,6 +79,7 @@ class EmployeeBreakDao
 
             $statement->bindValue(":end_time"                 , $employeeBreak->getEndTime()               , Helper::getPdoParameterType($employeeBreak->getEndTime()               ));
             $statement->bindValue(":break_duration_in_minutes", $employeeBreak->getBreakDurationInMinutes(), Helper::getPdoParameterType($employeeBreak->getBreakDurationInMinutes()));
+
             $statement->bindValue(":employee_break_id"        , $employeeBreak->getId()                    , Helper::getPdoParameterType($employeeBreak->getId()                    ));
 
             $statement->execute();
@@ -102,31 +106,37 @@ class EmployeeBreakDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                                => "employee_break.id                             AS id"                               ,
-            "break_schedule_id"                 => "employee_break.break_schedule_id              AS break_schedule_id"                ,
-            "start_time"                        => "employee_break.start_time                     AS start_time"                       ,
-            "end_time"                          => "employee_break.end_time                       AS end_time"                         ,
-            "break_duration_in_minutes"         => "employee_break.break_duration_in_minutes      AS break_duration_in_minutes"        ,
-            "created_at"                        => "employee_break.created_at                     AS created_at"                       ,
-            "updated_at"                        => "employee_break.updated_at                     AS updated_at"                       ,
+            "id"                                 => "employee_break.id                             AS id"                                ,
+            "attendance_id"                      => "employee_break.attendance_id                  AS attendance_id"                     ,
+            "break_schedule_id"                  => "employee_break.break_schedule_id              AS break_schedule_id"                 ,
+            "start_time"                         => "employee_break.start_time                     AS start_time"                        ,
+            "end_time"                           => "employee_break.end_time                       AS end_time"                          ,
+            "break_duration_in_minutes"          => "employee_break.break_duration_in_minutes      AS break_duration_in_minutes"         ,
+            "created_at"                         => "employee_break.created_at                     AS created_at"                        ,
+            "updated_at"                         => "employee_break.updated_at                     AS updated_at"                        ,
+            "deleted_at"                         => "employee_break.deleted_at                     AS deleted_at"                        ,
 
-            "total_break_duration_in_minutes"   => "SUM(employee_break.break_duration_in_minutes) AS total_break_duration_in_minutes"  ,
+            "total_break_duration_in_minutes"    => "SUM(employee_break.break_duration_in_minutes) AS total_break_duration_in_minutes"   ,
 
-            "work_schedule_id"                  => "break_schedule.work_schedule_id               AS work_schedule_id"                 ,
-            "break_type_id"                     => "break_schedule.break_type_id                  AS break_type_id"                    ,
-            "break_schedule_start_time"         => "break_schedule.start_time                     AS break_schedule_start_time"        ,
-            "break_schedule_is_flexible"        => "break_schedule.is_flexible                    AS is_flexible"                      ,
-            "break_schedule_earliest_start_time"=> "break_schedule.earliest_start_time            AS break_schedule_earliest_start_time",
-            "break_schedule_latest_end_time"    => "break_schedule.latest_end_time                AS break_schedule_latest_end_time"    ,
+            "attendance_date"                    => "attendance.date                               AS attendance_date"                   ,
+            "attendance_check_in_time"           => "attendance.check_in_time                      AS attendance_check_in_time"          ,
+            "attendance_check_out_time"          => "attendance.check_out_time                     AS attendance_check_out_time"         ,
 
-            "employee_id"                       => "work_schedule.employee_id                     AS employee_id"                      ,
-            "work_schedule_start_time"          => "work_schedule.start_time                      AS work_schedule_start_time"         ,
-            "work_schedule_end_time"            => "work_schedule.end_time                        AS work_schedule_end_time"           ,
+            "work_schedule_id"                   => "break_schedule.work_schedule_id               AS work_schedule_id"                  ,
+            "break_type_id"                      => "break_schedule.break_type_id                  AS break_type_id"                     ,
+            "break_schedule_start_time"          => "break_schedule.start_time                     AS break_schedule_start_time"         ,
+            "break_schedule_is_flexible"         => "break_schedule.is_flexible                    AS is_flexible"                       ,
+            "break_schedule_earliest_start_time" => "break_schedule.earliest_start_time            AS break_schedule_earliest_start_time",
+            "break_schedule_latest_end_time"     => "break_schedule.latest_end_time                AS break_schedule_latest_end_time"    ,
 
-            "break_type_name"                   => "break_type.name                               AS break_type_name"                  ,
-            "break_type_duration_in_minutes"    => "break_type.duration_in_minutes                AS break_type_duration_in_minutes"   ,
-            "break_type_is_paid"                => "break_type.is_paid                            AS break_type_is_paid"               ,
-            "is_require_break_in_and_break_out" => "break_type.is_require_break_in_and_break_out  AS is_require_break_in_and_break_out"
+            "employee_id"                        => "work_schedule.employee_id                     AS employee_id"                       ,
+            "work_schedule_start_time"           => "work_schedule.start_time                      AS work_schedule_start_time"          ,
+            "work_schedule_end_time"             => "work_schedule.end_time                        AS work_schedule_end_time"            ,
+
+            "break_type_name"                    => "break_type.name                               AS break_type_name"                   ,
+            "break_type_duration_in_minutes"     => "break_type.duration_in_minutes                AS break_type_duration_in_minutes"    ,
+            "break_type_is_paid"                 => "break_type.is_paid                            AS break_type_is_paid"                ,
+            "is_require_break_in_and_break_out"  => "break_type.is_require_break_in_and_break_out  AS is_require_break_in_and_break_out"
         ];
 
         $selectedColumns =
@@ -139,11 +149,22 @@ class EmployeeBreakDao
 
         $joinClauses = "";
 
+        if (array_key_exists("attendance_date"          , $selectedColumns) ||
+            array_key_exists("attendance_check_in_time" , $selectedColumns) ||
+            array_key_exists("attendance_check_out_time", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    attendances AS attendance
+                ON
+                    employee_break.attendance_id = attendance.id
+            ";
+        }
+
         if (array_key_exists("work_schedule_id"                  , $selectedColumns) ||
             array_key_exists("break_type_id"                     , $selectedColumns) ||
             array_key_exists("break_schedule_is_flexible"        , $selectedColumns) ||
             array_key_exists("break_schedule_earliest_start_time", $selectedColumns) ||
-            array_key_exists("break_schedule_earliest_end_time"  , $selectedColumns) ||
+            array_key_exists("break_schedule_latest_end_time"    , $selectedColumns) ||
 
             array_key_exists("employee_id"                      , $selectedColumns) ||
             array_key_exists("work_schedule_start_time"         , $selectedColumns) ||
@@ -184,12 +205,11 @@ class EmployeeBreakDao
             ";
         }
 
+        $whereClauses    = [];
         $queryParameters = [];
 
-        $whereClauses = [];
-
         if (empty($filterCriteria)) {
-            $whereClauses[] = "employee_breaks.deleted_at IS NULL";
+            $whereClauses[] = "employee_break.deleted_at IS NULL";
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -200,12 +220,19 @@ class EmployeeBreakDao
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
+                        break;
+
+                    case "IS NULL":
+                        $whereClauses[] = "{$column} {$operator}";
+
                         break;
 
                     case "BETWEEN":
                         $whereClauses   [] = "{$column} {$operator} ? AND ?";
                         $queryParameters[] = $filterCriterion["lower_bound"];
                         $queryParameters[] = $filterCriterion["upper_bound"];
+
                         break;
                 }
             }
@@ -255,7 +282,7 @@ class EmployeeBreakDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
-            " . (!empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
+            " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
         ";
@@ -299,7 +326,8 @@ class EmployeeBreakDao
     ): ActionResult|array {
         $query = "
             SELECT
-                employee_break.id AS id,
+                employee_break.id                        AS id                                ,
+                employee_break.attendance_id             AS attendance_id                     ,
                 employee_break.break_schedule_id         AS break_schedule_id                 ,
                 employee_break.start_time                AS start_time                        ,
                 employee_break.end_time                  AS end_time                          ,
@@ -318,13 +346,16 @@ class EmployeeBreakDao
                 employee_breaks AS employee_break
             LEFT JOIN
                 break_schedules AS break_schedule
-                ON employee_break.break_schedule_id = break_schedule.id
+            ON
+                employee_break.break_schedule_id = break_schedule.id
             LEFT JOIN
                 work_schedules AS work_schedule
-                ON break_schedule.work_schedule_id = work_schedule.id
+            ON
+                break_schedule.work_schedule_id = work_schedule.id
             LEFT JOIN
                 break_types AS break_type
-                ON break_schedule.break_type_id = break_type.id
+            ON
+                break_schedule.break_type_id = break_type.id
             WHERE
         ";
 
@@ -357,10 +388,11 @@ class EmployeeBreakDao
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(':work_schedule_id', $workScheduleId, Helper::getPdoParameterType($workScheduleId));
-            $statement->bindValue(':employee_id'     , $employeeId    , Helper::getPdoParameterType($employeeId    ));
             $statement->bindValue(':start_date'      , $startDate     , Helper::getPdoParameterType($startDate     ));
             $statement->bindValue(':end_date'        , $endDate       , Helper::getPdoParameterType($endDate       ));
+
+            $statement->bindValue(':work_schedule_id', $workScheduleId, Helper::getPdoParameterType($workScheduleId));
+            $statement->bindValue(':employee_id'     , $employeeId    , Helper::getPdoParameterType($employeeId    ));
 
             $statement->execute();
 
@@ -379,6 +411,7 @@ class EmployeeBreakDao
         $query = "
             UPDATE employee_breaks
             SET
+                attendance_id             = :attendance_id            ,
                 break_schedule_id         = :break_schedule_id        ,
                 start_time                = :start_time               ,
                 end_time                  = :end_time                 ,
@@ -397,10 +430,12 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
+            $statement->bindValue(":attendance_id"            , $employeeBreak->getAttendanceId()          , Helper::getPdoParameterType($employeeBreak->getAttendanceId()          ));
             $statement->bindValue(":break_schedule_id"        , $employeeBreak->getBreakScheduleId()       , Helper::getPdoParameterType($employeeBreak->getBreakScheduleId()       ));
             $statement->bindValue(":start_time"               , $employeeBreak->getStartTime()             , Helper::getPdoParameterType($employeeBreak->getStartTime()             ));
             $statement->bindValue(":end_time"                 , $employeeBreak->getEndTime()               , Helper::getPdoParameterType($employeeBreak->getEndTime()               ));
             $statement->bindValue(":break_duration_in_minutes", $employeeBreak->getBreakDurationInMinutes(), Helper::getPdoParameterType($employeeBreak->getBreakDurationInMinutes()));
+
             $statement->bindValue(":employee_break_id"        , $employeeBreak->getId()                    , Helper::getPdoParameterType($employeeBreak->getId()                    ));
 
             $statement->execute();
@@ -413,6 +448,49 @@ class EmployeeBreakDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while updating the employee break record. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function delete(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    {
+        return $this->softDelete($employeeBreakId, $isHashedId);
+    }
+
+    private function softDelete(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    {
+        $query = "
+            UPDATE employee_breaks
+            SET
+                deleted_at = CURRENT_TIMESTAMP
+            WHERE
+        ";
+
+        if ($isHashedId) {
+            $query .= " SHA2(id, 256) = :employee_break_id";
+        } else {
+            $query .= " id = :employee_break_id";
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_break_id", $employeeBreakId, Helper::getPdoParameterType($employeeBreakId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while deleting the employee break. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
