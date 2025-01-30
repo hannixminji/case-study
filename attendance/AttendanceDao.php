@@ -21,14 +21,18 @@ class AttendanceDao
                 date             ,
                 check_in_time    ,
                 late_check_in    ,
-                attendance_status
+                attendance_status,
+                grace_period     ,
+                minutes_can_check_in_before_shift
             )
             VALUES (
                 :work_schedule_id ,
                 :date             ,
                 :check_in_time    ,
                 :late_check_in    ,
-                :attendance_status
+                :attendance_status,
+                :grace_period     ,
+                :minutes_can_check_in_before_shift
             )
         ";
 
@@ -37,11 +41,13 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_id" , $attendance->getWorkScheduleId()  , Helper::getPdoParameterType($attendance->getWorkScheduleId()  ));
-            $statement->bindValue(":date"             , $attendance->getDate()            , Helper::getPdoParameterType($attendance->getDate()            ));
-            $statement->bindValue(":check_in_time"    , $attendance->getCheckInTime()     , Helper::getPdoParameterType($attendance->getCheckInTime()     ));
-            $statement->bindValue(":late_check_in"    , $attendance->getLateCheckIn()     , Helper::getPdoParameterType($attendance->getLateCheckIn()     ));
-            $statement->bindValue(":attendance_status", $attendance->getAttendanceStatus(), Helper::getPdoParameterType($attendance->getAttendanceStatus()));
+            $statement->bindValue(":work_schedule_id"                 , $attendance->getWorkScheduleId()              , Helper::getPdoParameterType($attendance->getWorkScheduleId()              ));
+            $statement->bindValue(":date"                             , $attendance->getDate()                        , Helper::getPdoParameterType($attendance->getDate()                        ));
+            $statement->bindValue(":check_in_time"                    , $attendance->getCheckInTime()                 , Helper::getPdoParameterType($attendance->getCheckInTime()                 ));
+            $statement->bindValue(":late_check_in"                    , $attendance->getLateCheckIn()                 , Helper::getPdoParameterType($attendance->getLateCheckIn()                 ));
+            $statement->bindValue(":attendance_status"                , $attendance->getAttendanceStatus()            , Helper::getPdoParameterType($attendance->getAttendanceStatus()            ));
+            $statement->bindValue(":grace_period"                     , $attendance->getGracePeriod()                 , Helper::getPdoParameterType($attendance->getGracePeriod()                 ));
+            $statement->bindValue(":minutes_can_check_in_before_shift", $attendance->getMinutesCanCheckInBeforeShift(), Helper::getPdoParameterType($attendance->getMinutesCanCheckInBeforeShift()));
 
             $statement->execute();
 
@@ -116,41 +122,46 @@ class AttendanceDao
         ? int   $offset         = null
     ): ActionResult|array {
         $tableColumns = [
-            "id"                              => "attendance.id                              AS id"                             ,
-            "work_schedule_id"                => "attendance.work_schedule_id                AS work_schedule_id"               ,
-            "date"                            => "attendance.date                            AS date"                           ,
-            "check_in_time"                   => "attendance.check_in_time                   AS check_in_time"                  ,
-            "check_out_time"                  => "attendance.check_out_time                  AS check_out_time"                 ,
-            "total_break_duration_in_minutes" => "attendance.total_break_duration_in_minutes AS total_break_duration_in_minutes",
-            "total_hours_worked"              => "attendance.total_hours_worked              AS total_hours_worked"             ,
-            "late_check_in"                   => "attendance.late_check_in                   AS late_check_in"                  ,
-            "early_check_out"                 => "attendance.early_check_out                 AS early_check_out"                ,
-            "overtime_hours"                  => "attendance.overtime_hours                  AS overtime_hours"                 ,
-            "is_overtime_approved"            => "attendance.is_overtime_approved            AS is_overtime_approved"           ,
-            "attendance_status"               => "attendance.attendance_status               AS attendance_status"              ,
-            "remarks"                         => "attendance.remarks                         AS remarks"                        ,
-            "created_at"                      => "attendance.created_at                      AS created_at"                     ,
-            "updated_at"                      => "attendance.updated_at                      AS updated_at"                     ,
-            "deleted_at"                      => "attendance.deleted_at                      AS deleted_at"                     ,
+            "id"                                 => "attendance.id                                AS id"                               ,
+            "work_schedule_id"                   => "attendance.work_schedule_id                  AS work_schedule_id"                 ,
+            "date"                               => "attendance.date                              AS date"                             ,
+            "check_in_time"                      => "attendance.check_in_time                     AS check_in_time"                    ,
+            "check_out_time"                     => "attendance.check_out_time                    AS check_out_time"                   ,
+            "total_break_duration_in_minutes"    => "attendance.total_break_duration_in_minutes   AS total_break_duration_in_minutes"  ,
+            "total_hours_worked"                 => "attendance.total_hours_worked                AS total_hours_worked"               ,
+            "late_check_in"                      => "attendance.late_check_in                     AS late_check_in"                    ,
+            "early_check_out"                    => "attendance.early_check_out                   AS early_check_out"                  ,
+            "overtime_hours"                     => "attendance.overtime_hours                    AS overtime_hours"                   ,
+            "grace_period"                       => "attendance.grace_period                      AS grace_period"                     ,
+            "minutes_can_check_in_before_shift"  => "attendance.minutes_can_check_in_before_shift AS minutes_can_check_in_before_shift",
+            "is_overtime_approved"               => "attendance.is_overtime_approved              AS is_overtime_approved"             ,
+            "attendance_status"                  => "attendance.attendance_status                 AS attendance_status"                ,
+            "remarks"                            => "attendance.remarks                           AS remarks"                          ,
+            "is_processed_for_next_payroll"      => "attendance.is_processed_for_next_payroll     AS is_processed_for_next_payroll"    ,
+            "created_at"                         => "attendance.created_at                        AS created_at"                       ,
+            "updated_at"                         => "attendance.updated_at                        AS updated_at"                       ,
+            "deleted_at"                         => "attendance.deleted_at                        AS deleted_at"                       ,
 
-            "day_of_the_week"                 => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                ,
+            "day_of_the_week"                    => "DAYOFWEEK(attendance.date)                 AS day_of_the_week"                    ,
 
-            "employee_id"                     => "work_schedule.employee_id                  AS employee_id"                    ,
-            "work_schedule_start_time"        => "work_schedule.start_time                   AS work_schedule_start_time"       ,
-            "work_schedule_end_time"          => "work_schedule.end_time                     AS work_schedule_end_time"         ,
-            "work_schedule_is_flextime"       => "work_schedule.is_flextime                  AS work_schedule_is_flextime"      ,
-            "work_schedule_total_work_hours"  => "work_schedule.total_work_hours             AS work_schedule_total_work_hours" ,
+            "employee_id"                        => "work_schedule.employee_id                  AS employee_id"                        ,
+            "work_schedule_start_time"           => "work_schedule.start_time                   AS work_schedule_start_time"           ,
+            "work_schedule_end_time"             => "work_schedule.end_time                     AS work_schedule_end_time"             ,
+            "work_schedule_is_flextime"          => "work_schedule.is_flextime                  AS work_schedule_is_flextime"          ,
+            "work_schedule_total_hours_per_week" => "work_schedule.total_hours_per_week         AS work_schedule_total_hours_per_week" ,
+            "work_schedule_total_work_hours"     => "work_schedule.total_work_hours             AS work_schedule_total_work_hours"     ,
+            "work_schedule_start_date"           => "work_schedule.start_date                   AS work_schedule_start_date"           ,
 
-            "employee_code"                   => "employee.employee_code                     AS employee_code"                  ,
-            "employee_full_name"              => "employee.full_name                         AS employee_full_name"             ,
-            "employee_supervisor_id"          => "employee.supervisor_id                     AS employee_supervisor_id"         ,
-            "employee_deleted_at"             => "employee.deleted_at                        AS employee_deleted_at"            ,
+            "employee_code"                      => "employee.employee_code                     AS employee_code"                      ,
+            "employee_full_name"                 => "employee.full_name                         AS employee_full_name"                 ,
+            "employee_supervisor_id"             => "employee.supervisor_id                     AS employee_supervisor_id"             ,
+            "employee_deleted_at"                => "employee.deleted_at                        AS employee_deleted_at"                ,
 
-            "department_id"                   => "department.id                              AS department_id"                  ,
-            "department_name"                 => "department.name                            AS department_name"                ,
+            "department_id"                      => "department.id                              AS department_id"                      ,
+            "department_name"                    => "department.name                            AS department_name"                    ,
 
-            "job_title_id"                    => "job_title.id                               AS job_title_id"                   ,
-            "job_title"                       => "job_title.title                            AS job_title"
+            "job_title_id"                       => "job_title.id                               AS job_title_id"                       ,
+            "job_title"                          => "job_title.title                            AS job_title"
         ];
 
         $selectedColumns =
@@ -425,6 +436,39 @@ class AttendanceDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while approving overtime. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function markAsProcessedForNextPayroll(int $attendanceId): ActionResult
+    {
+        $query = "
+            UPDATE attendance
+            SET
+                is_processed_for_next_payroll = 1
+            WHERE
+                id = :attendance_id
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":attendance_id", $attendanceId, Helper::getPdoParameterType($attendanceId));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while marking attendance as processed for the next payroll. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

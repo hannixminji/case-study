@@ -26,10 +26,6 @@ class EmployeeBreakService
         $this->breakScheduleRepository = $breakScheduleRepository;
     }
 
-    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false)
-    {
-    }
-
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeId = $this->employeeRepository->getEmployeeIdBy('employee.rfid_uid', $rfidUid);
@@ -80,25 +76,6 @@ class EmployeeBreakService
 
             $currentDateTime = new DateTime($currentDateTime);
 
-            $workScheduleStartTime = $lastAttendanceRecord['work_schedule_start_time'];
-            $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_end_time'  ];
-
-            $workScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleStartTime))->format('H:i:s'));
-            $workScheduleEndDateTime   = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleEndTime  ))->format('H:i:s'));
-
-            if ($workScheduleEndDateTime < $workScheduleStartDateTime               ||
-               ($workScheduleStartDateTime->format('H:i:s') === '00:00:00'  &&
-                $workScheduleEndDateTime  ->format('H:i:s') === '00:00:00')) {
-                $workScheduleEndDateTime->modify('+1 day');
-            }
-
-            if ($currentDateTime > $workScheduleEndDateTime) {
-                return [
-                    'status'  => 'error',
-                    'message' => 'You may have forgotten to check out.',
-                ];
-            }
-
             $lastBreakRecord = $this->employeeBreakRepository->fetchEmployeeLastBreakRecord($lastAttendanceRecord['work_schedule_id'], $employeeId);
 
             if ($lastBreakRecord === ActionResult::FAILURE) {
@@ -116,6 +93,25 @@ class EmployeeBreakService
                 $lastBreakRecord['end_time'  ] === null)) {
 
                 $isBreakIn = true;
+
+                $workScheduleStartTime = $lastAttendanceRecord['work_schedule_start_time'];
+                $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_end_time'  ];
+
+                $workScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleStartTime))->format('H:i:s'));
+                $workScheduleEndDateTime   = new DateTime($lastAttendanceRecord['date'] . ' ' . (new DateTime($workScheduleEndTime  ))->format('H:i:s'));
+
+                if ($workScheduleEndDateTime < $workScheduleStartDateTime               ||
+                   ($workScheduleStartDateTime->format('H:i:s') === '00:00:00'  &&
+                    $workScheduleEndDateTime  ->format('H:i:s') === '00:00:00')) {
+                    $workScheduleEndDateTime->modify('+1 day');
+                }
+
+                if ($currentDateTime > $workScheduleEndDateTime) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'You may have forgotten to check out.',
+                    ];
+                }
 
                 $workScheduleId = (int) $lastAttendanceRecord['work_schedule_id'];
 
@@ -150,7 +146,7 @@ class EmployeeBreakService
                     ];
                 }
 
-                if (empty($breakSchedules)) {
+                if (empty($breakSchedules['result_set'])) {
                     return [
                         'status'  => 'error',
                         'message' => 'No breaks have been scheduled for this schedule.',

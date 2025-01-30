@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Payslip.php'                                           ;
+require_once __DIR__ . '/../overtime-rates/OvertimeRateAssignment.php'          ;
 
 require_once __DIR__ . '/PayslipRepository.php'                                 ;
 
@@ -84,6 +85,10 @@ class PayslipService
 
         $employeeFilterCriteria = [
             [
+                'column'   => 'employee.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
                 'column'   => 'employee.access_role',
                 'operator' => '!=',
                 'value'    => 'Admin'
@@ -92,7 +97,7 @@ class PayslipService
                 'column'   => 'employee.payroll_group_id',
                 'operator' => '=',
                 'value'    => $payrollGroup->getId()
-            ],
+            ]
         ];
 
         $employees = $this->employeeRepository->fetchAllEmployees(
@@ -1744,7 +1749,10 @@ class PayslipService
                 thirteenMonthPay              : $thirteenMonthPay                        ,
                 leaveSalary                   : $leaveSalary
             );
-
+            echo '<pre>';
+            print_r($hourSummary);
+            print_r($payslip);
+            /*
             $result = $this->payslipRepository->createPayslip($payslip);
 
             if ($result === ActionResult::FAILURE) {
@@ -1753,6 +1761,7 @@ class PayslipService
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
+            */
         }
     }
 

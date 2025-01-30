@@ -155,19 +155,21 @@ class AttendanceService
                 $lastAttendanceRecord['check_out_time'  ] <=  $currentWorkSchedule['end_time'  ]) {
 
                 $currentAttendance = new Attendance(
-                    id                         : null                                                    ,
-                    workScheduleId             : $lastAttendanceRecord['work_schedule_id'               ],
-                    date                       : $lastAttendanceRecord['date'                           ],
-                    checkInTime                : $currentDateTime->format('Y-m-d H:i:s')         ,
-                    checkOutTime               : null                                                    ,
-                    totalBreakDurationInMinutes: $lastAttendanceRecord['total_break_duration_in_minutes'],
-                    totalHoursWorked           : $lastAttendanceRecord['total_hours_worked'             ],
-                    lateCheckIn                : $lastAttendanceRecord['late_check_in'                  ],
-                    earlyCheckOut              : null                                                    ,
-                    overtimeHours              : null                                                    ,
-                    isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'           ],
-                    attendanceStatus           : $lastAttendanceRecord['attendance_status'              ],
-                    remarks                    : $lastAttendanceRecord['remarks'                        ]
+                    id                          : null                                                      ,
+                    workScheduleId              : $lastAttendanceRecord['work_schedule_id'                 ],
+                    date                        : $lastAttendanceRecord['date'                             ],
+                    checkInTime                 : $currentDateTime->format('Y-m-d H:i:s')                   ,
+                    checkOutTime                : null                                                      ,
+                    totalBreakDurationInMinutes : $lastAttendanceRecord['total_break_duration_in_minutes'  ],
+                    totalHoursWorked            : $lastAttendanceRecord['total_hours_worked'               ],
+                    lateCheckIn                 : $lastAttendanceRecord['late_check_in'                    ],
+                    earlyCheckOut               : null                                                      ,
+                    overtimeHours               : null                                                      ,
+                    gracePeriod                 : $lastAttendanceRecord['grace_period'                     ],
+                    minutesCanCheckInBeforeShift: $lastAttendanceRecord['minutes_can_check_in_before_shift'],
+                    isOvertimeApproved          : $lastAttendanceRecord['is_overtime_approved'             ],
+                    attendanceStatus            : $lastAttendanceRecord['attendance_status'                ],
+                    remarks                     : $lastAttendanceRecord['remarks'                          ]
                 );
 
                 $result = $this->attendanceRepository->checkIn($currentAttendance);
@@ -180,19 +182,21 @@ class AttendanceService
                 }
 
                 $previousAttendance = new Attendance(
-                    id                         : $lastAttendanceRecord['id'                             ],
-                    workScheduleId             : $lastAttendanceRecord['work_schedule_id'               ],
-                    date                       : $lastAttendanceRecord['date'                           ],
-                    checkInTime                : $lastAttendanceRecord['check_in_time'                  ],
-                    checkOutTime               : $lastAttendanceRecord['check_out_time'                 ],
-                    totalBreakDurationInMinutes: $lastAttendanceRecord['total_break_duration_in_minutes'],
-                    totalHoursWorked           : $lastAttendanceRecord['total_hours_worked'             ],
-                    lateCheckIn                : $lastAttendanceRecord['late_check_in'                  ],
-                    earlyCheckOut              : 0                                                       ,
-                    overtimeHours              : 0.00                                                    ,
-                    isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'           ],
-                    attendanceStatus           : $lastAttendanceRecord['attendance_status'              ],
-                    remarks                    : $lastAttendanceRecord['remarks'                        ]
+                    id                          : $lastAttendanceRecord['id'                               ],
+                    workScheduleId              : $lastAttendanceRecord['work_schedule_id'                 ],
+                    date                        : $lastAttendanceRecord['date'                             ],
+                    checkInTime                 : $lastAttendanceRecord['check_in_time'                    ],
+                    checkOutTime                : $lastAttendanceRecord['check_out_time'                   ],
+                    totalBreakDurationInMinutes : $lastAttendanceRecord['total_break_duration_in_minutes'  ],
+                    totalHoursWorked            : $lastAttendanceRecord['total_hours_worked'               ],
+                    lateCheckIn                 : $lastAttendanceRecord['late_check_in'                    ],
+                    earlyCheckOut               : 0                                                         ,
+                    gracePeriod                 : $lastAttendanceRecord['grace_period'                     ],
+                    minutesCanCheckInBeforeShift: $lastAttendanceRecord['minutes_can_check_in_before_shift'],
+                    overtimeHours               : 0.00                                                      ,
+                    isOvertimeApproved          : $lastAttendanceRecord['is_overtime_approved'             ],
+                    attendanceStatus            : $lastAttendanceRecord['attendance_status'                ],
+                    remarks                     : $lastAttendanceRecord['remarks'                          ]
                 );
 
                 $result = $this->attendanceRepository->updateAttendance($previousAttendance);
@@ -205,6 +209,8 @@ class AttendanceService
                 }
 
             } else {
+                $minutesCanCheckInBeforeShift = 0;
+
                 if ( ! $currentWorkSchedule['is_flextime']) {
                     $minutesCanCheckInBeforeShift = (int) $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
@@ -230,6 +236,8 @@ class AttendanceService
 
                 $lateCheckIn = 0;
 
+                $gracePeriod = 0;
+
                 if ( ! $currentWorkSchedule['is_flextime']) {
                     $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
@@ -250,19 +258,21 @@ class AttendanceService
                 }
 
                 $attendance = new Attendance(
-                    id                         : null,
-                    workScheduleId             : $currentWorkSchedule['id'],
-                    date                       : $currentWorkScheduleDate,
-                    checkInTime                : $currentDateTime->format('Y-m-d H:i:s'),
-                    checkOutTime               : null,
-                    totalBreakDurationInMinutes: 0.00,
-                    totalHoursWorked           : 0.00,
-                    lateCheckIn                : $lateCheckIn,
-                    earlyCheckOut              : 0,
-                    overtimeHours              : 0.00,
-                    isOvertimeApproved         : false,
-                    attendanceStatus           : $attendanceStatus,
-                    remarks                    : null
+                    id                          : null                                   ,
+                    workScheduleId              : $currentWorkSchedule['id']             ,
+                    date                        : $currentWorkScheduleDate               ,
+                    checkInTime                 : $currentDateTime->format('Y-m-d H:i:s'),
+                    checkOutTime                : null                                   ,
+                    totalBreakDurationInMinutes : 0.00                                   ,
+                    totalHoursWorked            : 0.00                                   ,
+                    lateCheckIn                 : $lateCheckIn                           ,
+                    earlyCheckOut               : 0                                      ,
+                    overtimeHours               : 0.00                                   ,
+                    gracePeriod                 : $gracePeriod                           ,
+                    minutesCanCheckInBeforeShift: $minutesCanCheckInBeforeShift          ,
+                    isOvertimeApproved          : false                                  ,
+                    attendanceStatus            : $attendanceStatus                      ,
+                    remarks                     : null
                 );
 
                 $result = $this->attendanceRepository->checkIn($attendance);
@@ -473,8 +483,6 @@ class AttendanceService
                             ];
                         }
 
-                        $lastBreakRecord = $lastBreakRecord[0];
-
                         $employeeBreak = new EmployeeBreak(
                             id                    : $lastBreakRecord['id'               ],
                             attendanceId          : $lastAttendanceRecord['id'          ],
@@ -577,32 +585,37 @@ class AttendanceService
                                     $breakScheduleStartTime = clone $checkInTime;
                                 }
 
-                                if ($breakEndTime->format('Y-m-d H:i:s') > $breakScheduleEndTime->format('Y-m-d H:i:s')) {
-                                    $interval1 = $breakScheduleStartTime->diff($breakEndTime);
-                                    $interval1 = $interval1->h * 60 + $interval1->i;
-
-                                    $interval2 = $breakScheduleStartTime->diff($breakScheduleEndTime);
-                                    $interval2 = $interval2->h * 60 + $interval2->i;
-
-                                    $interval3 = $breakEndTime->diff($breakScheduleEndTime);
-                                    $interval3 = $interval3->h * 60 + $interval3->i;
-
-                                    if ( ! $breakSchedule['break_type_is_paid']) {
-                                        $unpaidBreakDurationInMinutes += $interval1;
-                                    } else {
-                                        $paidBreakDurationInMinutes   += $interval2;
-                                        $unpaidBreakDurationInMinutes += $interval3;
-                                    }
-
+                                if ($checkOutTime < $breakScheduleStartTime) {
+                                    $unpaidBreakDurationInMinutes = 0;
+                                    $paidBreakDurationInMinutes = 0;
                                 } else {
-                                    $actualEndTime = ($checkOutTime < $breakScheduleEndTime) ? $checkOutTime : $breakScheduleEndTime;
-                                    $actualBreakDurationInMinutes = $breakScheduleStartTime->diff($actualEndTime);
-                                    $actualBreakDurationInMinutes = $actualBreakDurationInMinutes->h * 60 + $actualBreakDurationInMinutes->i;
+                                    if ($breakEndTime->format('Y-m-d H:i:s') > $breakScheduleEndTime->format('Y-m-d H:i:s')) {
+                                        $interval1 = $breakScheduleStartTime->diff($breakEndTime);
+                                        $interval1 = $interval1->h * 60 + $interval1->i;
 
-                                    if ( ! $breakSchedule['break_type_is_paid']) {
-                                        $unpaidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                        $interval2 = $breakScheduleStartTime->diff($breakScheduleEndTime);
+                                        $interval2 = $interval2->h * 60 + $interval2->i;
+
+                                        $interval3 = $breakEndTime->diff($breakScheduleEndTime);
+                                        $interval3 = $interval3->h * 60 + $interval3->i;
+
+                                        if ( ! $breakSchedule['break_type_is_paid']) {
+                                            $unpaidBreakDurationInMinutes += $interval1;
+                                        } else {
+                                            $paidBreakDurationInMinutes   += $interval2;
+                                            $unpaidBreakDurationInMinutes += $interval3;
+                                        }
+
                                     } else {
-                                        $paidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                        $actualEndTime = ($checkOutTime < $breakScheduleEndTime) ? $checkOutTime : $breakScheduleEndTime;
+                                        $actualBreakDurationInMinutes = $breakScheduleStartTime->diff($actualEndTime);
+                                        $actualBreakDurationInMinutes = $actualBreakDurationInMinutes->h * 60 + $actualBreakDurationInMinutes->i;
+
+                                        if ( ! $breakSchedule['break_type_is_paid']) {
+                                            $unpaidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                        } else {
+                                            $paidBreakDurationInMinutes += $actualBreakDurationInMinutes;
+                                        }
                                     }
                                 }
 
@@ -746,7 +759,6 @@ class AttendanceService
             $checkInTime = new DateTime($lastAttendanceRecord['check_in_time']);
             $checkOutTime = new DateTime($currentDateTime->format('Y-m-d H:i:s'));
             $totalWorkDuration = $checkInTime->diff($checkOutTime);
-
             $totalMinutesWorked = ($totalWorkDuration->days * 24 * 60) + ($totalWorkDuration->h * 60) + $totalWorkDuration->i;
             $totalMinutesWorked -= $unpaidBreakDurationInMinutes;
 
@@ -765,7 +777,7 @@ class AttendanceService
                     $totalHoursWorked -= $interval / 60;
                 }
 
-                if ($totalHoursWorked < $lastAttendanceRecord['work_schedule_total_work_hours']) {
+                if ($totalHoursWorked < (int) $lastAttendanceRecord['work_schedule_total_work_hours']) {
                     $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
                     if ($gracePeriod === ActionResult::FAILURE) {
@@ -796,23 +808,27 @@ class AttendanceService
                     $overtimeHours = round($overtimeHours, 2);
 
                     $attendanceStatus = 'Overtime';
+                } elseif ($lastAttendanceRecord['attendance_status'] !== 'Late') {
+                    $attendanceStatus = 'Present';
                 }
             }
 
             $attendance = new Attendance(
-                id                         : $lastAttendanceRecord['id']                  ,
-                workScheduleId             : $lastAttendanceRecord['work_schedule_id']    ,
-                date                       : $lastAttendanceRecord['date']                ,
-                checkInTime                : $lastAttendanceRecord['check_in_time']       ,
-                checkOutTime               : $checkOutTime->format('Y-m-d H:i:s') ,
-                totalBreakDurationInMinutes: $totalBreakDurationInMinutes                 ,
-                totalHoursWorked           : $totalHoursWorked                            ,
-                lateCheckIn                : $lastAttendanceRecord['late_check_in']       ,
-                earlyCheckOut              : $earlyCheckOutInMinutes                      ,
-                overtimeHours              : $overtimeHours                               ,
-                isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'],
-                attendanceStatus           : $attendanceStatus,
-                remarks                    : $lastAttendanceRecord['remarks']
+                id                          : $lastAttendanceRecord['id'                               ],
+                workScheduleId              : $lastAttendanceRecord['work_schedule_id'                 ],
+                date                        : $lastAttendanceRecord['date'                             ],
+                checkInTime                 : $lastAttendanceRecord['check_in_time'                    ],
+                checkOutTime                : $checkOutTime->format('Y-m-d H:i:s')                      ,
+                totalBreakDurationInMinutes : $totalBreakDurationInMinutes                              ,
+                totalHoursWorked            : $totalHoursWorked                                         ,
+                lateCheckIn                 : $lastAttendanceRecord['late_check_in'                    ],
+                earlyCheckOut               : $earlyCheckOutInMinutes                                   ,
+                gracePeriod                 : $lastAttendanceRecord['grace_period'                     ],
+                minutesCanCheckInBeforeShift: $lastAttendanceRecord['minutes_can_check_in_before_shift'],
+                overtimeHours               : $overtimeHours                                            ,
+                isOvertimeApproved          : $lastAttendanceRecord['is_overtime_approved'             ],
+                attendanceStatus            : $attendanceStatus                                         ,
+                remarks                     : $lastAttendanceRecord['remarks']
             );
 
             $result = $this->attendanceRepository->checkOut($attendance);
@@ -1533,19 +1549,21 @@ class AttendanceService
         }
 
         $attendance = new Attendance(
-            id                         : $lastAttendanceRecord['id']                  ,
-            workScheduleId             : $lastAttendanceRecord['work_schedule_id']    ,
-            date                       : $lastAttendanceRecord['date']                ,
-            checkInTime                : $lastAttendanceRecord['check_in_time']       ,
-            checkOutTime               : $checkOutTime->format('Y-m-d H:i:s') ,
-            totalBreakDurationInMinutes: $totalBreakDurationInMinutes                 ,
-            totalHoursWorked           : $totalHoursWorked                            ,
-            lateCheckIn                : $lastAttendanceRecord['late_check_in']       ,
-            earlyCheckOut              : $earlyCheckOutInMinutes                      ,
-            overtimeHours              : $overtimeHours                               ,
-            isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'],
-            attendanceStatus           : $attendanceStatus,
-            remarks                    : $lastAttendanceRecord['remarks']
+            id                          : $lastAttendanceRecord['id'                               ],
+            workScheduleId              : $lastAttendanceRecord['work_schedule_id'                 ],
+            date                        : $lastAttendanceRecord['date'                             ],
+            checkInTime                 : $lastAttendanceRecord['check_in_time'                    ],
+            checkOutTime                : $checkOutTime->format('Y-m-d H:i:s')                      ,
+            totalBreakDurationInMinutes : $totalBreakDurationInMinutes                              ,
+            totalHoursWorked            : $totalHoursWorked                                         ,
+            lateCheckIn                 : $lastAttendanceRecord['late_check_in'                    ],
+            earlyCheckOut               : $earlyCheckOutInMinutes                                   ,
+            gracePeriod                 : $lastAttendanceRecord['grace_period'                     ],
+            minutesCanCheckInBeforeShift: $lastAttendanceRecord['minutes_can_check_in_before_shift'],
+            overtimeHours               : $overtimeHours                                            ,
+            isOvertimeApproved          : $lastAttendanceRecord['is_overtime_approved'             ],
+            attendanceStatus            : $attendanceStatus                                         ,
+            remarks                     : $lastAttendanceRecord['remarks']
         );
 
         $result = $this->attendanceRepository->updateAttendance($attendance, $isHashedId);

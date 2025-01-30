@@ -58,6 +58,14 @@ class WorkScheduleDao
 
             $statement->execute();
 
+            $workSchedule->setId($this->pdo->lastInsertId());
+
+            if ($this->createHistory($workSchedule) === ActionResult::FAILURE) {
+                $this->pdo->rollBack();
+
+                return ActionResult::FAILURE;
+            }
+
             $this->pdo->commit();
 
             return ActionResult::SUCCESS;
@@ -66,6 +74,64 @@ class WorkScheduleDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while creating the work schedule. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    private function createHistory(WorkSchedule $workSchedule): ActionResult
+    {
+        $query = "
+            INSERT INTO work_schedules_history (
+                work_schedule_id    ,
+                employee_id         ,
+                start_time          ,
+                end_time            ,
+                is_flextime         ,
+                total_hours_per_week,
+                total_work_hours    ,
+                start_date          ,
+                recurrence_rule
+            )
+            VALUES (
+                :work_schedule_id    ,
+                :employee_id         ,
+                :start_time          ,
+                :end_time            ,
+                :is_flextime         ,
+                :total_hours_per_week,
+                :total_work_hours    ,
+                :start_date          ,
+                :recurrence_rule
+            )
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":work_schedule_id"    , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
+            $statement->bindValue(":employee_id"         , $workSchedule->getEmployeeId()       , Helper::getPdoParameterType($workSchedule->getEmployeeId()       ));
+            $statement->bindValue(":start_time"          , $workSchedule->getStartTime()        , Helper::getPdoParameterType($workSchedule->getStartTime()        ));
+            $statement->bindValue(":end_time"            , $workSchedule->getEndTime()          , Helper::getPdoParameterType($workSchedule->getEndTime()          ));
+            $statement->bindValue(":is_flextime"         , $workSchedule->isFlextime()          , Helper::getPdoParameterType($workSchedule->isFlextime()          ));
+            $statement->bindValue(":total_hours_per_week", $workSchedule->getTotalHoursPerWeek(), Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek()));
+            $statement->bindValue(":total_work_hours"    , $workSchedule->getTotalWorkHours()   , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()   ));
+            $statement->bindValue(":start_date"          , $workSchedule->getStartDate()        , Helper::getPdoParameterType($workSchedule->getStartDate()        ));
+            $statement->bindValue(":recurrence_rule"     , $workSchedule->getRecurrenceRule()   , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()   ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while creating the work schedule history. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -397,6 +463,12 @@ class WorkScheduleDao
             $statement->bindValue(":work_schedule_id"    , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
 
             $statement->execute();
+
+            if ($this->createHistory($workSchedule) === ActionResult::FAILURE) {
+                $this->pdo->rollBack();
+
+                return ActionResult::FAILURE;
+            }
 
             $this->pdo->commit();
 

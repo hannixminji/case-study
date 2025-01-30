@@ -34,25 +34,27 @@ class AttendanceRepository
     public function getLastAttendanceRecord(int $employeeId): ActionResult|array
     {
         $columns = [
-            'id'                             ,
+            'id'                               ,
 
-            'work_schedule_id'               ,
-            'work_schedule_start_time'       ,
-            'work_schedule_end_time'         ,
-            'work_schedule_is_flextime'      ,
-            'work_schedule_total_work_hours' ,
+            'work_schedule_id'                 ,
+            'work_schedule_start_time'         ,
+            'work_schedule_end_time'           ,
+            'work_schedule_is_flextime'        ,
+            'work_schedule_total_work_hours'   ,
 
-            'employee_id'                    ,
-            "employee_deleted_at"            ,
+            'employee_id'                      ,
+            "employee_deleted_at"              ,
 
-            'date'                           ,
-            'check_in_time'                  ,
-            'check_out_time'                 ,
-            'total_break_duration_in_minutes',
-            'total_hours_worked'             ,
-            'late_check_in'                  ,
-            'is_overtime_approved'           ,
-            'attendance_status'              ,
+            'date'                             ,
+            'check_in_time'                    ,
+            'check_out_time'                   ,
+            'total_break_duration_in_minutes'  ,
+            'total_hours_worked'               ,
+            'late_check_in'                    ,
+            'grace_period'                     ,
+            'minutes_can_check_in_before_shift',
+            'is_overtime_approved'             ,
+            'attendance_status'                ,
             'remarks'
         ];
 
@@ -103,5 +105,15 @@ class AttendanceRepository
     public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
     {
         return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
+    }
+
+    public function markAsProcessedForNextPayroll(int $attendanceId): ActionResult
+    {
+        return $this->attendanceDao->markAsProcessedForNextPayroll($attendanceId);
+    }
+
+    public function deleteAttendance(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    {
+        return $this->attendanceDao->delete($attendanceId, $isHashedId);
     }
 }
