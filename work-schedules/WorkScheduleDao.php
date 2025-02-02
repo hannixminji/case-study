@@ -384,7 +384,7 @@ class WorkScheduleDao
         }
     }
 
-    public function fetchLatestHistoryId(int $workScheduleId): int|null|ActionResult
+    public function fetchLatestHistoryId(int $workScheduleId): int|ActionResult
     {
         $query = "
             SELECT
@@ -405,7 +405,7 @@ class WorkScheduleDao
 
             $statement->execute();
 
-            return (int) $statement->fetchColumn() ?: null;
+            return $statement->fetchColumn() ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the work schedule history ID. " .

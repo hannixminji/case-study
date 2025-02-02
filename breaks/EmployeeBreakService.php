@@ -57,14 +57,17 @@ class EmployeeBreakService
 		    ];
         }
 
-        if (empty($employeeFetchResult['result_set'])) {
+        $employeeId =
+            ! empty($employeeFetchResult['result_set'])
+                ? $employeeFetchResult['result_set'][0]['id']
+                : [];
+
+        if (empty($employeeId)) {
             return [
 		        'status'  => 'warning',
 		        'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
 		    ];
         }
-
-        $employeeId = $employeeFetchResult['result_set'][0]['id'];
 
         $attendanceColumns = [
 			'id'                                    ,
@@ -261,14 +264,17 @@ class EmployeeBreakService
                     ];
                 }
 
-                if (empty($breakScheduleFetchResult['result_set'])) {
+                $breakSchedules =
+                    ! empty($breakScheduleFetchResult['result_set'])
+                        ? $breakScheduleFetchResult['result_set']
+                        : [];
+
+                if (empty($breakSchedules)) {
                     return [
                         'status'  => 'information',
                         'message' => 'There is no break schedule assigned for this shift.'
                     ];
                 }
-
-                $breakSchedules = $breakScheduleFetchResult['result_set'];
 
                 $currentBreakSchedule = $this->getCurrentBreakSchedule(
                     breakSchedules           : $breakSchedules                                  ,
@@ -302,9 +308,10 @@ class EmployeeBreakService
                     ];
                 }
 
-                $breakScheduleHistoryId = $this->breakScheduleRepository->fetchLatestBreakScheduleHistoryId($currentBreakSchedule['id']);
+                $breakScheduleHistoryId = $this->breakScheduleRepository
+                    ->fetchLatestBreakScheduleHistoryId($currentBreakSchedule['id']);
 
-                if ($breakScheduleHistoryId === ActionResult::FAILURE || $breakScheduleHistoryId === null) {
+                if ($breakScheduleHistoryId === ActionResult::FAILURE) {
                     return [
                         'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'

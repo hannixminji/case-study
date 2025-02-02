@@ -235,7 +235,7 @@ class BreakTypeDao
         }
     }
 
-    public function fetchLatestHistoryId(int $breakTypeId): int|null|ActionResult
+    public function fetchLatestHistoryId(int $breakTypeId): int|ActionResult
     {
         $query = "
             SELECT
@@ -256,7 +256,7 @@ class BreakTypeDao
 
             $statement->execute();
 
-            return (int) $statement->fetchColumn() ?: null;
+            return $statement->fetchColumn() ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break type history ID. " .

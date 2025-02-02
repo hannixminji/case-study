@@ -71,17 +71,21 @@ class AttendanceService
             ];
         }
 
-        if (empty($employeeFetchResult['result_set'])) {
+        $employeeId =
+            ! empty($employeeFetchResult['result_set'])
+                ? $employeeFetchResult['result_set'][0]['id']
+                : [];
+
+        if (empty($employeeId)) {
             return [
                 'status'  => 'warning',
                 'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
             ];
         }
 
-        $employeeId = $employeeFetchResult['result_set'][0]['id'];
-
         $leaveRequestColumns = [
-            'is_half_day'
+            'is_half_day'  ,
+            'half_day_part'
         ];
 
         $leaveRequestFilterCriteria = [
@@ -96,10 +100,32 @@ class AttendanceService
             ],
             [
                 'column'   => 'leave_request.status',
-                'operator' => ''                    ,
-                'value'    => ''
+                'operator' => '='                   ,
+                'value'    => 'In Progress'
             ]
         ];
+
+        $leaveRequestFetchResult = $this->leaveRequestRepository->fetchAllLeaveRequests(
+            columns       : $leaveRequestColumns       ,
+            filterCriteria: $leaveRequestFilterCriteria,
+            limit         : 1
+        );
+
+        if ($leaveRequestFetchResult === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
+        }
+
+        $isOnLeave =
+            ! empty($leaveRequestFetchResult['result_set'])
+                ? $leaveRequestFetchResult['result_set'][0]
+                : [];
+
+        if ( $isOnLeave) {
+
+        }
 
         $attendanceColumns = [
             'id'                             ,
