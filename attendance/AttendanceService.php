@@ -118,13 +118,16 @@ class AttendanceService
             ];
         }
 
-        $isOnLeave =
+        $leaveInProgress =
             ! empty($leaveRequestFetchResult['result_set'])
                 ? $leaveRequestFetchResult['result_set'][0]
                 : [];
 
-        if ( $isOnLeave) {
-
+        if ( ! empty($leaveInProgress) && ! $leaveInProgress['is_half_day']) {
+            return [
+                'status'  => 'warning',
+                'message' => 'You are currently on leave. You cannot check in or check out.'
+            ];
         }
 
         $attendanceColumns = [
@@ -196,8 +199,9 @@ class AttendanceService
             $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
             $previousDate    = (clone $currentDate)->modify('-1 day'         );
 
-            $formattedCurrentDate  = $currentDate ->format('Y-m-d');
-            $formattedPreviousDate = $previousDate->format('Y-m-d');
+            $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
+            $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
+            $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
 
             $workScheduleColumns = [
                 'id'              ,
@@ -248,14 +252,17 @@ class AttendanceService
                 ];
             }
 
-            if (empty($workScheduleFetchResult['result_set'])) {
+            $workSchedules =
+                ! empty($workScheduleFetchResult['result_set'])
+                    ? $workScheduleFetchResult['result_set']
+                    : [];
+
+            if (empty($workSchedules)) {
                 return [
                     'status'  => 'warning',
                     'message' => 'You don\'t have an assigned work schedule, or your schedule starts on a later date.'
                 ];
             }
-
-            $workSchedules = $workScheduleFetchResult['result_set'];
 
             $currentWorkSchedules = [];
 
@@ -278,8 +285,80 @@ class AttendanceService
                 }
             }
 
+            $currentWorkSchedule = $this->getCurrentWorkSchedule(
+                $workSchedules           ,
+                $formattedCurrentDateTime
+            );
 
+            if (empty($currentWorkSchedule)) {
+                return [
+                    'status'  => 'information',
+                    'message' => ''
+                ];
+            }
 
+            /*
+            $breakScheduleColumns = [
+                'id'                            ,
+                'start_time'                    ,
+                'end_time'                      ,
+                'is_flexible'                   ,
+                'earliest_start_time'           ,
+                'latest_end_time'               ,
+
+                'break_type_duration_in_minutes',
+                'break_type_is_paid'
+            ];
+
+            $breakScheduleFilterCriteria = [
+                [
+                    'column'   => 'break_schedule.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'break_schedule.work_schedule_id',
+                    'operator' => '='                              ,
+                    'value'    => $currentWorkSchedule['id']
+                ]
+            ];
+            */
         }
+    }
+
+    private function getCurrentWorkSchedule(
+        array  $assignedWorkSchedules,
+        string $currentDateTime
+    ): array {
+
+        $currentDateTime = new DateTime($currentDateTime);
+
+        $nextWorkSchedule = [];
+
+        foreach ($assignedWorkSchedules as $workDate => $workSchedules) {
+            foreach ($workSchedules as $workSchedule) {
+                $workStartTime = $workSchedule['start_time'];
+                $workEndTime   = $workSchedule['end_time'  ];
+
+                $workStartDateTime = new DateTime($workDate . ' ' . $workStartTime);
+                $workEndDateTime   = new DateTime($workDate . ' ' . $workEndTime  );
+
+                if ($workEndDateTime <= $workStartDateTime) {
+                    $workEndDateTime->modify('+1 day');
+                }
+
+                $workSchedule['start_time'] = $workStartDateTime->format('Y-m-d H:i:s');
+                $workSchedule['end_time'  ] = $workEndDateTime  ->format('Y-m-d H:i:s');
+
+                if ($currentDateTime >= $workStartDateTime && $currentDateTime < $workEndDateTime) {
+                    return $workSchedule;
+                }
+
+                if ($currentDateTime < $workStartDateTime && empty($nextWorkSchedule)) {
+                    $nextWorkSchedule = $workSchedule;
+                }
+            }
+        }
+
+        return $nextWorkSchedule;
     }
 }

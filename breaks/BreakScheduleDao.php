@@ -3,9 +3,6 @@
 require_once __DIR__ . "/../work-schedules/WorkScheduleDao.php";
 require_once __DIR__ . "/BreakTypeDao.php"                     ;
 
-require_once __DIR__ . "/../includes/Helper.php"               ;
-require_once __DIR__ . "/../includes/enums/ActionResult.php"   ;
-
 class BreakScheduleDao
 {
     private readonly PDO             $pdo            ;

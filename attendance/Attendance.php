@@ -6,7 +6,7 @@ class Attendance
         private readonly   int|string|null $id                          = null,
         private readonly   int|string      $workScheduleHistoryId             ,
         private readonly   string          $date                              ,
-        private readonly   string          $checkInTime                       ,
+        private readonly ? string          $checkInTime                       ,
         private readonly ? string          $checkOutTime                = null,
         private readonly ? float           $totalBreakDurationInMinutes = null,
         private readonly ? float           $totalHoursWorked            = null,

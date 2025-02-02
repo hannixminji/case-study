@@ -436,7 +436,7 @@ class EmployeeBreakService
                 return $breakSchedule;
             }
 
-            if (empty($nextBreakSchedule) && $currentDateTime < $breakStartDateTime) {
+            if ($currentDateTime < $breakStartDateTime && empty($nextBreakSchedule)) {
                 $nextBreakSchedule = $breakSchedule;
             }
         }
