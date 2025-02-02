@@ -50,12 +50,12 @@ class AttendanceService
             [
                 'column'   => 'employee.deleted_at',
                 'operator' => 'IS NULL'
-			],
+            ],
             [
                 'column'   => 'employee.rfid_uid',
                 'operator' => '='                ,
                 'value'    => $rfidUid
-			]
+            ]
         ];
 
         $employeeFetchResult = $this->employeeRepository->fetchAllEmployees(
@@ -68,14 +68,14 @@ class AttendanceService
             return [
                 'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.'
-		    ];
+            ];
         }
 
         if (empty($employeeFetchResult['result_set'])) {
             return [
                 'status'  => 'warning',
                 'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
-		    ];
+            ];
         }
 
         $employeeId = $employeeFetchResult['result_set'][0]['id'];
@@ -118,16 +118,16 @@ class AttendanceService
         ];
 
         $attendanceFilterCriteria = [
-			[
-				'column'   => 'attendance.deleted_at',
-				'operator' => 'IS NULL'
-			],
-			[
-				'column'   => 'work_schedule_history.employee_id',
-				'operator' => '='                                ,
-				'value'    => $employeeId
-			]
-		];
+            [
+                'column'   => 'attendance.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
+                'column'   => 'work_schedule_history.employee_id',
+                'operator' => '='                                ,
+                'value'    => $employeeId
+            ]
+        ];
 
         $attendanceSortCriteria = [
             [
@@ -151,7 +151,7 @@ class AttendanceService
             return [
                 'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.'
-		    ];
+            ];
         }
 
         $lastAttendanceRecord =
