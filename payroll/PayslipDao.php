@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class PayslipDao
 {
@@ -178,6 +177,7 @@ class PayslipDao
             array_key_exists("employee_job_title"          , $selectedColumns) ||
 
             array_key_exists("employee_department_name"    , $selectedColumns)) {
+                
             $joinClauses .= "
                 LEFT JOIN
                     employees AS employee

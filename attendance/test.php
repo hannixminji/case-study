@@ -1,5 +1,7 @@
 <?php
 
+echo '<pre>';
+
 require_once __DIR__ . '/Attendance.php';
 
 require_once __DIR__ . '/AttendanceService.php';
@@ -79,13 +81,21 @@ $employeeBreakService = new EmployeeBreakService(
     $breakScheduleRepository
 );
 
+print_r($employeeBreakRepository->fetchAllEmployeeBreaks());
 $rfidUid = '123456789';
-$currentDateTime = '2025-01-01 08:00:00';
+
+/*
+$currentDateTime = '2025-01-01 12:00:00';
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+
 $currentDateTime = '2025-01-01 17:00:00';
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-//$response = $employeeBreakService->handleRfidTap($rfidUid, '2025-01-03 13:00:00');
+
+$response = $employeeBreakService->handleRfidTap('123456789', '2025-01-01 12:00:00');
 print_r($response);
+
+*/
+
 
 /*
 $attendance = new Attendance(

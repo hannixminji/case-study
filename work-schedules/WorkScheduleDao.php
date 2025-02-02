@@ -1,10 +1,8 @@
 <?php
 
-require_once __DIR__ . "/../vendor/autoload.php"            ;
+require_once __DIR__ . "/../vendor/autoload.php"    ;
 
-require_once __DIR__ . "/../includes/Helper.php"            ;
-require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
+require_once __DIR__ . "/../settings/SettingDao.php";
 
 use RRule\RSet;
 
@@ -84,53 +82,109 @@ class WorkScheduleDao
     {
         $query = "
             INSERT INTO work_schedules_history (
-                work_schedule_id    ,
-                employee_id         ,
-                start_time          ,
-                end_time            ,
-                is_flextime         ,
-                total_hours_per_week,
-                total_work_hours    ,
-                start_date          ,
-                recurrence_rule
+                work_schedule_id                 ,
+                employee_id                      ,
+                start_time                       ,
+                end_time                         ,
+                is_flextime                      ,
+                total_hours_per_week             ,
+                total_work_hours                 ,
+                start_date                       ,
+                recurrence_rule                  ,
+                grace_period                     ,
+                minutes_can_check_in_before_shift
             )
             VALUES (
-                :work_schedule_id    ,
-                :employee_id         ,
-                :start_time          ,
-                :end_time            ,
-                :is_flextime         ,
-                :total_hours_per_week,
-                :total_work_hours    ,
-                :start_date          ,
-                :recurrence_rule
+                :work_schedule_id                 ,
+                :employee_id                      ,
+                :start_time                       ,
+                :end_time                         ,
+                :is_flextime                      ,
+                :total_hours_per_week             ,
+                :total_work_hours                 ,
+                :start_date                       ,
+                :recurrence_rule                  ,
+                :grace_period                     ,
+                :minutes_can_check_in_before_shift
             )
         ";
 
         try {
-            $this->pdo->beginTransaction();
+            $settingDao = new SettingDao($this->pdo);
+
+            $settingColumns = [
+                "setting_value"
+            ];
+
+            $settingFilterCriteria = [
+                [
+                    "column"   => "setting.group_name",
+                    "operator" => "="                 ,
+                    "value"    => "work_schedule"
+                ],
+                [
+                    "column"   => "setting.setting_key",
+                    "operator" => "="                  ,
+                    "value"    => "grace_period"
+                ]
+            ];
+
+            $settingFetchResult = $settingDao->fetchAll(
+                columns       : $settingColumns       ,
+                filterCriteria: $settingFilterCriteria,
+                limit         : 1
+            );
+
+            if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
+                return ActionResult::FAILURE;
+            }
+
+            $gracePeriod = $settingFetchResult["result_set"][0]["setting_value"];
+
+            $settingFilterCriteria = [
+                [
+                    "column"   => "setting.group_name",
+                    "operator" => "="                 ,
+                    "value"    => "work_schedule"
+                ],
+                [
+                    "column"   => "setting.setting_key"              ,
+                    "operator" => "="                                ,
+                    "value"    => "minutes_can_check_in_before_shift"
+                ]
+            ];
+
+            $settingFetchResult = $settingDao->fetchAll(
+                columns       : $settingColumns       ,
+                filterCriteria: $settingFilterCriteria,
+                limit         : 1
+            );
+
+            if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
+                return ActionResult::FAILURE;
+            }
+
+            $minutesCanCheckInBeforeShift = $settingFetchResult["result_set"][0]["setting_value"];
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_id"    , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
-            $statement->bindValue(":employee_id"         , $workSchedule->getEmployeeId()       , Helper::getPdoParameterType($workSchedule->getEmployeeId()       ));
-            $statement->bindValue(":start_time"          , $workSchedule->getStartTime()        , Helper::getPdoParameterType($workSchedule->getStartTime()        ));
-            $statement->bindValue(":end_time"            , $workSchedule->getEndTime()          , Helper::getPdoParameterType($workSchedule->getEndTime()          ));
-            $statement->bindValue(":is_flextime"         , $workSchedule->isFlextime()          , Helper::getPdoParameterType($workSchedule->isFlextime()          ));
-            $statement->bindValue(":total_hours_per_week", $workSchedule->getTotalHoursPerWeek(), Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek()));
-            $statement->bindValue(":total_work_hours"    , $workSchedule->getTotalWorkHours()   , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()   ));
-            $statement->bindValue(":start_date"          , $workSchedule->getStartDate()        , Helper::getPdoParameterType($workSchedule->getStartDate()        ));
-            $statement->bindValue(":recurrence_rule"     , $workSchedule->getRecurrenceRule()   , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()   ));
+            $statement->bindValue(":work_schedule_id"                 , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
+            $statement->bindValue(":employee_id"                      , $workSchedule->getEmployeeId()       , Helper::getPdoParameterType($workSchedule->getEmployeeId()       ));
+            $statement->bindValue(":start_time"                       , $workSchedule->getStartTime()        , Helper::getPdoParameterType($workSchedule->getStartTime()        ));
+            $statement->bindValue(":end_time"                         , $workSchedule->getEndTime()          , Helper::getPdoParameterType($workSchedule->getEndTime()          ));
+            $statement->bindValue(":is_flextime"                      , $workSchedule->isFlextime()          , Helper::getPdoParameterType($workSchedule->isFlextime()          ));
+            $statement->bindValue(":total_hours_per_week"             , $workSchedule->getTotalHoursPerWeek(), Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek()));
+            $statement->bindValue(":total_work_hours"                 , $workSchedule->getTotalWorkHours()   , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()   ));
+            $statement->bindValue(":start_date"                       , $workSchedule->getStartDate()        , Helper::getPdoParameterType($workSchedule->getStartDate()        ));
+            $statement->bindValue(":recurrence_rule"                  , $workSchedule->getRecurrenceRule()   , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()   ));
+            $statement->bindValue(":grace_period"                     , $gracePeriod                         , Helper::getPdoParameterType($gracePeriod                         ));
+            $statement->bindValue(":minutes_can_check_in_before_shift", $minutesCanCheckInBeforeShift        , Helper::getPdoParameterType($minutesCanCheckInBeforeShift        ));
 
             $statement->execute();
-
-            $this->pdo->commit();
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
             error_log("Database Error: An error occurred while creating the work schedule history. " .
                       "Exception: {$exception->getMessage()}");
 
@@ -189,6 +243,7 @@ class WorkScheduleDao
             array_key_exists("employee_job_title"      , $selectedColumns) ||
 
             array_key_exists("employee_department_name", $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     employees AS employee
@@ -323,6 +378,37 @@ class WorkScheduleDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the work schedules. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchLatestHistoryId(int $workScheduleId): int|null|ActionResult
+    {
+        $query = "
+            SELECT
+                id
+            FROM
+                work_schedules_history
+            WHERE
+                work_schedule_id = :work_schedule_id
+            ORDER BY
+                active_at DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":work_schedule_id", $workScheduleId, Helper::getPdoParameterType($workScheduleId));
+
+            $statement->execute();
+
+            return (int) $statement->fetchColumn() ?: null;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the work schedule history ID. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

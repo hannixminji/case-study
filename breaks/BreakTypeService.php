@@ -26,6 +26,11 @@ class BreakTypeService
         return $this->breakTypeRepository->fetchAllBreakTypes($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchLatestBreakTypeHistoryId(int $breakTypeId): int|null|ActionResult
+    {
+        return $this->breakTypeRepository->fetchLatestBreakTypeHistoryId($breakTypeId);
+    }
+
     public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
         return $this->breakTypeRepository->updateBreakType($breakType, $isHashedId);

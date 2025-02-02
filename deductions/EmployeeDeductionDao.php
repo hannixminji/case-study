@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class EmployeeDeductionDao
 {
@@ -86,6 +85,7 @@ class EmployeeDeductionDao
         if (array_key_exists("deduction_name"          , $selectedColumns) ||
             array_key_exists("deduction_frequency"     , $selectedColumns) ||
             array_key_exists("deduction_status"        , $selectedColumns)) {
+
             $joinClauses = "
                 LEFT JOIN
                     deductions AS deduction

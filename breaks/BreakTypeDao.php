@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class BreakTypeDao
 {
@@ -42,6 +41,14 @@ class BreakTypeDao
 
             $statement->execute();
 
+            $breakType->setId($this->pdo->lastInsertId());
+
+            if ($this->createHistory($breakType) === ActionResult::FAILURE) {
+                $this->pdo->rollBack();
+
+                return ActionResult::FAILURE;
+            }
+
             $this->pdo->commit();
 
             return ActionResult::SUCCESS;
@@ -50,6 +57,46 @@ class BreakTypeDao
             $this->pdo->rollBack();
 
             error_log("Database Error: An error occurred while creating the break type. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function createHistory(BreakType $breakType): ActionResult
+    {
+        $query = "
+            INSERT INTO break_types_history (
+                break_type_id                    ,
+                name                             ,
+                duration_in_minutes              ,
+                is_paid                          ,
+                is_require_break_in_and_break_out
+            )
+            VALUES (
+                :break_type_id                    ,
+                :name                             ,
+                :duration_in_minutes              ,
+                :is_paid                          ,
+                :is_require_break_in_and_break_out
+            )
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":break_type_id"                    , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
+            $statement->bindValue(":name"                             , $breakType->getName()                    , Helper::getPdoParameterType($breakType->getName()                    ));
+            $statement->bindValue(":duration_in_minutes"              , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
+            $statement->bindValue(":is_paid"                          , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
+            $statement->bindValue(":is_require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
+
+            $statement->execute();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while creating the break type history. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -188,6 +235,37 @@ class BreakTypeDao
         }
     }
 
+    public function fetchLatestHistoryId(int $breakTypeId): int|null|ActionResult
+    {
+        $query = "
+            SELECT
+                id
+            FROM
+                break_types_history
+            WHERE
+                break_type_id = :break_type_id
+            ORDER BY
+                active_at DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":break_type_id", $breakTypeId, Helper::getPdoParameterType($breakTypeId));
+
+            $statement->execute();
+
+            return (int) $statement->fetchColumn() ?: null;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the break type history ID. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function update(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
         $query = "
@@ -215,10 +293,16 @@ class BreakTypeDao
             $statement->bindValue(":duration_in_minutes"              , $breakType->getDurationInMinutes()       , Helper::getPdoParameterType($breakType->getDurationInMinutes()       ));
             $statement->bindValue(":is_paid"                          , $breakType->isPaid()                     , Helper::getPdoParameterType($breakType->isPaid()                     ));
             $statement->bindValue(":is_require_break_in_and_break_out", $breakType->isRequireBreakInAndBreakOut(), Helper::getPdoParameterType($breakType->isRequireBreakInAndBreakOut()));
-            
+
             $statement->bindValue(":break_type_id"                    , $breakType->getId()                      , Helper::getPdoParameterType($breakType->getId()                      ));
 
             $statement->execute();
+
+            if ($this->createHistory($breakType) === ActionResult::FAILURE) {
+                $this->pdo->rollBack();
+
+                return ActionResult::FAILURE;
+            }
 
             $this->pdo->commit();
 

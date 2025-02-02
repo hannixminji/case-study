@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class EmployeeDao
 {
@@ -276,6 +275,7 @@ class EmployeeDao
 
         if (array_key_exists("department_name"   , $selectedColumns) ||
             array_key_exists("department_head_id", $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     departments AS department
@@ -287,6 +287,7 @@ class EmployeeDao
         if (array_key_exists("supervisor_first_name" , $selectedColumns) ||
             array_key_exists("supervisor_middle_name", $selectedColumns) ||
             array_key_exists("supervisor_last_name"  , $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     employees AS supervisor
@@ -583,7 +584,7 @@ class EmployeeDao
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":new_hashed_password", $newHashedPassword, Helper::getPdoParameterType($newHashedPassword));
-            
+
             $statement->bindValue(":employee_id"        , $employeeId       , Helper::getPdoParameterType($employeeId       ));
 
             $statement->execute();

@@ -26,23 +26,18 @@ class BreakScheduleRepository
         return $this->breakScheduleDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchLatestBreakScheduleHistoryId(int $breakScheduleId): int|null|ActionResult
+    {
+        return $this->breakScheduleDao->fetchLatestHistoryId($breakScheduleId);
+    }
+
     public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->$breakSchedule->update($breakSchedule, $isHashedId);
     }
 
-    public function fetchOrderedBreakSchedules(int|string $workScheduleId, bool $isHashedId = false): ActionResult|array
-    {
-        return $this->breakScheduleDao->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
-    }
-
     public function deleteBreakSchedule(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleDao->delete($breakScheduleId, $isHashedId);
-    }
-
-    public function deleteBreakScheduleByWorkScheduleId(int|string $workScheduleId, bool $isHashedId = false): ActionResult
-    {
-        return $this->breakScheduleDao->deleteByWorkScheduleId($workScheduleId, $isHashedId);
     }
 }

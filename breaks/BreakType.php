@@ -3,7 +3,7 @@
 class BreakType
 {
     public function __construct(
-        private readonly int|string|null $id                        = null,
+        private          int|string|null $id                        = null,
         private readonly string          $name                            ,
         private readonly int             $durationInMinutes               ,
         private readonly bool            $isPaid                          ,
@@ -14,6 +14,11 @@ class BreakType
     public function getId(): int|string|null
     {
         return $this->id;
+    }
+
+    public function setId(int|string|null $id): void
+    {
+        $this->id = $id;
     }
 
     public function getName(): string

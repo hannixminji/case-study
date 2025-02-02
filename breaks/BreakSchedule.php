@@ -7,6 +7,7 @@ class BreakSchedule
         private readonly   int|string      $workScheduleId           ,
         private readonly   int|string      $breakTypeId              ,
         private readonly ? string          $startTime         = null ,
+        private readonly ? string          $endTime           = null ,
         private readonly   bool            $isFlexible        = false,
         private readonly ? string          $earliestStartTime = null ,
         private readonly ? string          $latestEndTime     = null
@@ -36,6 +37,11 @@ class BreakSchedule
     public function getStartTime(): ?string
     {
         return $this->startTime;
+    }
+
+    public function getEndTime(): ?string
+    {
+        return $this->endTime;
     }
 
     public function isFlexible(): bool

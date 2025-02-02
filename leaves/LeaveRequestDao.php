@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class LeaveRequestDao
 {
@@ -23,6 +22,7 @@ class LeaveRequestDao
                 end_date     ,
                 reason       ,
                 is_half_day  ,
+                half_day_part,
                 status
             )
             VALUES (
@@ -32,6 +32,7 @@ class LeaveRequestDao
                 :end_date     ,
                 :reason       ,
                 :is_half_day  ,
+                :half_day_part,
                 :status
             )
         ";
@@ -47,6 +48,7 @@ class LeaveRequestDao
             $statement->bindValue(":end_date"     , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
             $statement->bindValue(":reason"       , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
             $statement->bindValue(":is_half_day"  , $leaveRequest->isHalfDay()     , Helper::getPdoParameterType($leaveRequest->isHalfDay()     ));
+            $statement->bindValue(":half_day_part", $leaveRequest->getHalfDayPart(), Helper::getPdoParameterType($leaveRequest->getHalfDayPart()));
             $statement->bindValue(":status"       , $leaveRequest->getStatus()     , Helper::getPdoParameterType($leaveRequest->getStatus()     ));
 
             $statement->execute();
@@ -80,6 +82,7 @@ class LeaveRequestDao
             "end_date"                 => "leave_request.end_date      AS end_date"                ,
             "reason"                   => "leave_request.reason        AS reason"                  ,
             "is_half_day"              => "leave_request.is_half_day   AS is_half_day"             ,
+            "half_day_part"            => "leave_request.half_day_part AS half_day_part"           ,
             "status"                   => "leave_request.status        AS status"                  ,
             "approved_at"              => "leave_request.approved_at   AS approved_at"             ,
             "created_at"               => "leave_request.created_at    AS created_at"              ,
@@ -121,6 +124,7 @@ class LeaveRequestDao
             array_key_exists("employee_department_name", $selectedColumns) ||
 
             array_key_exists("approved_by"             , $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     employees AS employee
@@ -149,6 +153,7 @@ class LeaveRequestDao
 
         if (array_key_exists("leave_type_name"   , $selectedColumns) ||
             array_key_exists("leave_type_is_paid", $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type
@@ -288,6 +293,7 @@ class LeaveRequestDao
                 start_date    = :start_date   ,
                 end_date      = :end_date     ,
                 is_half_day   = :is_half_day  ,
+                half_day_part = :half_day_part,
                 reason        = :reason
             WHERE
         ";
@@ -309,6 +315,7 @@ class LeaveRequestDao
             $statement->bindValue(":end_date"        , $leaveRequest->getEndDate()    , Helper::getPdoParameterType($leaveRequest->getEndDate()    ));
             $statement->bindValue(":reason"          , $leaveRequest->getReason()     , Helper::getPdoParameterType($leaveRequest->getReason()     ));
             $statement->bindValue(":is_half_day"     , $leaveRequest->isHalfDay()     , Helper::getPdoParameterType($leaveRequest->isHalfDay()     ));
+            $statement->bindValue(":half_day_part"   , $leaveRequest->getHalfDayPart(), Helper::getPdoParameterType($leaveRequest->getHalfDayPart()));
 
             $statement->bindValue(":leave_request_id", $leaveRequest->getId()         , Helper::getPdoParameterType($leaveRequest->getId()         ));
 

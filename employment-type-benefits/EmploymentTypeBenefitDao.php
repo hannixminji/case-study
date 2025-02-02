@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class EmploymentTypeBenefitDao
 {
@@ -117,6 +116,7 @@ class EmploymentTypeBenefitDao
             array_key_exists("leave_type_is_paid"               , $selectedColumns) ||
             array_key_exists("leave_type_status"                , $selectedColumns) ||
             array_key_exists("leave_type_deleted_at"            , $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type
@@ -130,6 +130,7 @@ class EmploymentTypeBenefitDao
             array_key_exists("allowance_frequency" , $selectedColumns) ||
             array_key_exists("allowance_status"    , $selectedColumns) ||
             array_key_exists("allowance_deleted_at", $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     allowances AS allowance
@@ -144,6 +145,7 @@ class EmploymentTypeBenefitDao
             array_key_exists("deduction_description", $selectedColumns) ||
             array_key_exists("deduction_status"     , $selectedColumns) ||
             array_key_exists("deduction_deleted_at" , $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     deductions AS deduction

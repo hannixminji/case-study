@@ -6,7 +6,5 @@ enum ActionResult: int
     case FAILURE                              = 1;
     case DUPLICATE_ENTRY_ERROR                = 2;
     case PASSWORD_INCORRECT                   = 3;
-    case NO_SCHEDULED_BREAK                   = 4;
-    case NO_WORK_SCHEDULE_FOUND               = 5;
-    case NO_RECORD_FOUND                      = 6;
+    case NO_RECORD_FOUND                      = 4;
 }

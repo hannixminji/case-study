@@ -2,7 +2,7 @@
 
 date_default_timezone_set('Asia/Manila');
 
-$dataSourceName = 'mysql:host=localhost;port=3306;dbname=payroll;charset=utf8mb4';
+$dataSourceName = 'mysql:host=localhost;port=3306;dbname=payroll-test;charset=utf8mb4';
 
 $username = 'root';
 $password = ''    ;
@@ -15,8 +15,8 @@ $options = [
 try {
     $pdo = new PDO(
         $dataSourceName,
-        $username,
-        $password,
+        $username      ,
+        $password      ,
         $options
     );
 

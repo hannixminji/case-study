@@ -26,4 +26,9 @@ class PayslipRepository
     {
         return $this->payslipDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
+
+    public function updatePayslip(Payslip $payslip, bool $isHashedId = false): ActionResult
+    {
+        return $this->payslipDao->update($payslip, $isHashedId);
+    }
 }

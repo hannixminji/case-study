@@ -5,7 +5,7 @@ class EmployeeBreak
     public function __construct(
         private readonly   int|string|null $id                     = null,
         private readonly   int|string      $attendanceId                 ,
-        private readonly   int|string      $breakScheduleId              ,
+        private readonly   int|string      $breakScheduleHistoryId       ,
         private readonly ? string          $startTime              = null,
         private readonly ? string          $endTime                = null,
         private readonly   int             $breakDurationInMinutes = 0   ,
@@ -23,9 +23,9 @@ class EmployeeBreak
         return $this->attendanceId;
     }
 
-    public function getBreakScheduleId(): int|string
+    public function getBreakScheduleHistoryId(): int|string
     {
-        return $this->breakScheduleId;
+        return $this->breakScheduleHistoryId;
     }
 
     public function getStartTime(): ?string

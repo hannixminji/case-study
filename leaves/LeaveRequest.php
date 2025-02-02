@@ -10,6 +10,7 @@ class LeaveRequest
         private readonly string          $endDate           ,
         private readonly string          $reason            ,
         private readonly bool            $isHalfDay         ,
+        private readonly string          $halfDayPart       ,
         private readonly string          $status
     ) {
     }
@@ -47,6 +48,11 @@ class LeaveRequest
     public function isHalfDay(): bool
     {
         return $this->isHalfDay;
+    }
+
+    public function getHalfDayPart(): string
+    {
+        return $this->getHalfDayPart();
     }
 
     public function getStatus(): string

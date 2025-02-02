@@ -26,23 +26,18 @@ class BreakScheduleService
         return $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
+    public function fetchLatestBreakScheduleHistoryId(int $breakScheduleId): int|null|ActionResult
+    {
+        return $this->breakScheduleRepository->fetchLatestBreakScheduleHistoryId($breakScheduleId);
+    }
+
     public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleRepository->updateBreakSchedule($breakSchedule, $isHashedId);
     }
 
-    public function fetchOrderedBreakSchedules(int|string $workScheduleId, bool $isHashedId = false): ActionResult|array
-    {
-        return $this->breakScheduleRepository->fetchOrderedBreakSchedules($workScheduleId, $isHashedId);
-    }
-
     public function deleteBreakSchedule(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleRepository->deleteBreakSchedule($breakScheduleId, $isHashedId);
-    }
-
-    public function deleteBreakScheduleByWorkScheduleId(int|string $workScheduleId, bool $isHashedId = false): ActionResult
-    {
-        return $this->breakScheduleRepository->deleteBreakScheduleByWorkScheduleId($workScheduleId, $isHashedId);
     }
 }

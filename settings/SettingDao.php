@@ -2,7 +2,6 @@
 
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
-require_once __DIR__ . "/../includes/enums/ErrorCode.php"   ;
 
 class SettingDao
 {
@@ -44,12 +43,22 @@ class SettingDao
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
+                $boolean  = isset($filterCriterion["boolean"])
+                    ? strtoupper($filterCriterion["boolean"])
+                    : 'AND';
 
                 switch ($operator) {
                     case "="   :
+                    case "!="  :
                     case "LIKE":
                         $whereClauses   [] = "{$column} {$operator} ?";
                         $queryParameters[] = $filterCriterion["value"];
+
+                        break;
+
+                    case "IS NOT NULL":
+                    case "IS NULL"    :
+                        $whereClauses[] = "{$column} {$operator}";
 
                         break;
 
@@ -60,7 +69,13 @@ class SettingDao
 
                         break;
                 }
+
+                $whereClauses[] = " {$boolean}";
             }
+        }
+
+        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+            array_pop($whereClauses);
         }
 
         $orderByClauses = [];
@@ -104,7 +119,7 @@ class SettingDao
                 " . implode(", ", $selectedColumns) . "
             FROM
                 settings AS setting
-            " . ( ! empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "") . "
+            " . ( ! empty($whereClauses) ? "WHERE " . implode(" ", $whereClauses) : "") . "
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -135,7 +150,7 @@ class SettingDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the settings. " .
                       "Exception: {$exception->getMessage()}");
-
+            echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

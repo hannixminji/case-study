@@ -16,9 +16,9 @@ class EmployeeBreakRepository
         return $this->employeeBreakDao->breakIn($employeeBreak);
     }
 
-    public function breakOut(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
+    public function breakOut(EmployeeBreak $employeeBreak): ActionResult
     {
-        return $this->employeeBreakDao->breakOut($employeeBreak, $isHashedId);
+        return $this->employeeBreakDao->breakOut($employeeBreak);
     }
 
     public function fetchAllEmployeeBreaks(
@@ -31,85 +31,13 @@ class EmployeeBreakRepository
         return $this->employeeBreakDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function fetchEmployeeLastBreakRecord(int $workScheduleId, int $employeeId): ActionResult|array
-    {
-        $columns = [
-            'id'                               ,
-            'attendance_id'                    ,
-            'break_schedule_id'                ,
-            'start_time'                       ,
-            'end_time'                         ,
-            'break_duration_in_minutes'        ,
-            'work_schedule_id'                 ,
-            'break_schedule_start_time'        ,
-            'break_schedule_is_flexible'       ,
-            'employee_id'                      ,
-            'break_type_duration_in_minutes'   ,
-            'break_type_is_paid'               ,
-            'is_require_break_in_and_break_out',
-            'created_at'
-        ];
-
-        $filterCriteria = [
-            [
-                'column'   => 'employee_break.deleted_at',
-                'operator' => 'IS NULL'
-            ],
-            [
-                'column'   => 'break_schedule.work_schedule_id',
-                'operator' => '='                              ,
-                'value'    => $workScheduleId
-            ],
-            [
-                'column'   => 'work_schedule.employee_id',
-                'operator' => '='                        ,
-                'value'    => $employeeId
-            ]
-        ];
-
-        $sortCriteria = [
-            [
-                'column'    => 'employee_break.created_at',
-                'direction' => 'DESC'
-            ],
-            [
-                'column'    => 'employee_break.start_time',
-                'direction' => 'DESC'
-            ],
-            [
-                'column'    => 'employee_break.id',
-                'direction' => 'DESC'
-            ]
-        ];
-
-        $result = $this->employeeBreakDao->fetchAll(
-            columns       : $columns       ,
-            filterCriteria: $filterCriteria,
-            sortCriteria  : $sortCriteria  ,
-            limit         : 1
-        );
-
-        if ($result === ActionResult::FAILURE) {
-            return ActionResult::FAILURE;
-        }
-
-        return ! empty($result['result_set'])
-            ? $result['result_set'][0]
-            : [];
-    }
-
-    public function fetchOrderedEmployeeBreaks(
-        int|string $workScheduleId        ,
-        int|string $employeeId            ,
-        string     $startDate             ,
-        string     $endDate               ,
-        bool       $isHashedId     = false
-    ): ActionResult|array {
-        return $this->employeeBreakDao->fetchOrderedEmployeeBreaks($workScheduleId, $employeeId, $startDate, $endDate, $isHashedId);
-    }
-
     public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
     {
         return $this->employeeBreakDao->update($employeeBreak, $isHashedId);
+    }
+
+    public function deleteEmployeeBreak(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    {
+        return $this->employeeBreakDao->delete($employeeBreakId, $isHashedId);
     }
 }

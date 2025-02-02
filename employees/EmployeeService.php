@@ -36,11 +36,6 @@ class EmployeeService
         return $this->employeeRepository->updateEmployee($employee, $isHashedId);
     }
 
-    public function getEmployeeIdBy(string $column, string $value): ActionResult|int
-    {
-        return $this->employeeRepository->getEmployeeIdBy($column, $value);
-    }
-
     public function changePassword(int|string $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
         return $this->employeeRepository->changePassword($employeeId, $newHashedPassword, $isHashedId);

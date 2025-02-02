@@ -36,39 +36,6 @@ class EmployeeRepository
         return $this->employeeDao->update($employee, $isHashedId);
     }
 
-    public function getEmployeeIdBy(string $column, string $value): ActionResult|int
-    {
-        $columns = [
-            'id'
-        ];
-
-        $filterCriteria = [
-            [
-                'column'   => 'employee.deleted_at',
-                'operator' => 'IS NULL'
-            ],
-            [
-                'column'   => $column,
-                'operator' => '='    ,
-                'value'    => $value
-            ]
-        ];
-
-        $result = $this->fetchAllEmployees(
-            columns       : $columns       ,
-            filterCriteria: $filterCriteria,
-            limit         : 1
-        );
-
-        if ($result === ActionResult::FAILURE) {
-            return ActionResult::FAILURE;
-        }
-
-        return empty($result['result_set'])
-            ? ActionResult::NO_RECORD_FOUND
-            : (int) $result['result_set'][0]['id'];
-    }
-
     public function changePassword(int|string $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
     {
         return $this->employeeDao->changePassword($employeeId, $newHashedPassword, $isHashedId);

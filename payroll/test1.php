@@ -1,15 +1,16 @@
 <?php
 
+echo '<pre>';
+
 require_once __DIR__ . '/../database/database.php'  ;
 
 require_once __DIR__ . '/PayrollGroup.php'          ;
 
-require_once __DIR__ . '/PayslipService.php'        ;
+require_once __DIR__ . '/PayslipServices.php'       ;
 require_once __DIR__ . '/PayrollGroupRepository.php';
 
 $payslipDao                = new PayslipDao               ($pdo                                   );
 $employeeDao               = new EmployeeDao              ($pdo                                   );
-$workScheduleDao           = new WorkScheduleDao          ($pdo                                   );
 $attendanceDao             = new AttendanceDao            ($pdo                                   );
 $holidayDao                = new HolidayDao               ($pdo                                   );
 $leaveRequestDao           = new LeaveRequestDao          ($pdo                                   );
@@ -25,7 +26,6 @@ $payrollGroupDao           = new PayrollGroupDao          ($pdo                 
 
 $payslipRepository                = new PayslipRepository               ($payslipDao               );
 $employeeRepository               = new EmployeeRepository              ($employeeDao              );
-$workScheduleRepository           = new WorkScheduleRepository          ($workScheduleDao          );
 $attendanceRepository             = new AttendanceRepository            ($attendanceDao            );
 $holidayRepository                = new HolidayRepository               ($holidayDao               );
 $leaveRequestRepository           = new LeaveRequestRepository          ($leaveRequestDao          );
@@ -39,10 +39,9 @@ $overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overti
 $leaveEntitlementRepository       = new LeaveEntitlementRepository      ($leaveEntitlementDao      );
 $payrollGroupRepository           = new PayrollGroupRepository          ($payrollGroupDao          );
 
-$payslipService = new PayslipService(
+$payslipService = new PayslipServices(
     payslipRepository               : $payslipRepository               ,
     employeeRepository              : $employeeRepository              ,
-    workScheduleRepository          : $workScheduleRepository          ,
     attendanceRepository            : $attendanceRepository            ,
     holidayRepository               : $holidayRepository               ,
     leaveRequestRepository          : $leaveRequestRepository          ,
@@ -56,22 +55,9 @@ $payslipService = new PayslipService(
     leaveEntitlementRepository      : $leaveEntitlementRepository
 );
 
-$payrollGroup = new PayrollGroup(
-    id: 1,
-    name: 'Monthly Payroll',
-    payrollFrequency: 'semi-monthly',
-    dayOfWeeklyCutoff: null,
-    dayOfBiweeklyCutoff: null,
-    semiMonthlyFirstCutoff: '10',
-    semiMonthlySecondCutoff: '25',
-    paydayOffset: 5,
-    paydayAdjustment: 'payday remains on the weekend',
-    status: 'active'
-);
-
-echo '<pre>';
 $result = $payslipService->generatePayslip(
-    payrollGroup         : $payrollGroup,
+    payrollGroupId       : 1           ,
+    payrollFrequency     : 'Weekly'    ,
     cutoffPeriodStartDate: '2025-01-01',
     cutoffPeriodEndDate  : '2025-01-31',
     paydayDate           : '2025-01-31'

@@ -1,7 +1,5 @@
 <?php
 
-echo '<pre>';
-
 require_once __DIR__ . '/Payslip.php'                                           ;
 
 require_once __DIR__ . '/PayslipRepository.php'                                 ;
@@ -130,8 +128,6 @@ class PayslipServices
                 'date'                              ,
                 'check_in_time'                     ,
                 'check_out_time'                    ,
-                'grace_period'                      ,
-                'minutes_can_check_in_before_shift' ,
                 'is_overtime_approved'              ,
                 'attendance_status'                 ,
                 'is_processed_for_next_payroll'     ,
@@ -204,15 +200,13 @@ class PayslipServices
                     }
 
                     $attendanceRecords[$date][$workScheduleId]['attendance_records'][] = [
-                        'id'                                => $attendanceRecord['id'                               ],
-                        'date'                              => $attendanceRecord['date'                             ],
-                        'check_in_time'                     => $attendanceRecord['check_in_time'                    ],
-                        'check_out_time'                    => $attendanceRecord['check_out_time'                   ],
-                        'grace_period'                      => $attendanceRecord['grace_period'                     ],
-                        'minutes_can_check_in_before_shift' => $attendanceRecord['minutes_can_check_in_before_shift'],
-                        'is_overtime_approved'              => $attendanceRecord['is_overtime_approved'             ],
-                        'attendance_status'                 => $attendanceRecord['attendance_status'                ],
-                        'is_processed_for_next_payroll'     => $attendanceRecord['is_processed_for_next_payroll'    ]
+                        'id'                            => $attendanceRecord['id'                           ],
+                        'date'                          => $attendanceRecord['date'                         ],
+                        'check_in_time'                 => $attendanceRecord['check_in_time'                ],
+                        'check_out_time'                => $attendanceRecord['check_out_time'               ],
+                        'is_overtime_approved'          => $attendanceRecord['is_overtime_approved'         ],
+                        'attendance_status'             => $attendanceRecord['attendance_status'            ],
+                        'is_processed_for_next_payroll' => $attendanceRecord['is_processed_for_next_payroll']
                     ];
                 }
 
