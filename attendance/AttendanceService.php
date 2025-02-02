@@ -48,12 +48,12 @@ class AttendanceService
 
         $employeeFilterCriteria = [
             [
-				'column'   => 'employee.deleted_at',
-				'operator' => 'IS NULL'
+                'column'   => 'employee.deleted_at',
+                'operator' => 'IS NULL'
 			],
             [
-				'column'   => 'employee.rfid_uid',
-				'operator' => '='                ,
+                'column'   => 'employee.rfid_uid',
+                'operator' => '='                ,
                 'value'    => $rfidUid
 			]
         ];
@@ -66,15 +66,15 @@ class AttendanceService
 
         if ($employeeFetchResult === ActionResult::FAILURE) {
             return [
-		        'status'  => 'error',
-		        'message' => 'An unexpected error occurred. Please try again later.'
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
 		    ];
         }
 
         if (empty($employeeFetchResult['result_set'])) {
             return [
-		        'status'  => 'warning',
-		        'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
+                'status'  => 'warning',
+                'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
 		    ];
         }
 
@@ -96,17 +96,17 @@ class AttendanceService
             ],
             [
                 'column'   => 'leave_request.status',
-                'operator' => ''                   ,
+                'operator' => ''                    ,
                 'value'    => ''
             ]
         ];
 
         $attendanceColumns = [
-			'id'                             ,
+            'id'                             ,
             'work_schedule_history_id'       ,
-			'date'                           ,
-			'check_in_time'                  ,
-			'check_out_time'                 ,
+            'date'                           ,
+            'check_in_time'                  ,
+            'check_out_time'                 ,
             'total_break_duration_in_minutes',
             'total_hours_worked'             ,
             'late_check_in'                  ,
@@ -115,9 +115,9 @@ class AttendanceService
             'is_overtime_approved'           ,
             'attendance_status'              ,
             'remarks'
-		];
+        ];
 
-		$attendanceFilterCriteria = [
+        $attendanceFilterCriteria = [
 			[
 				'column'   => 'attendance.deleted_at',
 				'operator' => 'IS NULL'
@@ -149,8 +149,8 @@ class AttendanceService
 
         if ($attendanceFetchResult === ActionResult::FAILURE) {
             return [
-		        'status'  => 'error',
-		        'message' => 'An unexpected error occurred. Please try again later.'
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
 		    ];
         }
 
