@@ -34,14 +34,14 @@ class EmployeeBreakService
 
         $employeeFilterCriteria = [
             [
-				'column'   => 'employee.deleted_at',
-				'operator' => 'IS NULL'
+                'column'   => 'employee.deleted_at',
+                'operator' => 'IS NULL'
 			],
             [
-				'column'   => 'employee.rfid_uid',
-				'operator' => '='                ,
+                'column'   => 'employee.rfid_uid',
+                'operator' => '='                ,
                 'value'    => $rfidUid
-			]
+                ]
         ];
 
         $employeeFetchResult = $this->employeeRepository->fetchAllEmployees(
@@ -52,9 +52,9 @@ class EmployeeBreakService
 
         if ($employeeFetchResult === ActionResult::FAILURE) {
             return [
-		        'status'  => 'error',
-		        'message' => 'An unexpected error occurred. Please try again later.'
-		    ];
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
         }
 
         $employeeId =
@@ -64,34 +64,34 @@ class EmployeeBreakService
 
         if (empty($employeeId)) {
             return [
-		        'status'  => 'warning',
-		        'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
-		    ];
+                'status'  => 'warning',
+                'message' => 'No employee found. This RFID may be invalid or not associated with any employee.'
+            ];
         }
 
         $attendanceColumns = [
-			'id'                                    ,
-			'date'                                  ,
-			'check_in_time'                         ,
-			'check_out_time'                        ,
+            'id'                                    ,
+            'date'                                  ,
+            'check_in_time'                         ,
+            'check_out_time'                        ,
 
-			'work_schedule_history_work_schedule_id',
-			'work_schedule_history_start_time'      ,
-			'work_schedule_history_end_time'        ,
-			'work_schedule_history_is_flextime'
-		];
+            'work_schedule_history_work_schedule_id',
+            'work_schedule_history_start_time'      ,
+            'work_schedule_history_end_time'        ,
+            'work_schedule_history_is_flextime'
+        ];
 
 		$attendanceFilterCriteria = [
-			[
-				'column'   => 'attendance.deleted_at',
-				'operator' => 'IS NULL'
-			],
-			[
-				'column'   => 'work_schedule_history.employee_id',
-				'operator' => '='                                ,
-				'value'    => $employeeId
-			]
-		];
+            [
+                'column'   => 'attendance.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
+                'column'   => 'work_schedule_history.employee_id',
+                'operator' => '='                                ,
+                'value'    => $employeeId
+            ]
+        ];
 
         $attendanceSortCriteria = [
             [
