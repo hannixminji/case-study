@@ -504,7 +504,7 @@ class EmployeeBreakDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching employee breaks. " .
                       "Exception: {$exception->getMessage()}");
-echo $exception->getMessage();
+
             return ActionResult::FAILURE;
         }
     }
@@ -514,8 +514,6 @@ echo $exception->getMessage();
         $query = "
             UPDATE employee_breaks
             SET
-                attendance_id             = :attendance_id            ,
-                break_schedule_history_id = :break_schedule_history_id,
                 start_time                = :start_time               ,
                 end_time                  = :end_time                 ,
                 break_duration_in_minutes = :break_duration_in_minutes
@@ -533,8 +531,6 @@ echo $exception->getMessage();
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":attendance_id"            , $employeeBreak->getAttendanceId()          , Helper::getPdoParameterType($employeeBreak->getAttendanceId()          ));
-            $statement->bindValue(":break_schedule_history_id", $employeeBreak->getBreakScheduleHistoryId(), Helper::getPdoParameterType($employeeBreak->getBreakScheduleHistoryId()));
             $statement->bindValue(":start_time"               , $employeeBreak->getStartTime()             , Helper::getPdoParameterType($employeeBreak->getStartTime()             ));
             $statement->bindValue(":end_time"                 , $employeeBreak->getEndTime()               , Helper::getPdoParameterType($employeeBreak->getEndTime()               ));
             $statement->bindValue(":break_duration_in_minutes", $employeeBreak->getBreakDurationInMinutes(), Helper::getPdoParameterType($employeeBreak->getBreakDurationInMinutes()));

@@ -200,6 +200,18 @@ class LeaveRequestDao
                         $queryParameters[] = $filterCriterion["upper_bound"];
 
                         break;
+
+                    case "IN":
+                        $valueList = $filterCriterion["value_list"];
+
+                        if ( ! empty($valueList)) {
+                            $placeholders = implode(", ", array_fill(0, count($valueList), "?"));
+
+                            $whereClauses[]  = "{$column} IN ({$placeholders})"         ;
+                            $queryParameters = array_merge($queryParameters, $valueList);
+                        }
+
+                        break;
                 }
             }
         }

@@ -131,19 +131,22 @@ class AttendanceService
         }
 
         $attendanceColumns = [
-            'id'                             ,
-            'work_schedule_history_id'       ,
-            'date'                           ,
-            'check_in_time'                  ,
-            'check_out_time'                 ,
-            'total_break_duration_in_minutes',
-            'total_hours_worked'             ,
-            'late_check_in'                  ,
-            'early_check_out'                ,
-            'overtime_hours'                 ,
-            'is_overtime_approved'           ,
-            'attendance_status'              ,
-            'remarks'
+            'id'                                    ,
+            'work_schedule_history_id'              ,
+            'date'                                  ,
+            'check_in_time'                         ,
+            'check_out_time'                        ,
+            'total_break_duration_in_minutes'       ,
+            'total_hours_worked'                    ,
+            'late_check_in'                         ,
+            'early_check_out'                       ,
+            'overtime_hours'                        ,
+            'is_overtime_approved'                  ,
+            'attendance_status'                     ,
+            'remarks'                               ,
+
+            'work_schedule_history_work_schedule_id',
+            'work_schedule_history_is_flextime'
         ];
 
         $attendanceFilterCriteria = [
@@ -207,6 +210,7 @@ class AttendanceService
                 'id'              ,
                 'start_time'      ,
                 'end_time'        ,
+                'is_flextime'     ,
                 'total_work_hours',
                 'recurrent_rule'
             ];
@@ -293,35 +297,93 @@ class AttendanceService
             if (empty($currentWorkSchedule)) {
                 return [
                     'status'  => 'information',
-                    'message' => ''
+                    'message' => 'Your work schedule for today has ended.'
                 ];
             }
 
-            /*
-            $breakScheduleColumns = [
-                'id'                            ,
-                'start_time'                    ,
-                'end_time'                      ,
-                'is_flexible'                   ,
-                'earliest_start_time'           ,
-                'latest_end_time'               ,
+            $currentWorkScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
+            $currentWorkScheduleEndDateTime   = new DateTime($currentWorkSchedule['end_time'  ]);
 
-                'break_type_duration_in_minutes',
-                'break_type_is_paid'
-            ];
+            $currentWorkScheduleStartDate = new DateTime(
+                $currentWorkScheduleStartDateTime->format('Y-m-d')
+            );
 
-            $breakScheduleFilterCriteria = [
-                [
-                    'column'   => 'break_schedule.deleted_at',
-                    'operator' => 'IS NULL'
-                ],
-                [
-                    'column'   => 'break_schedule.work_schedule_id',
-                    'operator' => '='                              ,
-                    'value'    => $currentWorkSchedule['id']
-                ]
-            ];
-            */
+            $currentWorkScheduleEndDate = new DateTime(
+                $currentWorkScheduleEndDateTime->format('Y-m-d')
+            );
+
+            if ($currentWorkScheduleEndDate > $currentWorkScheduleStartDate     &&
+                $currentWorkScheduleEndDateTime->format('H:i:s') !== '00:00:00') {
+
+                $leaveRequestColumns = [
+                    'is_half_day'  ,
+                    'half_day_part'
+                ];
+
+                $leaveRequestFilterCriteria = [
+                    [
+                        'column'   => 'leave_request.deleted_at',
+                        'operator' => 'IS NULL'
+                    ],
+                    [
+                        'column'   => 'leave_request.employee_id',
+                        'operator' => '='                        ,
+                        'value'    => $employeeId
+                    ],
+                    [
+                        'column'   => 'leave_request.start_date'                    ,
+                        'operator' => '<='                                          ,
+                        'value'    => $currentWorkScheduleStartDate->format('Y-m-d')
+                    ],
+                    [
+                        'column'   => 'leave_request.end_date'                      ,
+                        'operator' => '>='                                          ,
+                        'value'    => $currentWorkScheduleStartDate->format('Y-m-d')
+                    ],
+                    [
+                        'column'     => 'leave_request.status'      ,
+                        'operator'   => 'IN'                        ,
+                        'value_list' => ['Completed', 'In Progress']
+                    ]
+                ];
+
+                $leaveRequestFetchResult = $this->leaveRequestRepository->fetchAllLeaveRequests(
+                    columns       : $leaveRequestColumns       ,
+                    filterCriteria: $leaveRequestFilterCriteria,
+                    limit         : 1
+                );
+
+                if ($leaveRequestFetchResult === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $didLeaveOccurYesterday =
+                    ! empty($leaveRequestFetchResult['result_set'])
+                        ? $leaveRequestFetchResult['result_set'][0]
+                        : [];
+
+                if ( ! empty($didLeaveOccurYesterday)) {
+                    if ( ! $didLeaveOccurYesterday['is_half_day']) {
+                        return [
+                            'status'  => 'warning',
+                            'message' => 'You are currently on leave. You cannot check in or check out.'
+                        ];
+                    }
+
+
+                }
+            }
+
+            if ( ! empty($lastAttendanceRecord) &&
+
+                $lastAttendanceRecord['work_schedule_history_work_schedule_id'] === $currentWorkSchedule['work_schedule_id'] &&
+                $lastAttendanceRecord['check_in_time' ] >= $currentWorkSchedule['start_time'] &&
+                $lastAttendanceRecord['check_out_time'] <= $currentWorkSchedule['end_time'  ]) {
+            }
+
         }
     }
 
