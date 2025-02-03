@@ -178,7 +178,7 @@ class EmployeeBreakService
                     'column'    => 'employee_break.start_time',
                     'direction' => 'DESC'
                 ]
-			];
+            ];
 
             $employeeBreakFetchResult = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
                 columns       : $employeeBreakColumns       ,
