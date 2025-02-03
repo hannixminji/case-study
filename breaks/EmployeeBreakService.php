@@ -230,14 +230,12 @@ class EmployeeBreakService
                 }
 
                 $breakScheduleColumns = [
-                    'id'                            ,
-                    'start_time'                    ,
-                    'end_time'                      ,
-                    'is_flexible'                   ,
-                    'earliest_start_time'           ,
-                    'latest_end_time'               ,
-
-                    'break_type_duration_in_minutes'
+                    'id'                 ,
+                    'start_time'         ,
+                    'end_time'           ,
+                    'is_flexible'        ,
+                    'earliest_start_time',
+                    'latest_end_time'
                 ];
 
                 $breakScheduleFilterCriteria = [

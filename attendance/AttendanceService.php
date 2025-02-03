@@ -118,12 +118,12 @@ class AttendanceService
             ];
         }
 
-        $leaveInProgress =
+        $isOnLeaveToday =
             ! empty($leaveRequestFetchResult['result_set'])
                 ? $leaveRequestFetchResult['result_set'][0]
                 : [];
 
-        if ( ! empty($leaveInProgress) && ! $leaveInProgress['is_half_day']) {
+        if ( ! empty($isOnLeaveToday) && ! $isOnLeaveToday['is_half_day']) {
             return [
                 'status'  => 'warning',
                 'message' => 'You are currently on leave. You cannot check in or check out.'
@@ -312,6 +312,46 @@ class AttendanceService
                 $currentWorkScheduleEndDateTime->format('Y-m-d')
             );
 
+            $breakScheduleColumns = [
+                'id'                            ,
+                'start_time'                    ,
+                'end_time'                      ,
+                'is_flexible'                   ,
+                'earliest_start_time'           ,
+                'latest_end_time'               ,
+
+                'break_type_duration_in_minutes'
+            ];
+
+            $breakScheduleFilterCriteria = [
+                [
+                    'column'   => 'break_schedule.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'break_schedule.work_schedule_id',
+                    'operator' => '='                              ,
+                    'value'    => $currentWorkSchedule['id']
+                ]
+            ];
+
+            $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
+                columns       : $breakScheduleColumns       ,
+                filterCriteria: $breakScheduleFilterCriteria
+            );
+
+            if ($breakScheduleFetchResult === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $breakSchedules =
+                ! empty($breakScheduleFetchResult['result_set'])
+                    ? $breakScheduleFetchResult['result_set']
+                    : [];
+
             if ($currentWorkScheduleEndDate > $currentWorkScheduleStartDate     &&
                 $currentWorkScheduleEndDateTime->format('H:i:s') !== '00:00:00') {
 
@@ -365,16 +405,20 @@ class AttendanceService
                         ? $leaveRequestFetchResult['result_set'][0]
                         : [];
 
-                if ( ! empty($didLeaveOccurYesterday)) {
-                    if ( ! $didLeaveOccurYesterday['is_half_day']) {
-                        return [
-                            'status'  => 'warning',
-                            'message' => 'You are currently on leave. You cannot check in or check out.'
-                        ];
-                    }
-
-
+                if ( ! empty($didLeaveOccurYesterday) && ! $didLeaveOccurYesterday['is_half_day']) {
+                    return [
+                        'status'  => 'warning',
+                        'message' => 'You are currently on leave. You cannot check in or check out.'
+                    ];
                 }
+            }
+
+            if (  $isOnLeaveToday['is_half_day'] ||
+            
+               (  isset($didLeaveOccurYesterday) &&
+                ! empty($didLeaveOccurYesterday) &&
+                        $didLeaveOccurYesterday['is_half_day'])) {
+
             }
 
             if ( ! empty($lastAttendanceRecord) &&
