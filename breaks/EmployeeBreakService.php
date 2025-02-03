@@ -41,7 +41,7 @@ class EmployeeBreakService
                 'column'   => 'employee.rfid_uid',
                 'operator' => '='                ,
                 'value'    => $rfidUid
-                ]
+            ]
         ];
 
         $employeeFetchResult = $this->employeeRepository->fetchAllEmployees(
@@ -81,7 +81,7 @@ class EmployeeBreakService
             'work_schedule_history_is_flextime'
         ];
 
-		$attendanceFilterCriteria = [
+        $attendanceFilterCriteria = [
             [
                 'column'   => 'attendance.deleted_at',
                 'operator' => 'IS NULL'
@@ -113,9 +113,9 @@ class EmployeeBreakService
 
         if ($attendanceFetchResult === ActionResult::FAILURE) {
             return [
-		        'status'  => 'error',
-		        'message' => 'An unexpected error occurred. Please try again later.'
-		    ];
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
         }
 
         $lastAttendanceRecord =
@@ -125,8 +125,8 @@ class EmployeeBreakService
 
         if ( ! empty($lastAttendanceRecord) && $lastAttendanceRecord['work_schedule_history_is_flextime']) {
             return [
-		        'status'  => 'information',
-		        'message' => 'You are on a flexible schedule. Breaks may be taken at your convenience.'
+                'status'  => 'information',
+                'message' => 'You are on a flexible schedule. Breaks may be taken at your convenience.'
 		    ];
         }
 
@@ -146,7 +146,7 @@ class EmployeeBreakService
 
             $workScheduleId = $lastAttendanceRecord['work_schedule_history_work_schedule_id'];
 
-			$employeeBreakColumns = [
+            $employeeBreakColumns = [
                 'id'                                    ,
                 'attendance_id'                         ,
                 'break_schedule_history_id'             ,
@@ -155,9 +155,9 @@ class EmployeeBreakService
                 'created_at'                            ,
 
                 'work_schedule_history_work_schedule_id'
-			];
+            ];
 
-			$employeeBreakFilterCriteria = [
+            $employeeBreakFilterCriteria = [
                 [
                     'column'   => 'employee_break.deleted_at',
                     'operator' => 'IS NULL'
@@ -169,7 +169,7 @@ class EmployeeBreakService
                 ]
 			];
 
-			$employeeBreakSortCriteria = [
+            $employeeBreakSortCriteria = [
                 [
                     'column'    => 'employee_break.created_at',
                     'direction' => 'DESC'
@@ -180,12 +180,12 @@ class EmployeeBreakService
                 ]
 			];
 
-			$employeeBreakFetchResult = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
-				columns       : $employeeBreakColumns       ,
-				filterCriteria: $employeeBreakFilterCriteria,
-				sortCriteria  : $employeeBreakSortCriteria  ,
-				limit         : 1
-			);
+            $employeeBreakFetchResult = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                columns       : $employeeBreakColumns       ,
+                filterCriteria: $employeeBreakFilterCriteria,
+                sortCriteria  : $employeeBreakSortCriteria  ,
+                limit         : 1
+            );
 
             if ($employeeBreakFetchResult === ActionResult::FAILURE) {
                 return [
