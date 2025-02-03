@@ -187,17 +187,17 @@ class EmployeeBreakService
 				limit         : 1
 			);
 
-			if ($employeeBreakFetchResult === ActionResult::FAILURE) {
-	            return [
-			        'status'  => 'error',
-			        'message' => 'An unexpected error occurred. Please try again later.'
-			    ];
-	        }
+            if ($employeeBreakFetchResult === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
 
-			$lastBreakRecord =
-				! empty($employeeBreakFetchResult['result_set'])
-					? $employeeBreakFetchResult['result_set'][0]
-					: [];
+            $lastBreakRecord =
+                ! empty($employeeBreakFetchResult['result_set'])
+                    ? $employeeBreakFetchResult['result_set'][0]
+                    : [];
 
             if (empty($lastBreakRecord) ||
 
