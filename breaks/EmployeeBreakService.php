@@ -127,7 +127,7 @@ class EmployeeBreakService
             return [
                 'status'  => 'information',
                 'message' => 'You are on a flexible schedule. Breaks may be taken at your convenience.'
-		    ];
+            ];
         }
 
         if (empty($lastAttendanceRecord) ||
@@ -167,7 +167,7 @@ class EmployeeBreakService
                     'operator' => '='                                     ,
                     'value'    => $workScheduleId
                 ]
-			];
+            ];
 
             $employeeBreakSortCriteria = [
                 [
