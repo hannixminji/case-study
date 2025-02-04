@@ -439,8 +439,6 @@ class AttendanceService
                         $breakStartTime = $breakSchedule['start_time'];
                         $breakEndTime   = $breakSchedule['end_time'  ];
 
-                        $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
-
                         $breakStartDateTime = new DateTime(
                             $currentWorkScheduleStartDate->format('Y-m-d') . ' ' . $breakStartTime
                         );
