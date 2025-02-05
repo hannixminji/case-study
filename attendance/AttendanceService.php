@@ -194,11 +194,14 @@ class AttendanceService
         if (empty($lastAttendanceRecord) ||
 
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-            $lastAttendanceRecord['check_out_time'] !== null)) {
+            $lastAttendanceRecord['check_out_time'] !== null) ||
+
+           ($lastAttendanceRecord['check_in_time' ] === null  &&
+            $lastAttendanceRecord['check_out_time'] === null)) {
 
             $isCheckIn = true;
 
-            $currentDateTime = new ($currentDateTime                         );
+            $currentDateTime = new DateTime($currentDateTime                 );
             $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
             $previousDate    = (clone $currentDate)->modify('-1 day'         );
 
@@ -424,14 +427,18 @@ class AttendanceService
                         ? strtolower($didLeaveOccurYesterday['half_day_part'])
                         : strtolower($isOnLeaveToday        ['half_day_part']);
 
-                $totalWorkHours = $currentWorkSchedule['total_work_hours'];
+                $totalWorkHours           = $currentWorkSchedule['total_work_hours'];
+                $halfDayDurationInMinutes = ($totalWorkHours / 2) * 60              ;
 
-                if ($halfDayPart === 'first half') {
-                    $halfDayStartTime = clone $currentWorkScheduleEndDateTime;
-                    $halfDayEndTime   = clone $halfDayStartTime;
-                } elseif ($halfDayPart === 'second half') {
-                    $halfDayStartTime = clone $currentWorkScheduleEndDateTime;
-                    $halfDayEndTime   = clone $halfDayStartTime;
+                if ($halfDayPart === 'first_half') {
+                    $halfDayStartDateTime =  clone $currentWorkScheduleStartDateTime;
+                    $halfDayEndDateTime   = (clone $currentWorkScheduleStartDateTime)
+                        ->modify('+' . $halfDayDurationInMinutes . ' minutes');
+
+                } elseif ($halfDayPart === 'second_half') {
+                    $halfDayStartDateTime = (clone $currentWorkScheduleEndDateTime)
+                        ->modify('-' . $halfDayDurationInMinutes . ' minutes');
+                    $halfDayEndDateTime   =  clone $currentWorkScheduleEndDateTime;
                 }
 
                 if ( ! empty($breakSchedules)) {
@@ -451,7 +458,7 @@ class AttendanceService
                             $breakStartDateTime->modify('+1 day');
                         }
 
-                        if ($breakEndDateTime < $currentWorkScheduleEndDateTime) {
+                        if ($breakEndDateTime < $currentWorkScheduleStartDateTime) {
                             $breakEndDateTime->modify('+1 day');
                         }
 
@@ -459,18 +466,62 @@ class AttendanceService
                             $breakEndDateTime->modify('+1 day');
                         }
 
+                        $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
 
+                        if ($halfDayPart === 'first_half') {
+                            if ($halfDayEndDateTime > $breakStartDateTime &&
+                                $halfDayEndDateTime < $breakEndDateTime  ) {
 
+                                $overlapTimeInMinutes =
+                                    ($breakStartDateTime->diff($halfDayEndDateTime))->h * 60 +
+                                    ($breakStartDateTime->diff($halfDayEndDateTime))->i;
+
+                                $halfDayEndDateTime = (clone $breakEndDateTime)
+                                    ->modify('+' . $overlapTimeInMinutes . ' minutes');
+
+                            } elseif ($breakStartDateTime >= $halfDayStartDateTime &&
+                                      $breakEndDateTime   <= $halfDayEndDateTime  ) {
+
+                                $halfDayEndDateTime->modify('+' . $breakDurationInMinutes . ' minutes');
+                            }
+
+                        } elseif ($halfDayPart === 'second_half') {
+                            if ($halfDayStartDateTime > $breakStartDateTime &&
+                                $halfDayStartDateTime < $breakEndDateTime  ) {
+
+                                $overlapTimeInMinutes =
+                                    ($breakEndDateTime->diff($halfDayStartDateTime))->h * 60 +
+                                    ($breakEndDateTime->diff($halfDayStartDateTime))->i;
+
+                                $halfDayStartDateTime = (clone $breakStartDateTime)
+                                    ->modify('-' . $overlapTimeInMinutes . ' minutes');
+
+                            } elseif ($breakStartDateTime >= $halfDayStartDateTime &&
+                                      $breakEndDateTime   <= $halfDayEndDateTime  ) {
+
+                                $halfDayStartDateTime->modify('-' . $breakDurationInMinutes . ' minutes');
+                            }
+                        }
                     }
+                }
+
+                if (isset($halfDayStartDateTime, $halfDayEndDateTime) &&
+
+                    $currentDateTime >= $halfDayStartDateTime &&
+                    $currentDateTime <= $halfDayEndDateTime  ) {
+
+                    $formattedHalfDayStartTime = $halfDayStartDateTime->format('h:i A');
+                    $formattedHalfDayEndTime   = $halfDayEndDateTime  ->format('h:i A');
+
+                    return [
+                        'status'  => 'warning',
+                        'message' => 'You are currently on a half-day leave from ' .
+                                     $formattedHalfDayStartTime . ' to ' . $formattedHalfDayEndTime
+                    ];
                 }
             }
 
-            if ( ! empty($lastAttendanceRecord) &&
 
-                $lastAttendanceRecord['work_schedule_history_work_schedule_id'] === $currentWorkSchedule['work_schedule_id'] &&
-                $lastAttendanceRecord['check_in_time' ] >= $currentWorkSchedule['start_time'] &&
-                $lastAttendanceRecord['check_out_time'] <= $currentWorkSchedule['end_time'  ]) {
-            }
 
         }
     }
