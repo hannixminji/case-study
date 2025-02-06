@@ -3,11 +3,11 @@
 class EmploymentTypeBenefit
 {
     public function __construct(
-        private readonly int|string|null $id             = null,
-        private readonly string          $employmentType       ,
-        private readonly int|string|null $leaveTypeId    = null,
-        private readonly int|string|null $allowanceId    = null,
-        private readonly int|string|null $deductionId    = null
+        private readonly int|string|null $id            ,
+        private readonly string          $employmentType,
+        private readonly int|string|null $leaveTypeId   ,
+        private readonly int|string|null $allowanceId   ,
+        private readonly int|string|null $deductionId
     ) {
     }
 

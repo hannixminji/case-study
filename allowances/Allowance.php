@@ -3,11 +3,11 @@
 class Allowance
 {
     public function __construct(
-        private readonly   int|string|null $id          = null,
-        private readonly   string          $name              ,
-        private readonly   float           $amount            ,
-        private readonly   string          $frequency         ,
-        private readonly ? string          $description = null,
+        private readonly   int|string|null $id         ,
+        private readonly   string          $name       ,
+        private readonly   float           $amount     ,
+        private readonly   string          $frequency  ,
+        private readonly ? string          $description,
         private readonly   string          $status
     ) {
     }

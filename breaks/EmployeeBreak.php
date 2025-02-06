@@ -3,12 +3,12 @@
 class EmployeeBreak
 {
     public function __construct(
-        private readonly   int|string|null $id                     = null,
-        private readonly   int|string|null $attendanceId           = null,
-        private readonly   int|string      $breakScheduleHistoryId       ,
-        private readonly ? string          $startTime              = null,
-        private readonly ? string          $endTime                = null,
-        private readonly   int             $breakDurationInMinutes = 0   ,
+        private readonly   int|string|null $id                    ,
+        private readonly   int|string|null $attendanceId          ,
+        private readonly   int|string      $breakScheduleHistoryId,
+        private readonly ? string          $startTime             ,
+        private readonly ? string          $endTime               ,
+        private readonly   int             $breakDurationInMinutes,
         private readonly   string          $createdAt
     ) {
     }

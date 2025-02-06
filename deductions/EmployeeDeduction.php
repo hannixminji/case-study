@@ -3,9 +3,9 @@
 class EmployeeDeduction
 {
     public function __construct(
-        private readonly int|string|null $id          = null,
-        private readonly int|string      $employeeId        ,
-        private readonly int|string      $deductionId       ,
+        private readonly int|string|null $id         ,
+        private readonly int|string      $employeeId ,
+        private readonly int|string      $deductionId,
         private readonly float           $amount
     ) {
     }

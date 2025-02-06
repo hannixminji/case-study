@@ -3,13 +3,13 @@
 class OvertimeRate
 {
     public function __construct(
-        private readonly   int|string|null $id                               = null,
-        private            int|string|null $overtimeRateAssignmentId         = null,
-        private readonly   string          $dayType                                ,
-        private readonly   string          $holidayType                            ,
-        private readonly   float           $regularTimeRate                        ,
-        private readonly   float           $overtimeRate                           ,
-        private readonly   float           $nightDifferentialRate                  ,
+        private readonly   int|string|null $id                              ,
+        private            int|string|null $overtimeRateAssignmentId        ,
+        private readonly   string          $dayType                         ,
+        private readonly   string          $holidayType                     ,
+        private readonly   float           $regularTimeRate                 ,
+        private readonly   float           $overtimeRate                    ,
+        private readonly   float           $nightDifferentialRate           ,
         private readonly   float           $nightDifferentialAndOvertimeRate
     ) {
     }

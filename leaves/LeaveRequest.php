@@ -3,14 +3,14 @@
 class LeaveRequest
 {
     public function __construct(
-        private readonly int|string|null $id          = null,
-        private readonly int|string      $employeeId        ,
-        private readonly int|string      $leaveTypeId       ,
-        private readonly string          $startDate         ,
-        private readonly string          $endDate           ,
-        private readonly string          $reason            ,
-        private readonly bool            $isHalfDay         ,
-        private readonly string          $halfDayPart       ,
+        private readonly int|string|null $id         ,
+        private readonly int|string      $employeeId ,
+        private readonly int|string      $leaveTypeId,
+        private readonly string          $startDate  ,
+        private readonly string          $endDate    ,
+        private readonly string          $reason     ,
+        private readonly bool            $isHalfDay  ,
+        private readonly string          $halfDayPart,
         private readonly string          $status
     ) {
     }

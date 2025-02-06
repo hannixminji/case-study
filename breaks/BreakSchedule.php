@@ -3,14 +3,14 @@
 class BreakSchedule
 {
     public function __construct(
-        private            int|string|null $id                = null ,
-        private readonly   int|string      $workScheduleId           ,
-        private readonly   int|string      $breakTypeId              ,
-        private readonly ? string          $startTime         = null ,
-        private readonly ? string          $endTime           = null ,
-        private readonly   bool            $isFlexible        = false,
-        private readonly ? string          $earliestStartTime = null ,
-        private readonly ? string          $latestEndTime     = null
+        private            int|string|null $id               ,
+        private readonly   int|string      $workScheduleId   ,
+        private readonly   int|string      $breakTypeId      ,
+        private readonly ? string          $startTime        ,
+        private readonly ? string          $endTime          ,
+        private readonly   bool            $isFlexible       ,
+        private readonly ? string          $earliestStartTime,
+        private readonly ? string          $latestEndTime
     ) {
     }
 

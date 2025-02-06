@@ -3,9 +3,9 @@
 class Setting
 {
     public function __construct(
-        private readonly int|string|null $id           = null,
-        private readonly string          $settingKey         ,
-        private readonly string          $settingValue       ,
+        private readonly int|string|null $id          ,
+        private readonly string          $settingKey  ,
+        private readonly string          $settingValue,
         private readonly string          $groupName
     ) {
     }

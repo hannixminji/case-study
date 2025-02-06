@@ -3,10 +3,10 @@
 class OvertimeRateAssignment
 {
     public function __construct(
-        private readonly int|string|null $id           = null,
-        private readonly int|string|null $departmentId = null,
-        private readonly int|string|null $jobTitleId   = null,
-        private readonly int|string|null $employeeId   = null
+        private readonly int|string|null $id          ,
+        private readonly int|string|null $departmentId,
+        private readonly int|string|null $jobTitleId  ,
+        private readonly int|string|null $employeeId
     ) {
     }
 

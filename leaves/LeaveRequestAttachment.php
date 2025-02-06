@@ -3,8 +3,8 @@
 class LeaveRequestAttachment
 {
     public function __construct(
-        private readonly int|string|null $id             = null,
-        private readonly int|string      $leaveRequestId       ,
+        private readonly int|string|null $id            ,
+        private readonly int|string      $leaveRequestId,
         private readonly string          $filePath
     ) {
     }

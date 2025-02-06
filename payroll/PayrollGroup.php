@@ -3,15 +3,15 @@
 class PayrollGroup
 {
     public function __construct(
-        private readonly   int|string|null $id                      = null,
-        private readonly   string          $name                          ,
-        private readonly   string          $payrollFrequency              ,
-        private readonly ? string          $dayOfWeeklyCutoff       = null,
-        private readonly ? string          $dayOfBiweeklyCutoff     = null,
-        private readonly ? string          $semiMonthlyFirstCutoff  = null,
-        private readonly ? string          $semiMonthlySecondCutoff = null,
-        private readonly   int             $paydayOffset                  ,
-        private readonly   string          $paydayAdjustment              ,
+        private readonly   int|string|null $id                     ,
+        private readonly   string          $name                   ,
+        private readonly   string          $payrollFrequency       ,
+        private readonly ? string          $dayOfWeeklyCutoff      ,
+        private readonly ? string          $dayOfBiweeklyCutoff    ,
+        private readonly ? string          $semiMonthlyFirstCutoff ,
+        private readonly ? string          $semiMonthlySecondCutoff,
+        private readonly   int             $paydayOffset           ,
+        private readonly   string          $paydayAdjustment       ,
         private readonly   string          $status
     ) {
     }

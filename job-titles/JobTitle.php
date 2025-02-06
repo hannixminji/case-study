@@ -3,10 +3,10 @@
 class JobTitle
 {
     public function __construct(
-        private readonly   int|string|null $id           = null,
-        private readonly   string          $title              ,
-        private readonly   int|string      $departmentId       ,
-        private readonly ? string          $description  = null,
+        private readonly   int|string|null $id          ,
+        private readonly   string          $title       ,
+        private readonly   int|string      $departmentId,
+        private readonly ? string          $description ,
         private readonly   string          $status
     ) {
     }

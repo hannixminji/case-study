@@ -3,10 +3,10 @@
 class Department
 {
     public function __construct(
-        private readonly   int|string|null $id               = null,
-        private readonly   string          $name                   ,
-        private readonly   int|string|null $departmentHeadId = null,
-        private readonly ? string          $description            ,
+        private readonly   int|string|null $id              ,
+        private readonly   string          $name            ,
+        private readonly   int|string|null $departmentHeadId,
+        private readonly ? string          $description     ,
         private readonly   string          $status
     ) {
     }
