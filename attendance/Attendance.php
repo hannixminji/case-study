@@ -24,6 +24,11 @@ class Attendance
         return $this->id;
     }
 
+    public function setId(int|string $id): void
+    {
+        $this->id = $id;
+    }
+
     public function getWorkScheduleHistoryId(): int|string
     {
         return $this->workScheduleHistoryId;

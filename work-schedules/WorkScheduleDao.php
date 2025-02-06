@@ -8,11 +8,13 @@ use RRule\RSet;
 
 class WorkScheduleDao
 {
-    private readonly PDO $pdo;
+    private readonly PDO        $pdo       ;
+    private readonly SettingDao $settingDao;
 
-    public function __construct(PDO $pdo)
+    public function __construct(PDO $pdo, SettingDao $settingDao)
     {
-        $this->pdo = $pdo;
+        $this->pdo        = $pdo       ;
+        $this->settingDao = $settingDao;
     }
 
     public function create(WorkSchedule $workSchedule): ActionResult
@@ -78,7 +80,7 @@ class WorkScheduleDao
         }
     }
 
-    private function createHistory(WorkSchedule $workSchedule): ActionResult
+    public function createHistory(WorkSchedule $workSchedule): ActionResult
     {
         $query = "
             INSERT INTO work_schedules_history (
@@ -110,61 +112,64 @@ class WorkScheduleDao
         ";
 
         try {
-            $settingDao = new SettingDao($this->pdo);
+            $gracePeriod                  = 0;
+            $minutesCanCheckInBeforeShift = 0;
 
-            $settingColumns = [
-                "setting_value"
-            ];
+            if ( ! $workSchedule->isFlextime()) {
+                $settingColumns = [
+                    "setting_value"
+                ];
 
-            $settingFilterCriteria = [
-                [
-                    "column"   => "setting.group_name",
-                    "operator" => "="                 ,
-                    "value"    => "work_schedule"
-                ],
-                [
-                    "column"   => "setting.setting_key",
-                    "operator" => "="                  ,
-                    "value"    => "grace_period"
-                ]
-            ];
+                $settingFilterCriteria = [
+                    [
+                        "column"   => "setting.group_name",
+                        "operator" => "="                 ,
+                        "value"    => "work_schedule"
+                    ],
+                    [
+                        "column"   => "setting.setting_key",
+                        "operator" => "="                  ,
+                        "value"    => "grace_period"
+                    ]
+                ];
 
-            $settingFetchResult = $settingDao->fetchAll(
-                columns       : $settingColumns       ,
-                filterCriteria: $settingFilterCriteria,
-                limit         : 1
-            );
+                $settingFetchResult = $this->settingDao->fetchAll(
+                    columns       : $settingColumns       ,
+                    filterCriteria: $settingFilterCriteria,
+                    limit         : 1
+                );
 
-            if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
-                return ActionResult::FAILURE;
+                if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
+                    return ActionResult::FAILURE;
+                }
+
+                $gracePeriod = $settingFetchResult["result_set"][0]["setting_value"];
+
+                $settingFilterCriteria = [
+                    [
+                        "column"   => "setting.group_name",
+                        "operator" => "="                 ,
+                        "value"    => "work_schedule"
+                    ],
+                    [
+                        "column"   => "setting.setting_key"              ,
+                        "operator" => "="                                ,
+                        "value"    => "minutes_can_check_in_before_shift"
+                    ]
+                ];
+
+                $settingFetchResult = $this->settingDao->fetchAll(
+                    columns       : $settingColumns       ,
+                    filterCriteria: $settingFilterCriteria,
+                    limit         : 1
+                );
+
+                if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
+                    return ActionResult::FAILURE;
+                }
+
+                $minutesCanCheckInBeforeShift = $settingFetchResult["result_set"][0]["setting_value"];
             }
-
-            $gracePeriod = $settingFetchResult["result_set"][0]["setting_value"];
-
-            $settingFilterCriteria = [
-                [
-                    "column"   => "setting.group_name",
-                    "operator" => "="                 ,
-                    "value"    => "work_schedule"
-                ],
-                [
-                    "column"   => "setting.setting_key"              ,
-                    "operator" => "="                                ,
-                    "value"    => "minutes_can_check_in_before_shift"
-                ]
-            ];
-
-            $settingFetchResult = $settingDao->fetchAll(
-                columns       : $settingColumns       ,
-                filterCriteria: $settingFilterCriteria,
-                limit         : 1
-            );
-
-            if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
-                return ActionResult::FAILURE;
-            }
-
-            $minutesCanCheckInBeforeShift = $settingFetchResult["result_set"][0]["setting_value"];
 
             $statement = $this->pdo->prepare($query);
 
@@ -405,7 +410,40 @@ class WorkScheduleDao
 
             $statement->execute();
 
-            return $statement->fetchColumn() ?: ActionResult::FAILURE;
+            return $statement->fetchColumn()
+                ?: ActionResult::FAILURE;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the work schedule history ID. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchLatestHistory(int $workScheduleId): array|ActionResult
+    {
+        $query = "
+            SELECT
+                *
+            FROM
+                work_schedules_history
+            WHERE
+                work_schedule_id = :work_schedule_id
+            ORDER BY
+                active_at DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":work_schedule_id", $workScheduleId, Helper::getPdoParameterType($workScheduleId));
+
+            $statement->execute();
+
+            return $statement->fetch(PDO::FETCH_ASSOC)
+                ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the work schedule history ID. " .

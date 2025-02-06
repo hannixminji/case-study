@@ -16,6 +16,11 @@ class WorkScheduleRepository
         return $this->workScheduleDao->create($workSchedule);
     }
 
+    public function createWorkScheduleHistory(WorkSchedule $workSchedule): ActionResult
+    {
+        return $this->workScheduleDao->createHistory($workSchedule);
+    }
+
     public function fetchAllWorkSchedules(
         ? array $columns        = null,
         ? array $filterCriteria = null,
@@ -34,6 +39,11 @@ class WorkScheduleRepository
     public function fetchWorkScheduleLastInsertedId(): ActionResult|int
     {
         return $this->workScheduleDao->fetchLastInsertedId();
+    }
+
+    public function fetchLatestWorkScheduleHistory(int $workScheduleId): array|ActionResult
+    {
+        return $this->workScheduleDao->fetchLatestHistory($workScheduleId);
     }
 
     public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult

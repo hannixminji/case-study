@@ -16,6 +16,11 @@ class WorkScheduleService
         return $this->workScheduleRepository->createWorkSchedule($workSchedule);
     }
 
+    public function createWorkScheduleHistory(WorkSchedule $workSchedule): ActionResult
+    {
+        return $this->workScheduleRepository->createWorkScheduleHistory($workSchedule);
+    }
+
     public function fetchAllWorkSchedules(
         ? array $columns        = null,
         ? array $filterCriteria = null,
