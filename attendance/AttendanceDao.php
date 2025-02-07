@@ -99,8 +99,6 @@ class AttendanceDao
         ";
 
         try {
-            $this->pdo->beginTransaction();
-
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":work_schedule_history_id", $attendance->getWorkScheduleHistoryId(), Helper::getPdoParameterType($attendance->getWorkScheduleHistoryId()));
@@ -111,13 +109,9 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
-
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
             error_log("Database Error: An error occurred while checking in the attendance. " .
                       "Exception: {$exception->getMessage()}");
 

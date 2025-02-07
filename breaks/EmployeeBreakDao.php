@@ -34,8 +34,6 @@ class EmployeeBreakDao
         ";
 
         try {
-            $this->pdo->beginTransaction();
-
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":attendance_id"            , $employeeBreak->getAttendanceId()          , Helper::getPdoParameterType($employeeBreak->getAttendanceId()          ));
@@ -47,13 +45,9 @@ class EmployeeBreakDao
 
             $statement->execute();
 
-            $this->pdo->commit();
-
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
             error_log("Database Error: An error occurred while creating the employee break. " .
                       "Exception: {$exception->getMessage()}");
 

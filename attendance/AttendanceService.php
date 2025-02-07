@@ -15,6 +15,7 @@ require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'       ;
 
 class AttendanceService
 {
+    private readonly PDO                     $pdo                    ;
     private readonly AttendanceRepository    $attendanceRepository   ;
     private readonly EmployeeRepository      $employeeRepository     ;
     private readonly LeaveRequestRepository  $leaveRequestRepository ;
@@ -24,6 +25,7 @@ class AttendanceService
     private readonly EmployeeBreakRepository $employeeBreakRepository;
 
     public function __construct(
+        PDO                     $pdo                    ,
         AttendanceRepository    $attendanceRepository   ,
         EmployeeRepository      $employeeRepository     ,
         LeaveRequestRepository  $leaveRequestRepository ,
@@ -32,6 +34,7 @@ class AttendanceService
         BreakScheduleRepository $breakScheduleRepository,
         EmployeeBreakRepository $employeeBreakRepository
     ) {
+        $this->pdo                     = $pdo                    ;
         $this->attendanceRepository    = $attendanceRepository   ;
         $this->employeeRepository      = $employeeRepository     ;
         $this->leaveRequestRepository  = $leaveRequestRepository ;
@@ -417,21 +420,9 @@ class AttendanceService
                 ]
             ];
 
-            $breakScheduleSortCriteria = [
-                [
-                    'column'    => 'break_schedule.start_time',
-                    'direction' => 'ASC'
-                ],
-                [
-                    'column'    => 'break_schedule.earliest_start_time',
-                    'direction' => 'ASC'
-                ]
-            ];
-
             $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
                 columns             : $breakScheduleColumns       ,
                 filterCriteria      : $breakScheduleFilterCriteria,
-                sortCriteria        : $breakScheduleSortCriteria  ,
                 includeTotalRowCount: false
             );
 
@@ -446,6 +437,26 @@ class AttendanceService
                 ! empty($breakScheduleFetchResult['result_set'])
                     ? $breakScheduleFetchResult['result_set']
                     : [];
+
+            if ( ! empty($breakSchedules)) {
+                usort($breakSchedules, function($breakScheduleA, $breakScheduleB) {
+                    $startTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
+                    $startTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
+
+                    if ($startTimeA === null && $startTimeB === null) {
+                        return 0;
+                    }
+
+                    if ($startTimeA === null) {
+                        return 1;
+                    }
+                    if ($startTimeB === null) {
+                        return -1;
+                    }
+
+                    return $startTimeA <=> $startTimeB;
+                });
+            }
 
             if (( ! empty($isOnLeaveToday['is_half_day']) &&
                           $isOnLeaveToday['is_half_day']) ||
@@ -596,7 +607,7 @@ class AttendanceService
                     }
                 }
             }
-            return [];
+
             if ( ! empty($lastAttendanceRecord) &&
                 $lastAttendanceRecord['work_schedule_history_work_schedule_id'] === $currentWorkSchedule['id'] &&
                 $lastAttendanceRecord['check_in_time' ] >= $adjustedCurrentWorkScheduleStartDateTime->format('Y-m-d H:i:s') &&
@@ -676,15 +687,15 @@ class AttendanceService
                 $minutesAllowedForEarlyCheckIn !== $workScheduleHistory['minutes_can_check_in_before_shift']) {
 
                 $workSchedule = new WorkSchedule(
-                    id               : $currentWorkSchedule['id'               ],
-                    employeeId       : $employeeId                              ,
-                    startTime        : $currentWorkSchedule['startTime'        ],
-                    endTime          : $currentWorkSchedule['endTime'          ],
-                    isFlextime       : $currentWorkSchedule['isFlextime'       ],
-                    totalHoursPerWeek: $currentWorkSchedule['totalHoursPerWeek'],
-                    totalWorkHours   : $currentWorkSchedule['totalWorkHours'   ],
-                    startDate        : $currentWorkSchedule['startDate'        ],
-                    recurrenceRule   : $currentWorkSchedule['recurrenceRule'   ]
+                    id               : $currentWorkSchedule['id'                  ],
+                    employeeId       : $employeeId                                 ,
+                    startTime        : $currentWorkSchedule['start_time'          ],
+                    endTime          : $currentWorkSchedule['end_time'            ],
+                    isFlextime       : $currentWorkSchedule['is_flextime'         ],
+                    totalHoursPerWeek: $currentWorkSchedule['total_hours_per_week'],
+                    totalWorkHours   : $currentWorkSchedule['total_work_hours'    ],
+                    startDate        : $currentWorkSchedule['start_date'          ],
+                    recurrenceRule   : $currentWorkSchedule['recurrence_rule'     ]
                 );
 
                 $workScheduleHistoryCreateResult = $this->workScheduleRepository
@@ -708,25 +719,86 @@ class AttendanceService
                 ];
             }
 
-            $currentAttendanceRecord = new Attendance(
-                id                         : null                        ,
-                workScheduleHistoryId      : $workScheduleHistoryId      ,
-                date                       : $currentWorkSchedule['date'],
-                checkInTime                : $formattedCurrentDateTime   ,
-                checkOutTime               : null                        ,
-                totalBreakDurationInMinutes: 0.00                        ,
-                totalHoursWorked           : 0.00                        ,
-                lateCheckIn                : $lateCheckIn                ,
-                earlyCheckOut              : 0                           ,
-                overtimeHours              : 0.00                        ,
-                isOvertimeApproved         : false                       ,
-                attendanceStatus           : $attendanceStatus           ,
-                remarks                    : null
-            );
+            try {
+                $this->pdo->beginTransaction();
 
-            $attendanceCheckInResult = $this->attendanceRepository->checkIn($currentAttendanceRecord);
+                $currentAttendanceRecord = new Attendance(
+                    id                         : null                                          ,
+                    workScheduleHistoryId      : $workScheduleHistoryId                        ,
+                    date                       : $currentWorkScheduleStartDate->format('Y-m-d'),
+                    checkInTime                : $formattedCurrentDateTime                     ,
+                    checkOutTime               : null                                          ,
+                    totalBreakDurationInMinutes: 0.00                                          ,
+                    totalHoursWorked           : 0.00                                          ,
+                    lateCheckIn                : $lateCheckIn                                  ,
+                    earlyCheckOut              : 0                                             ,
+                    overtimeHours              : 0.00                                          ,
+                    isOvertimeApproved         : false                                         ,
+                    attendanceStatus           : $attendanceStatus                             ,
+                    remarks                    : null
+                );
 
-            if ($attendanceCheckInResult === ActionResult::FAILURE) {
+                $attendanceCheckInResult = $this->attendanceRepository->checkIn($currentAttendanceRecord);
+
+                if ($attendanceCheckInResult === ActionResult::FAILURE) {
+                    $this->pdo->rollback();
+
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred while checking in. Please try again later.'
+                    ];
+                }
+
+                if ( ! empty($breakSchedules)) {
+                    foreach ($breakSchedules as $breakSchedule) {
+                        $breakScheduleHistoryId = $this->breakScheduleRepository
+                            ->fetchLatestBreakScheduleHistoryId($breakSchedule['id']);
+
+                        if ($breakScheduleHistoryId === ActionResult::FAILURE) {
+                            $this->pdo->rollback();
+
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred while checking in. Please try again later.'
+                            ];
+                        }
+
+                        $employeeBreakRecord = new EmployeeBreak(
+                            id                    : null                     ,
+                            attendanceId          : null                     ,
+                            breakScheduleHistoryId: $breakScheduleHistoryId  ,
+                            startTime             : null                     ,
+                            endTime               : null                     ,
+                            breakDurationInMinutes: 0                        ,
+                            createdAt             : $formattedCurrentDateTime
+                        );
+
+                        $employeeBreakCreateResult = $this->employeeBreakRepository->createEmployeeBreak($employeeBreakRecord);
+
+                        if ($employeeBreakCreateResult === ActionResult::FAILURE) {
+                            $this->pdo->rollback();
+
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred while checking in. Please try again later.'
+                            ];
+                        }
+                    }
+                }
+
+                $this->pdo->commit();
+
+            } catch (PDOException $exception) {
+                $this->pdo->rollback();
+
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+
+            } catch (Exception $exception) {
+                $this->pdo->rollback();
+
                 return [
                     'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'

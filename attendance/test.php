@@ -66,6 +66,7 @@ $overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overti
 $holidayRepository = new HolidayRepository($holidayDao);
 
 $attendanceService = new AttendanceService(
+    $pdo,
     $attendanceRepository,
     $employeeRepository,
     $leaveRequestRepository,
