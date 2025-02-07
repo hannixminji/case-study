@@ -12,6 +12,73 @@ class AttendanceDao
         $this->pdo = $pdo;
     }
 
+    public function create(Attendance $attendance): ActionResult
+    {
+        $query = "
+            INSERT INTO attendance (
+                work_schedule_history_id       ,
+                date                           ,
+                check_in_time                  ,
+                check_out_time                 ,
+                total_break_duration_in_minutes,
+                total_hours_worked             ,
+                late_check_in                  ,
+                early_check_out                ,
+                overtime_hours                 ,
+                is_overtime_approved           ,
+                attendance_status              ,
+                remarks
+            )
+            VALUES (
+                :work_schedule_history_id       ,
+                :date                           ,
+                :check_in_time                  ,
+                :check_out_time                 ,
+                :total_break_duration_in_minutes,
+                :total_hours_worked             ,
+                :late_check_in                  ,
+                :early_check_out                ,
+                :overtime_hours                 ,
+                :is_overtime_approved           ,
+                :attendance_status              ,
+                :remarks
+            )
+        ";
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":work_schedule_history_id"       , $attendance->getWorkScheduleHistoryId()      , Helper::getPdoParameterType($attendance->getWorkScheduleHistoryId()      ));
+            $statement->bindValue(":date"                           , $attendance->getDate()                       , Helper::getPdoParameterType($attendance->getDate()                       ));
+            $statement->bindValue(":check_in_time"                  , $attendance->getCheckInTime()                , Helper::getPdoParameterType($attendance->getCheckInTime()                ));
+            $statement->bindValue(":check_out_time"                 , $attendance->getCheckOutTime()               , Helper::getPdoParameterType($attendance->getCheckOutTime()               ));
+            $statement->bindValue(":total_break_duration_in_minutes", $attendance->getTotalBreakDurationInMinutes(), Helper::getPdoParameterType($attendance->getTotalBreakDurationInMinutes()));
+            $statement->bindValue(":total_hours_worked"             , $attendance->getTotalHoursWorked()           , Helper::getPdoParameterType($attendance->getTotalHoursWorked()           ));
+            $statement->bindValue(":late_check_in"                  , $attendance->getLateCheckIn()                , Helper::getPdoParameterType($attendance->getLateCheckIn()                ));
+            $statement->bindValue(":early_check_out"                , $attendance->getEarlyCheckOut()              , Helper::getPdoParameterType($attendance->getEarlyCheckOut()              ));
+            $statement->bindValue(":overtime_hours"                 , $attendance->getOvertimeHours()              , Helper::getPdoParameterType($attendance->getOvertimeHours()              ));
+            $statement->bindValue(":is_overtime_approved"           , $attendance->isOvertimeApproved()            , Helper::getPdoParameterType($attendance->isOvertimeApproved()            ));
+            $statement->bindValue(":attendance_status"              , $attendance->getAttendanceStatus()           , Helper::getPdoParameterType($attendance->getAttendanceStatus()           ));
+            $statement->bindValue(":remarks"                        , $attendance->getRemarks()                    , Helper::getPdoParameterType($attendance->getRemarks()                    ));
+
+            $statement->execute();
+
+            $this->pdo->commit();
+
+            return ActionResult::SUCCESS;
+
+        } catch (PDOException $exception) {
+            $this->pdo->rollBack();
+
+            error_log("Database Error: An error occurred while creating the attendance record. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function checkIn(Attendance $attendance): ActionResult
     {
         $query = "
@@ -237,8 +304,9 @@ class AttendanceDao
             ";
         }
 
-        $whereClauses    = [];
-        $queryParameters = [];
+        $whereClauses     = [];
+        $queryParameters  = [];
+        $filterParameters = [];
 
         if ( ! empty($filterCriteria)) {
             foreach ($filterCriteria as $filterCriterion) {
@@ -249,8 +317,10 @@ class AttendanceDao
                     case "="   :
                     case "!="  :
                     case "LIKE":
-                        $whereClauses   [] = "{$column} {$operator} ?";
-                        $queryParameters[] = $filterCriterion["value"];
+                        $whereClauses    [] = "{$column} {$operator} ?";
+                        $queryParameters [] = $filterCriterion["value"];
+
+                        $filterParameters[] = $filterCriterion["value"];
 
                         break;
 
@@ -260,9 +330,12 @@ class AttendanceDao
                         break;
 
                     case "BETWEEN":
-                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
-                        $queryParameters[] = $filterCriterion["lower_bound"];
-                        $queryParameters[] = $filterCriterion["upper_bound"];
+                        $whereClauses    [] = "{$column} {$operator} ? AND ?";
+                        $queryParameters [] = $filterCriterion["lower_bound"];
+                        $queryParameters [] = $filterCriterion["upper_bound"];
+
+                        $filterParameters[] = $filterCriterion["lower_bound"];
+                        $filterParameters[] = $filterCriterion["upper_bound"];
 
                         break;
                 }
@@ -345,7 +418,7 @@ class AttendanceDao
 
                 $countStatement = $this->pdo->prepare($totalRowCountQuery);
 
-                foreach ($queryParameters as $index => $parameter) {
+                foreach ($filterParameters as $index => $parameter) {
                     $countStatement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
                 }
 

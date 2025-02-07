@@ -95,8 +95,9 @@ class HolidayDao
                     array_flip($columns)
                 );
 
-        $whereClauses    = [];
-        $queryParameters = [];
+        $whereClauses     = [];
+        $queryParameters  = [];
+        $filterParameters = [];
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "holiday.deleted_at IS NULL";
@@ -110,15 +111,20 @@ class HolidayDao
                     case ">="  :
                     case "<="  :
                     case "LIKE":
-                        $whereClauses   [] = "{$column} {$operator} ?";
-                        $queryParameters[] = $filterCriterion["value"];
+                        $whereClauses    [] = "{$column} {$operator} ?";
+                        $queryParameters [] = $filterCriterion["value"];
+
+                        $filterParameters[] = $filterCriterion["value"];
 
                         break;
 
                     case "BETWEEN":
-                        $whereClauses   [] = "{$column} {$operator} ? AND ?";
-                        $queryParameters[] = $filterCriterion["lower_bound"];
-                        $queryParameters[] = $filterCriterion["upper_bound"];
+                        $whereClauses    [] = "{$column} {$operator} ? AND ?";
+                        $queryParameters [] = $filterCriterion["lower_bound"];
+                        $queryParameters [] = $filterCriterion["upper_bound"];
+
+                        $filterParameters[] = $filterCriterion["lower_bound"];
+                        $filterParameters[] = $filterCriterion["upper_bound"];
 
                         break;
                 }
@@ -201,7 +207,7 @@ class HolidayDao
 
                 $countStatement = $this->pdo->prepare($totalRowCountQuery);
 
-                foreach ($queryParameters as $index => $parameter) {
+                foreach ($filterParameters as $index => $parameter) {
                     $countStatement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
                 }
 

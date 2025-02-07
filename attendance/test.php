@@ -81,32 +81,6 @@ $employeeBreakService = new EmployeeBreakService(
     $attendanceRepository,
     $breakScheduleRepository
 );
-$query = "SELECT
-                leave_request.is_half_day   AS is_half_day, leave_request.half_day_part AS half_day_part
-            FROM
-                leave_requests AS leave_request
-
-            WHERE
-                leave_request.deleted_at IS NULL AND leave_request.employee_id = 6 AND leave_request.status = 'Canceled'
-
-             LIMIT 1"; // Fetch all columns
-
-try {
-    $statement = $pdo->prepare($query);
-    $statement->execute();
-
-    $resultSet = [];
-
-    while ($row = $statement->fetch(PDO::FETCH_ASSOC)) {
-        $resultSet[] = $row; // Directly store each row with all columns
-    }
-    echo "<pre>";
-    print_r($resultSet); // Display the full result set
-    echo "</pre>";
-} catch (PDOException $exception) {
-    error_log("Database Error: {$exception->getMessage()}");
-    echo "An error occurred while fetching data.";
-}
 
 $rfidUid = '123456789';
 $currentDateTime = '2025-01-01 12:00:00';

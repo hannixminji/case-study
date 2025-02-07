@@ -11,6 +11,11 @@ class AttendanceRepository
         $this->attendanceDao = $attendanceDao;
     }
 
+    public function createAttendance(Attendance $attendance): ActionResult
+    {
+        return $this->attendanceDao->create($attendance);
+    }
+
     public function checkIn(Attendance $attendance): ActionResult
     {
         return $this->attendanceDao->checkIn($attendance);

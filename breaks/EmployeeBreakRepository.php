@@ -11,6 +11,11 @@ class EmployeeBreakRepository
         $this->employeeBreakDao = $employeeBreakDao;
     }
 
+    public function createEmployeeBreak(EmployeeBreak $employeeBreak): ActionResult
+    {
+        return $this->employeeBreakDao->create($employeeBreak);
+    }
+
     public function breakIn(EmployeeBreak $employeeBreak): ActionResult
     {
         return $this->employeeBreakDao->breakIn($employeeBreak);

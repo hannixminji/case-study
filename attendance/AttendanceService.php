@@ -447,11 +447,12 @@ class AttendanceService
                     ? $breakScheduleFetchResult['result_set']
                     : [];
 
-            if (   $isOnLeaveToday['is_half_day'] ||
+            if (( ! empty($isOnLeaveToday['is_half_day']) &&
+                          $isOnLeaveToday['is_half_day']) ||
 
-               (   isset($didLeaveOccurYesterday) &&
-                 ! empty($didLeaveOccurYesterday) &&
-                         $didLeaveOccurYesterday['is_half_day'])) {
+                (   isset($didLeaveOccurYesterday) &&
+                  ! empty($didLeaveOccurYesterday) &&
+                          $didLeaveOccurYesterday['is_half_day'])) {
 
                 $halfDayPart =
                     isset($didLeaveOccurYesterday)
@@ -595,7 +596,7 @@ class AttendanceService
                     }
                 }
             }
-
+            return [];
             if ( ! empty($lastAttendanceRecord) &&
                 $lastAttendanceRecord['work_schedule_history_work_schedule_id'] === $currentWorkSchedule['id'] &&
                 $lastAttendanceRecord['check_in_time' ] >= $adjustedCurrentWorkScheduleStartDateTime->format('Y-m-d H:i:s') &&
