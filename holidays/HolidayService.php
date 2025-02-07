@@ -17,13 +17,22 @@ class HolidayService
     }
 
     public function fetchAllHolidays(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
     ): ActionResult|array {
-        return $this->holidayRepository->fetchAllHolidays($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+
+        return $this->holidayRepository->fetchAllHolidays(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function updateHoliday(Holiday $holiday, bool $isHashedId = false): ActionResult

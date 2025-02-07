@@ -22,15 +22,24 @@ class LeaveRequestService
     }
 
     public function fetchAllLeaveRequests(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
     ): ActionResult|array {
+        
         $this->leaveRequestRepository->updateLeaveRequestStatuses((new DateTime())->format('Y-m-d'));
 
-        return $this->leaveRequestRepository->fetchAllLeaveRequests($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+        return $this->leaveRequestRepository->fetchAllLeaveRequests(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function updateLeaveRequest(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult

@@ -17,13 +17,22 @@ class BreakScheduleService
     }
 
     public function fetchAllBreakSchedules(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
     ): ActionResult|array {
-        return $this->breakScheduleRepository->fetchAllBreakSchedules($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+
+        return $this->breakScheduleRepository->fetchAllBreakSchedules(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function fetchLatestBreakScheduleHistoryId(int $breakScheduleId): int|null|ActionResult

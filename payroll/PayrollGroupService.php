@@ -17,14 +17,22 @@ class PayrollGroupService
     }
 
     public function fetchAllPayrollGroups(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
-    ): ActionResult|array
-    {
-        return $this->payrollGroupRepository->fetchAllPayrollGroups($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
+    ): ActionResult|array {
+
+        return $this->payrollGroupRepository->fetchAllPayrollGroups(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function updatePayrollGroup(PayrollGroup $payrollGroup, bool $isHashedId = false): ActionResult

@@ -134,9 +134,10 @@ class WorkScheduleDao
                 ];
 
                 $settingFetchResult = $this->settingDao->fetchAll(
-                    columns       : $settingColumns       ,
-                    filterCriteria: $settingFilterCriteria,
-                    limit         : 1
+                    columns             : $settingColumns       ,
+                    filterCriteria      : $settingFilterCriteria,
+                    limit               : 1                     ,
+                    includeTotalRowCount: false
                 );
 
                 if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
@@ -159,9 +160,10 @@ class WorkScheduleDao
                 ];
 
                 $settingFetchResult = $this->settingDao->fetchAll(
-                    columns       : $settingColumns       ,
-                    filterCriteria: $settingFilterCriteria,
-                    limit         : 1
+                    columns             : $settingColumns       ,
+                    filterCriteria      : $settingFilterCriteria,
+                    limit               : 1                     ,
+                    includeTotalRowCount: false
                 );
 
                 if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
@@ -198,12 +200,14 @@ class WorkScheduleDao
     }
 
     public function fetchAll(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
     ): ActionResult|array {
+
         $tableColumns = [
             "id"                       => "work_schedule.id                   AS id"                      ,
             "employee_id"              => "work_schedule.employee_id          AS employee_id"             ,
@@ -347,7 +351,7 @@ class WorkScheduleDao
         }
 
         $query = "
-            SELECT SQL_CALC_FOUND_ROWS
+            SELECT
                 " . implode(", ", $selectedColumns) . "
             FROM
                 work_schedules AS work_schedule
@@ -373,8 +377,29 @@ class WorkScheduleDao
                 $resultSet[] = $row;
             }
 
-            $countStatement = $this->pdo->query("SELECT FOUND_ROWS()");
-            $totalRowCount = $countStatement->fetchColumn();
+            $totalRowCount = null;
+
+            if ($includeTotalRowCount) {
+                $totalRowCountQuery = "
+                    SELECT
+                        COUNT(work_schedule.id)
+                    FROM
+                        work_schedules AS work_schedule
+                    {$joinClauses}
+                    WHERE
+                        " . (empty($whereClauses) ? "1=1" : implode(" AND ", $whereClauses)) . "
+                ";
+
+                $countStatement = $this->pdo->prepare($totalRowCountQuery);
+
+                foreach ($queryParameters as $index => $parameter) {
+                    $countStatement->bindValue($index + 1, $parameter, Helper::getPdoParameterType($parameter));
+                }
+
+                $countStatement->execute();
+
+                $totalRowCount = $countStatement->fetchColumn();
+            }
 
             return [
                 "result_set"      => $resultSet    ,

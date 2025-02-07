@@ -9,7 +9,10 @@ require_once __DIR__ . '/PayrollGroupRepository.php';
 
 $payslipDao                = new PayslipDao               ($pdo                                 );
 $employeeDao               = new EmployeeDao              ($pdo                                 );
-$workScheduleDao           = new WorkScheduleDao          ($pdo                                 );
+
+$settingDao                = new SettingDao               ($pdo                                 );
+$workScheduleDao           = new WorkScheduleDao          ($pdo, $settingDao                    );
+
 $attendanceDao             = new AttendanceDao            ($pdo                                 );
 $holidayDao                = new HolidayDao               ($pdo                                 );
 $leaveRequestDao           = new LeaveRequestDao          ($pdo                                 );
@@ -18,7 +21,6 @@ $breakTypeDao              = new BreakTypeDao             ($pdo                 
 $breakScheduleDao          = new BreakScheduleDao         ($pdo, $workScheduleDao, $breakTypeDao);
 
 $employeeBreakDao          = new EmployeeBreakDao         ($pdo                                 );
-$settingDao                = new SettingDao               ($pdo                                 );
 $employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo                                 );
 $employeeDeductionDao      = new EmployeeDeductionDao     ($pdo                                 );
 $overtimeRateDao           = new OvertimeRateDao          ($pdo                                 );
@@ -121,8 +123,9 @@ $payrollGroupSortCriteria = [
 ];
 
 $payrollGroups = $payrollGroupRepository->fetchAllPayrollGroups(
-    columns       : $payrollGroupColumns       ,
-    filterCriteria: $payrollGroupFilterCriteria
+    columns             : $payrollGroupColumns       ,
+    filterCriteria      : $payrollGroupFilterCriteria,
+    includeTotalRowCount: false
 );
 
 if ($payrollGroups === ActionResult::FAILURE) {

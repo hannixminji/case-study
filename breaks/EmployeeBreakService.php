@@ -45,9 +45,10 @@ class EmployeeBreakService
         ];
 
         $employeeFetchResult = $this->employeeRepository->fetchAllEmployees(
-            columns       : $employeeColumns       ,
-            filterCriteria: $employeeFilterCriteria,
-            limit         : 1
+            columns             : $employeeColumns       ,
+            filterCriteria      : $employeeFilterCriteria,
+            limit               : 1                      ,
+            includeTotalRowCount: false
         );
 
         if ($employeeFetchResult === ActionResult::FAILURE) {
@@ -105,10 +106,11 @@ class EmployeeBreakService
         ];
 
         $attendanceFetchResult = $this->attendanceRepository->fetchAllAttendance(
-            columns       : $attendanceColumns       ,
-            filterCriteria: $attendanceFilterCriteria,
-            sortCriteria  : $attendanceSortCriteria  ,
-            limit         : 1
+            columns             : $attendanceColumns       ,
+            filterCriteria      : $attendanceFilterCriteria,
+            sortCriteria        : $attendanceSortCriteria  ,
+            limit               : 1                        ,
+            includeTotalRowCount: false
         );
 
         if ($attendanceFetchResult === ActionResult::FAILURE) {
@@ -181,10 +183,11 @@ class EmployeeBreakService
             ];
 
             $employeeBreakFetchResult = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
-                columns       : $employeeBreakColumns       ,
-                filterCriteria: $employeeBreakFilterCriteria,
-                sortCriteria  : $employeeBreakSortCriteria  ,
-                limit         : 1
+                columns             : $employeeBreakColumns       ,
+                filterCriteria      : $employeeBreakFilterCriteria,
+                sortCriteria        : $employeeBreakSortCriteria  ,
+                limit               : 1                           ,
+                includeTotalRowCount: false
             );
 
             if ($employeeBreakFetchResult === ActionResult::FAILURE) {
@@ -250,9 +253,22 @@ class EmployeeBreakService
                     ]
                 ];
 
+                $breakScheduleSortCriteria = [
+                    [
+                        'column'    => 'break_schedule.start_time',
+                        'direction' => 'ASC'
+                    ],
+                    [
+                        'column'    => 'break_schedule.earliest_start_time',
+                        'direction' => 'ASC'
+                    ]
+                ];
+
                 $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
-                    columns       : $breakScheduleColumns       ,
-                    filterCriteria: $breakScheduleFilterCriteria
+                    columns             : $breakScheduleColumns       ,
+                    filterCriteria      : $breakScheduleFilterCriteria,
+                    sortCriteria        : $breakScheduleSortCriteria  ,
+                    includeTotalRowCount: false
                 );
 
                 if ($breakScheduleFetchResult === ActionResult::FAILURE) {

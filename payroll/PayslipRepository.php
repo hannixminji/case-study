@@ -17,14 +17,22 @@ class PayslipRepository
     }
 
     public function fetchAllPayslips(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
-    ): ActionResult|array
-    {
-        return $this->payslipDao->fetchAll($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
+    ): ActionResult|array {
+
+        return $this->payslipDao->fetchAll(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function updatePayslip(Payslip $payslip, bool $isHashedId = false): ActionResult

@@ -60,9 +60,10 @@ class AttendanceService
         ];
 
         $employeeFetchResult = $this->employeeRepository->fetchAllEmployees(
-            columns       : $employeeColumns       ,
-            filterCriteria: $employeeFilterCriteria,
-            limit         : 1
+            columns             : $employeeColumns       ,
+            filterCriteria      : $employeeFilterCriteria,
+            limit               : 1                      ,
+            includeTotalRowCount: false
         );
 
         if ($employeeFetchResult === ActionResult::FAILURE) {
@@ -100,6 +101,16 @@ class AttendanceService
                 'value'    => $employeeId
             ],
             [
+                'column'   => 'leave_request.start_date',
+                'operator' => '<='                      ,
+                'value'    => $currentDateTime
+            ],
+            [
+                'column'   => 'leave_request.end_date',
+                'operator' => '>='                    ,
+                'value'    => $currentDateTime
+            ],
+            [
                 'column'   => 'leave_request.status',
                 'operator' => '='                   ,
                 'value'    => 'In Progress'
@@ -107,9 +118,10 @@ class AttendanceService
         ];
 
         $leaveRequestFetchResult = $this->leaveRequestRepository->fetchAllLeaveRequests(
-            columns       : $leaveRequestColumns       ,
-            filterCriteria: $leaveRequestFilterCriteria,
-            limit         : 1
+            columns             : $leaveRequestColumns       ,
+            filterCriteria      : $leaveRequestFilterCriteria,
+            limit               : 1                          ,
+            includeTotalRowCount: false
         );
 
         if ($leaveRequestFetchResult === ActionResult::FAILURE) {
@@ -173,10 +185,11 @@ class AttendanceService
         ];
 
         $attendanceFetchResult = $this->attendanceRepository->fetchAllAttendance(
-            columns       : $attendanceColumns       ,
-            filterCriteria: $attendanceFilterCriteria,
-            sortCriteria  : $attendanceSortCriteria  ,
-            limit         : 1
+            columns             : $attendanceColumns       ,
+            filterCriteria      : $attendanceFilterCriteria,
+            sortCriteria        : $attendanceSortCriteria  ,
+            limit               : 1                        ,
+            includeTotalRowCount: false
         );
 
         if ($attendanceFetchResult === ActionResult::FAILURE) {
@@ -217,7 +230,7 @@ class AttendanceService
                 'total_hours_per_week',
                 'total_work_hours'    ,
                 'start_date'          ,
-                'recurrent_rule'
+                'recurrence_rule'
             ];
 
             $workScheduleFilterCriteria = [
@@ -249,9 +262,10 @@ class AttendanceService
             ];
 
             $workScheduleFetchResult = $this->workScheduleRepository->fetchAllWorkSchedules(
-                columns       : $workScheduleColumns       ,
-                filterCriteria: $workScheduleFilterCriteria,
-                sortCriteria  : $workScheduleSortCriteria
+                columns             : $workScheduleColumns       ,
+                filterCriteria      : $workScheduleFilterCriteria,
+                sortCriteria        : $workScheduleSortCriteria  ,
+                includeTotalRowCount: false
             );
 
             if ($workScheduleFetchResult === ActionResult::FAILURE) {
@@ -295,7 +309,7 @@ class AttendanceService
             }
 
             $currentWorkSchedule = $this->getCurrentWorkSchedule(
-                $workSchedules           ,
+                $currentWorkSchedules    ,
                 $formattedCurrentDateTime
             );
 
@@ -353,9 +367,10 @@ class AttendanceService
                 ];
 
                 $leaveRequestFetchResult = $this->leaveRequestRepository->fetchAllLeaveRequests(
-                    columns       : $leaveRequestColumns       ,
-                    filterCriteria: $leaveRequestFilterCriteria,
-                    limit         : 1
+                    columns             : $leaveRequestColumns       ,
+                    filterCriteria      : $leaveRequestFilterCriteria,
+                    limit               : 1                          ,
+                    includeTotalRowCount: false
                 );
 
                 if ($leaveRequestFetchResult === ActionResult::FAILURE) {
@@ -402,9 +417,22 @@ class AttendanceService
                 ]
             ];
 
+            $breakScheduleSortCriteria = [
+                [
+                    'column'    => 'break_schedule.start_time',
+                    'direction' => 'ASC'
+                ],
+                [
+                    'column'    => 'break_schedule.earliest_start_time',
+                    'direction' => 'ASC'
+                ]
+            ];
+
             $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
-                columns       : $breakScheduleColumns       ,
-                filterCriteria: $breakScheduleFilterCriteria
+                columns             : $breakScheduleColumns       ,
+                filterCriteria      : $breakScheduleFilterCriteria,
+                sortCriteria        : $breakScheduleSortCriteria  ,
+                includeTotalRowCount: false
             );
 
             if ($breakScheduleFetchResult === ActionResult::FAILURE) {
@@ -486,6 +514,7 @@ class AttendanceService
                                 $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
 
                                 if ($halfDayPart === 'first_half') {
+
                                     if ($halfDayEndDateTime > $breakStartDateTime &&
                                         $halfDayEndDateTime < $breakEndDateTime  ) {
 
@@ -497,7 +526,7 @@ class AttendanceService
                                             ->modify('+' . $overlapTimeInMinutes . ' minutes');
 
                                     } elseif ($breakStartDateTime >= $halfDayStartDateTime &&
-                                            $breakEndDateTime   <= $halfDayEndDateTime  ) {
+                                              $breakEndDateTime   <= $halfDayEndDateTime  ) {
 
                                         $halfDayEndDateTime->modify('+' . $breakDurationInMinutes . ' minutes');
                                     }
@@ -514,7 +543,7 @@ class AttendanceService
                                             ->modify('-' . $overlapTimeInMinutes . ' minutes');
 
                                     } elseif ($breakStartDateTime >= $halfDayStartDateTime &&
-                                            $breakEndDateTime   <= $halfDayEndDateTime  ) {
+                                              $breakEndDateTime   <= $halfDayEndDateTime  ) {
 
                                         $halfDayStartDateTime->modify('-' . $breakDurationInMinutes . ' minutes');
                                     }
@@ -543,7 +572,7 @@ class AttendanceService
 
             if ( ! $currentWorkSchedule['is_flextime']) {
                 $previousWorkSchedule = $this->getPreviousWorkSchedule(
-                    $workSchedules      ,
+                    $currentWorkSchedules,
                     $currentWorkSchedule
                 );
 
@@ -716,6 +745,7 @@ class AttendanceService
 
         foreach ($assignedWorkSchedules as $workDate => $workSchedules) {
             foreach ($workSchedules as $workSchedule) {
+
                 $workStartTime = $workSchedule['start_time'];
                 $workEndTime   = $workSchedule['end_time'  ];
 
