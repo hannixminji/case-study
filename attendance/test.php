@@ -4,7 +4,7 @@ echo '<pre>';
 
 require_once __DIR__ . '/Attendance.php';
 
-require_once __DIR__ . '/AttendanceService.php';
+require_once __DIR__ . '/AttendanceServices.php';
 require_once __DIR__ . '/../database/database.php';
 require_once __DIR__ . '/../breaks/EmployeeBreakService.php';
 require_once __DIR__ . '/../overtime-rates/OvertimeRateRepository.php';
@@ -84,7 +84,7 @@ $employeeBreakService = new EmployeeBreakService(
 );
 
 $rfidUid = '123456789';
-$currentDateTime = '2025-01-01 12:00:00';
+$currentDateTime = '2024-12-31 12:00:00';
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 print_r($response);
 /*

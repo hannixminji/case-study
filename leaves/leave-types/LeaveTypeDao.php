@@ -109,6 +109,9 @@ class LeaveTypeDao
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
+                $boolean  = isset($filterCriterion["boolean"])
+                    ? strtoupper($filterCriterion["boolean"])
+                    : 'AND';
 
                 switch ($operator) {
                     case "="   :
@@ -130,7 +133,13 @@ class LeaveTypeDao
 
                         break;
                 }
+
+                $whereClauses[] = " {$boolean}";
             }
+        }
+
+        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+            array_pop($whereClauses);
         }
 
         $orderByClauses = [];
@@ -176,7 +185,7 @@ class LeaveTypeDao
             FROM
                 leave_types AS leave_type
             WHERE
-                " . implode(" AND ", $whereClauses) . "
+                " . implode(" ", $whereClauses) . "
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -205,7 +214,7 @@ class LeaveTypeDao
                     FROM
                         leave_types AS leave_type
                     WHERE
-                        " . implode(" AND ", $whereClauses) . "
+                        " . implode(" ", $whereClauses) . "
                 ";
 
                 $countStatement = $this->pdo->prepare($totalRowCountQuery);

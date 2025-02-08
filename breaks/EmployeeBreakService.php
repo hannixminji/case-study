@@ -135,7 +135,10 @@ class EmployeeBreakService
         if (empty($lastAttendanceRecord) ||
 
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-            $lastAttendanceRecord['check_out_time'] !== null)) {
+            $lastAttendanceRecord['check_out_time'] !== null) ||
+
+           ($lastAttendanceRecord['check_in_time' ] === null  &&
+            $lastAttendanceRecord['check_out_time'] === null)) {
 
             return [
                 'status'  => 'warning',

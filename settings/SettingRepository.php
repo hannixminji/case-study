@@ -30,7 +30,7 @@ class SettingRepository
         );
     }
 
-    public function fetchSettingValue(string $settingKey, string $groupName): ActionResult|string
+    public function fetchSettingValue(string $settingKey, string $groupName): string|ActionResult
     {
         $columns = [
             "setting_value"
