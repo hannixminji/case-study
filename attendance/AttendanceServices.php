@@ -88,6 +88,14 @@ class AttendanceService
             ];
         }
 
+        $currentDateTime = new DateTime($currentDateTime                 );
+        $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
+        $previousDate    = (clone $currentDate)->modify('-1 day'         );
+
+        $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
+        $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
+        $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
+
         $leaveRequestColumns = [
             'is_half_day'  ,
             'half_day_part'
@@ -106,12 +114,12 @@ class AttendanceService
             [
                 'column'   => 'leave_request.start_date',
                 'operator' => '<='                      ,
-                'value'    => $currentDateTime
+                'value'    => $formattedCurrentDate
             ],
             [
                 'column'   => 'leave_request.end_date',
                 'operator' => '>='                    ,
-                'value'    => $currentDateTime
+                'value'    => $formattedCurrentDate
             ],
             [
                 'column'   => 'leave_request.status',
@@ -201,14 +209,6 @@ class AttendanceService
                 'message' => 'You don\'t have an assigned work schedule.'
             ];
         }
-
-        $currentDateTime = new DateTime($currentDateTime                 );
-        $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
-        $previousDate    = (clone $currentDate)->modify('-1 day'         );
-
-        $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
-        $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
-        $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
 
         $currentWorkSchedules = [];
 
