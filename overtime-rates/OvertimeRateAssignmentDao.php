@@ -4,7 +4,7 @@ require_once __DIR__ . "/OvertimeRateDao.php";
 
 class OvertimeRateAssignmentDao
 {
-    private readonly PDO $pdo;
+    private readonly PDO             $pdo            ;
     private readonly OvertimeRateDao $overtimeRateDao;
 
     public function __construct(PDO $pdo, OvertimeRateDao $overtimeRateDao)
@@ -28,8 +28,12 @@ class OvertimeRateAssignmentDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -39,12 +43,16 @@ class OvertimeRateAssignmentDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return (int) $this->pdo->lastInsertId();
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while creating the overtime rate assignment. " .
                       "Exception: {$exception->getMessage()}");
@@ -55,12 +63,20 @@ class OvertimeRateAssignmentDao
 
     public function assign(OvertimeRateAssignment $overtimeRateAssignment, array $overtimeRates, bool $isHashedId = false): ActionResult
     {
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $overtimeRateAssignmentId = $this->create($overtimeRateAssignment);
 
             if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
+                if ($isLocalTransaction) {
+                    $this->pdo->rollBack();
+                }
+                
                 return ActionResult::FAILURE;
             }
 
@@ -69,13 +85,17 @@ class OvertimeRateAssignmentDao
                     $result = $this->overtimeRateDao->update($overtimeRate, $isHashedId);
 
                     if ($result === ActionResult::FAILURE) {
-                        $this->pdo->rollBack();
+                        if ($isLocalTransaction) {
+                            $this->pdo->rollBack();
+                        }
 
                         return ActionResult::FAILURE;
                     }
                 }
 
-                $this->pdo->commit();
+                if ($isLocalTransaction) {
+                    $this->pdo->commit();
+                }
 
                 return ActionResult::SUCCESS;
             }
@@ -86,18 +106,24 @@ class OvertimeRateAssignmentDao
                 $result = $this->overtimeRateDao->create($overtimeRate);
 
                 if ($result === ActionResult::FAILURE) {
-                    $this->pdo->rollBack();
+                    if ($isLocalTransaction) {
+                        $this->pdo->rollBack();
+                    }
 
                     return ActionResult::FAILURE;
                 }
             }
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while assigning overtime rates. " .
                       "Exception: {$exception->getMessage()}");

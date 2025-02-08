@@ -42,8 +42,12 @@ class BreakScheduleDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -60,17 +64,23 @@ class BreakScheduleDao
             $breakSchedule->setId($this->pdo->lastInsertId());
 
             if ($this->createHistory($breakSchedule) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
+                if ($isLocalTransaction) {
+                    $this->pdo->rollBack();
+                }
 
                 return ActionResult::FAILURE;
             }
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while creating the break schedule. " .
                       "Exception: {$exception->getMessage()}");
@@ -359,7 +369,8 @@ class BreakScheduleDao
 
             $statement->execute();
 
-            return $statement->fetchColumn() ?: ActionResult::FAILURE;
+            return $statement->fetchColumn()
+                ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break schedule history ID. " .
@@ -388,8 +399,12 @@ class BreakScheduleDao
             $query .= " id = :break_schedule_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -404,17 +419,23 @@ class BreakScheduleDao
             $statement->execute();
 
             if ($this->createHistory($breakSchedule) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
+                if ($isLocalTransaction) {
+                    $this->pdo->rollBack();
+                }
 
                 return ActionResult::FAILURE;
             }
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while updating the break schedule. " .
                       "Exception: {$exception->getMessage()}");
@@ -443,8 +464,12 @@ class BreakScheduleDao
             $query .= " id = :break_schedule_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -452,12 +477,16 @@ class BreakScheduleDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while deleting the break schedule. " .
                       "Exception: {$exception->getMessage()}");

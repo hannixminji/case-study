@@ -45,8 +45,12 @@ class AttendanceDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -65,12 +69,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while creating the attendance record. " .
                       "Exception: {$exception->getMessage()}");
@@ -98,7 +106,13 @@ class AttendanceDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
+
             $statement = $this->pdo->prepare($query);
 
             $statement->bindValue(":work_schedule_history_id", $attendance->getWorkScheduleHistoryId(), Helper::getPdoParameterType($attendance->getWorkScheduleHistoryId()));
@@ -109,9 +123,17 @@ class AttendanceDao
 
             $statement->execute();
 
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
+
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
+
             error_log("Database Error: An error occurred while checking in the attendance. " .
                       "Exception: {$exception->getMessage()}");
 
@@ -134,8 +156,12 @@ class AttendanceDao
                 id = :attendance_id
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -150,12 +176,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while checking out in the attendance. " .
                       "Exception: {$exception->getMessage()}");
@@ -458,8 +488,12 @@ class AttendanceDao
             $query .= " id = :attendance_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -478,12 +512,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while updating the attendance record. " .
                       "Exception: {$exception->getMessage()}");
@@ -507,8 +545,12 @@ class AttendanceDao
             $query .= " id = :attendance_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -516,12 +558,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while approving overtime. " .
                       "Exception: {$exception->getMessage()}");
@@ -540,8 +586,12 @@ class AttendanceDao
                 id = :attendance_id
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -549,12 +599,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while marking attendance as processed for the next payroll. " .
                       "Exception: {$exception->getMessage()}");
@@ -583,8 +637,12 @@ class AttendanceDao
             $query .= " id = :attendance_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -592,12 +650,16 @@ class AttendanceDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while deleting the attendance record. " .
                       "Exception: {$exception->getMessage()}");

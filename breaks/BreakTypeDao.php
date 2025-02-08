@@ -29,8 +29,12 @@ class BreakTypeDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -44,17 +48,23 @@ class BreakTypeDao
             $breakType->setId($this->pdo->lastInsertId());
 
             if ($this->createHistory($breakType) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
+                if ($isLocalTransaction) {
+                    $this->pdo->rollBack();
+                }
 
                 return ActionResult::FAILURE;
             }
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while creating the break type. " .
                       "Exception: {$exception->getMessage()}");
@@ -284,7 +294,8 @@ class BreakTypeDao
 
             $statement->execute();
 
-            return $statement->fetchColumn() ?: ActionResult::FAILURE;
+            return $statement->fetchColumn()
+                ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break type history ID. " .
@@ -312,8 +323,12 @@ class BreakTypeDao
             $query .= " id = :break_type_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -327,17 +342,23 @@ class BreakTypeDao
             $statement->execute();
 
             if ($this->createHistory($breakType) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
+                if ($isLocalTransaction) {
+                    $this->pdo->rollBack();
+                }
 
                 return ActionResult::FAILURE;
             }
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while updating the break type. " .
                       "Exception: {$exception->getMessage()}");
@@ -366,8 +387,12 @@ class BreakTypeDao
             $query .= " id = :break_type_id";
         }
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $this->pdo->beginTransaction();
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
+            }
 
             $statement = $this->pdo->prepare($query);
 
@@ -375,12 +400,16 @@ class BreakTypeDao
 
             $statement->execute();
 
-            $this->pdo->commit();
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            $this->pdo->rollBack();
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
 
             error_log("Database Error: An error occurred while deleting the break type. " .
                       "Exception: {$exception->getMessage()}");
