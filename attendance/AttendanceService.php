@@ -88,6 +88,14 @@ class AttendanceService
             ];
         }
 
+        $currentDateTime = new DateTime($currentDateTime                 );
+        $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
+        $previousDate    = (clone $currentDate)->modify('-1 day'         );
+
+        $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
+        $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
+        $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
+
         $leaveRequestColumns = [
             'is_half_day'  ,
             'half_day_part'
@@ -106,12 +114,12 @@ class AttendanceService
             [
                 'column'   => 'leave_request.start_date',
                 'operator' => '<='                      ,
-                'value'    => $currentDateTime
+                'value'    => $formattedCurrentDate
             ],
             [
                 'column'   => 'leave_request.end_date',
                 'operator' => '>='                    ,
-                'value'    => $currentDateTime
+                'value'    => $formattedCurrentDate
             ],
             [
                 'column'   => 'leave_request.status',
@@ -213,17 +221,12 @@ class AttendanceService
             $lastAttendanceRecord['check_out_time'] !== null) ||
 
            ($lastAttendanceRecord['check_in_time' ] === null  &&
+            $lastAttendanceRecord['check_out_time'] !== null) ||
+
+           ($lastAttendanceRecord['check_in_time' ] === null  &&
             $lastAttendanceRecord['check_out_time'] === null)) {
 
             $isCheckIn = true;
-
-            $currentDateTime = new DateTime($currentDateTime                 );
-            $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
-            $previousDate    = (clone $currentDate)->modify('-1 day'         );
-
-            $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
-            $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
-            $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
 
             $workScheduleColumns = [
                 'id'                  ,
@@ -245,19 +248,10 @@ class AttendanceService
                     'column'   => 'work_schedule.employee_id',
                     'operator' => '='                        ,
                     'value'    => $employeeId
-                ],
-                [
-                    'column'   => 'work_schedule.start_date',
-                    'operator' => '<='                      ,
-                    'value'    => $formattedCurrentDate
                 ]
             ];
 
             $workScheduleSortCriteria = [
-                [
-                    'column'    => 'work_schedule.start_date',
-                    'direction' => 'ASC'
-                ],
                 [
                     'column'    => 'work_schedule.start_time',
                     'direction' => 'ASC'
@@ -317,10 +311,20 @@ class AttendanceService
             );
 
             if (empty($currentWorkSchedule)) {
-                return [
-                    'status'  => 'information',
-                    'message' => 'Your work schedule for today has ended.'
-                ];
+                if (   isset($currentWorkSchedules[$formattedCurrentDate]) &&
+                     ! empty($currentWorkSchedules[$formattedCurrentDate])) {
+
+                    return [
+                        'status'  => 'information',
+                        'message' => 'Your work schedule for today has ended.'
+                    ];
+
+                } else {
+                    return [
+                        'status'  => 'information',
+                        'message' => 'You don\'t have a work schedule today.'
+                    ];
+                }
             }
 
             $currentWorkScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
@@ -499,7 +503,7 @@ class AttendanceService
                         }
 
                         foreach ($assignedBreakSchedules as $breakSchedule) {
-                            if ( ! $breakSchedule['break_type_is_paid']) {
+                            if ( ! $breakSchedule['break_type_is_paid'] && $breakSchedule['is_flexible']) {
                                 $breakStartTime = $breakSchedule['start_time'];
                                 $breakEndTime   = $breakSchedule['end_time'  ];
 
@@ -583,12 +587,10 @@ class AttendanceService
             $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
 
             if ( ! $currentWorkSchedule['is_flextime']) {
-                $previousWorkSchedule = $this->getPreviousWorkSchedule(
-                    $currentWorkSchedules,
-                    $currentWorkSchedule
+                $minutesAllowedForEarlyCheckIn = (int) $this->settingRepository->fetchSettingValue(
+                    settingKey: 'minutes_can_check_in_before_shift',
+                    groupName : 'work_schedule'
                 );
-
-                $minutesAllowedForEarlyCheckIn = $this->settingRepository->fetchSettingValue('minutes_can_check_in_before_shift', 'work_schedule');
 
                 if ($minutesAllowedForEarlyCheckIn === ActionResult::FAILURE) {
                     return [
@@ -599,17 +601,29 @@ class AttendanceService
 
                 $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
 
+                $previousWorkSchedule = $this->getPreviousWorkSchedule(
+                    assignedWorkSchedules: $currentWorkSchedules,
+                    currentWorkSchedule  : $currentWorkSchedule
+                );
+
                 if ( ! empty($previousWorkSchedule)) {
                     $previousWorkScheduleEndDateTime = new DateTime($previousWorkSchedule['end_time']);
 
                     if ($previousWorkScheduleEndDateTime > $adjustedCurrentWorkScheduleStartDateTime) {
                         $interval = $previousWorkScheduleEndDateTime->diff($currentWorkScheduleStartDateTime);
-                        $minutesAllowedForEarlyCheckIn = max(0, $interval->i);
+                        $minutesAllowedForEarlyCheckIn = max(0, ($interval->h * 60) + $interval->i);
 
                         $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
                         $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
                     }
                 }
+            }
+
+            if ( ! $currentWorkSchedule['is_flextime'] && $currentDateTime < $adjustedCurrentWorkScheduleStartDateTime) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'You are not allowed to check in early.'
+                ];
             }
 
             if ( ! empty($lastAttendanceRecord) &&
@@ -645,13 +659,6 @@ class AttendanceService
                 return [
                     'status' => 'success',
                     'message' => 'Checked-in recorded successfully.'
-                ];
-            }
-
-            if ( ! $currentWorkSchedule['is_flextime'] && $currentDateTime < $adjustedCurrentWorkScheduleStartDateTime) {
-                return [
-                    'status' => 'warning',
-                    'message' => 'You are not allowed to check in early.'
                 ];
             }
 
@@ -808,7 +815,10 @@ class AttendanceService
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
+            // if check in
         }
+
+        //outside
     }
 
     private function getCurrentWorkSchedule(
@@ -822,7 +832,6 @@ class AttendanceService
 
         foreach ($assignedWorkSchedules as $workDate => $workSchedules) {
             foreach ($workSchedules as $workSchedule) {
-
                 $workStartTime = $workSchedule['start_time'];
                 $workEndTime   = $workSchedule['end_time'  ];
 

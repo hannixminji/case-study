@@ -226,6 +226,13 @@ class AttendanceService
                 ];
             }
 
+            if (empty($workScheduleDates)) {
+                return [
+                    'status'  => 'information',
+                    'message' => 'You don\'t have a work schedule today.'
+                ];
+            }
+
             foreach ($workScheduleDates as $workScheduleDate) {
                 $currentWorkSchedules[$workScheduleDate][] = $workSchedule;
             }
@@ -334,56 +341,17 @@ class AttendanceService
         if (empty($lastAttendanceRecord) ||
 
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-            $lastAttendanceRecord['check_out_time'] !== null)) {
+            $lastAttendanceRecord['check_out_time'] !== null) ||
+
+           ($lastAttendanceRecord['check_in_time' ] === null  &&
+            $lastAttendanceRecord['check_out_time'] !== null) ||
+
+           ($lastAttendanceRecord['check_in_time' ] === null  &&
+            $lastAttendanceRecord['check_out_time'] === null)) {
 
             $isCheckIn = true;
 
-            $minutesAllowedForEarlyCheckIn = 0;
-            $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
-
-            if ( ! $currentWorkSchedule['is_flextime']) {
-                $minutesAllowedForEarlyCheckIn = (int) $this->settingRepository->fetchSettingValue(
-                    settingKey: 'minutes_can_check_in_before_shift',
-                    groupName : 'work_schedule'
-                );
-
-                if ($minutesAllowedForEarlyCheckIn === ActionResult::FAILURE) {
-                    return [
-                        'status' => 'error',
-                        'message' => 'An unexpected error occurred. Please try again later.'
-                    ];
-                }
-
-                $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
-
-                $previousWorkSchedule = $this->getPreviousWorkSchedule(
-                    assignedWorkSchedules: $currentWorkSchedules,
-                    currentWorkSchedule  : $currentWorkSchedule
-                );
-
-                if ( ! empty($previousWorkSchedule)) {
-                    $previousWorkScheduleEndDateTime = new DateTime($previousWorkSchedule['end_time']);
-
-                    if ($previousWorkScheduleEndDateTime > $adjustedCurrentWorkScheduleStartDateTime) {
-                        $interval = $previousWorkScheduleEndDateTime->diff($currentWorkScheduleStartDateTime);
-                        $minutesAllowedForEarlyCheckIn = max(0, ($interval->h * 60) + $interval->i);
-
-                        $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
-                        $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
-                    }
-                }
-            }
-
-            if ( ! $currentWorkSchedule['is_flextime'] && $currentDateTime < $adjustedCurrentWorkScheduleStartDateTime) {
-                return [
-                    'status' => 'warning',
-                    'message' => 'You are not allowed to check in early.'
-                ];
-            }
-
-            if ($currentWorkScheduleEndDate > $currentWorkScheduleStartDate     &&
-                $currentWorkScheduleEndDateTime->format('H:i:s') !== '00:00:00') {
-
+            if ($currentWorkScheduleEndDate > $currentWorkScheduleStartDate) {
                 $leaveRequestColumns = [
                     'is_half_day'  ,
                     'half_day_part'
@@ -655,6 +623,49 @@ class AttendanceService
                 return [
                     'status'  => 'success',
                     'message' => 'Checked-in recorded successfully.'
+                ];
+            }
+
+            $minutesAllowedForEarlyCheckIn = 0;
+            $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
+
+            if ( ! $currentWorkSchedule['is_flextime']) {
+                $minutesAllowedForEarlyCheckIn = (int) $this->settingRepository->fetchSettingValue(
+                    settingKey: 'minutes_can_check_in_before_shift',
+                    groupName : 'work_schedule'
+                );
+
+                if ($minutesAllowedForEarlyCheckIn === ActionResult::FAILURE) {
+                    return [
+                        'status' => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
+
+                $previousWorkSchedule = $this->getPreviousWorkSchedule(
+                    assignedWorkSchedules: $currentWorkSchedules,
+                    currentWorkSchedule  : $currentWorkSchedule
+                );
+
+                if ( ! empty($previousWorkSchedule)) {
+                    $previousWorkScheduleEndDateTime = new DateTime($previousWorkSchedule['end_time']);
+
+                    if ($previousWorkScheduleEndDateTime > $adjustedCurrentWorkScheduleStartDateTime) {
+                        $interval = $previousWorkScheduleEndDateTime->diff($currentWorkScheduleStartDateTime);
+                        $minutesAllowedForEarlyCheckIn = max(0, ($interval->h * 60) + $interval->i);
+
+                        $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
+                        $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
+                    }
+                }
+            }
+
+            if ( ! $currentWorkSchedule['is_flextime'] && $currentDateTime < $adjustedCurrentWorkScheduleStartDateTime) {
+                return [
+                    'status' => 'warning',
+                    'message' => 'You are not allowed to check in early.'
                 ];
             }
 
