@@ -170,6 +170,13 @@ class AttendanceService
             'remarks'                                                ,
 
             'work_schedule_history_work_schedule_id'                 ,
+            'work_schedule_history_start_time'                       ,
+            'work_schedule_history_end_time'                         ,
+            'work_schedule_history_is_flextime'                      ,
+            'work_schedule_history_total_hours_per_week'             ,
+            'work_schedule_history_total_work_hours'                 ,
+            'work_schedule_history_start_date'                       ,
+            'work_schedule_history_recurrence_rule'                  ,
             'work_schedule_history_grace_period'                     ,
             'work_schedule_history_minutes_can_check_in_before_shift'
         ];
@@ -230,24 +237,35 @@ class AttendanceService
 
             $isCheckIn = true;
 
-            $workScheduleDate      = $lastAttendanceRecord['date'                            ];
-            $workScheduleStartTime = $lastAttendanceRecord['work_schedule_history_start_time'];
-            $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_history_end_time'  ];
+            $isUsingLastAttendanceWorkSchedule = false;
 
-            $workScheduleStartDateTime = new DateTime($workScheduleDate . ' ' . $workScheduleStartTime);
-            $workScheduleEndDateTime   = new DateTime($workScheduleDate . ' ' . $workScheduleEndTime  );
+            if ( ! empty($lastAttendanceRecord)) {
+                $isUsingLastAttendanceWorkSchedule = true;
 
-            if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
-                $workScheduleEndDateTime->modify('+1 day');
+                $workScheduleDate      = $lastAttendanceRecord['date'                            ];
+                $workScheduleStartTime = $lastAttendanceRecord['work_schedule_history_start_time'];
+                $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_history_end_time'  ];
+
+                $workScheduleStartDateTime = new DateTime($workScheduleDate . ' ' . $workScheduleStartTime);
+                $workScheduleEndDateTime   = new DateTime($workScheduleDate . ' ' . $workScheduleEndTime  );
+
+                if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
+                    $workScheduleEndDateTime->modify('+1 day');
+                }
+
+                $workScheduleId = $lastAttendanceRecord['work_schedule_history_work_schedule_id'];
+
+                $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_history_minutes_can_check_in_before_shift'];
+
+                $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
+                    ->modify('-' . $earlyCheckInWindow . ' minutes');
             }
 
-            $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_history_minutes_can_check_in_before_shift'];
+            if (empty($lastAttendanceRecord) ||
+                $currentDateTime <  $adjustedWorkScheduleStartDateTime ||
+                $currentDateTime >= $workScheduleEndDateTime) {
 
-            $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
-                ->modify('-' . $earlyCheckInWindow . ' minutes');
-
-            if ($currentDateTime < $adjustedWorkScheduleStartDateTime ||
-                $currentDateTime > $workScheduleEndDateTime) {
+                $isUsingLastAttendanceWorkSchedule = false;
 
                 $workScheduleColumns = [
                     'id'                  ,
@@ -357,24 +375,72 @@ class AttendanceService
 
                 $workScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
                 $workScheduleEndDateTime   = new DateTime($currentWorkSchedule['end_time'  ]);
+
+                $workScheduleId = $currentWorkSchedule['id'];
+
+                $earlyCheckInWindow = 0;
+
+                $adjustedWorkScheduleStartDateTime = clone $workScheduleStartDateTime;
+
+                if ( ! $currentWorkSchedule['is_flextime']) {
+                    $earlyCheckInWindow = (int) $this->settingRepository->fetchSettingValue(
+                        settingKey: 'minutes_can_check_in_before_shift',
+                        groupName : 'work_schedule'
+                    );
+
+                    if ($earlyCheckInWindow === ActionResult::FAILURE) {
+                        return [
+                            'status' => 'error',
+                            'message' => 'An unexpected error occurred. Please try again later.'
+                        ];
+                    }
+
+                    $adjustedWorkScheduleStartDateTime->modify('-' . $earlyCheckInWindow . ' minutes');
+
+                    $previousWorkSchedule = $this->getPreviousWorkSchedule(
+                        assignedWorkSchedules: $currentWorkSchedules,
+                        currentWorkSchedule  : $currentWorkSchedule
+                    );
+
+                    if ( ! empty($previousWorkSchedule)) {
+                        $previousWorkScheduleEndDateTime = new DateTime($previousWorkSchedule['end_time']);
+
+                        if ($previousWorkScheduleEndDateTime > $adjustedWorkScheduleStartDateTime) {
+                            $earlyCheckInWindow = max(0,
+                                $previousWorkScheduleEndDateTime->diff($workScheduleStartDateTime)->i +
+                                $previousWorkScheduleEndDateTime->diff($workScheduleStartDateTime)->h * 60
+                            );
+
+                            $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
+                                ->modify('-' . $earlyCheckInWindow . ' minutes');
+                        }
+                    }
+                }
+            }
+
+            if ($isUsingLastAttendanceWorkSchedule) {
+                $workSchedule = [
+                    'id'                   => $lastAttendanceRecord['work_schedule_history_work_schedule_id'],
+                    'employee_id'          => $employeeId                                                    ,
+                    'start_time'           => 'work_schedule_history_start_time'                             ,
+                    'end_time'             => 'work_schedule_history_end_time'                               ,
+                    'is_flextime'          => 'work_schedule_history_is_flextime'                            ,
+                    'total_hours_per_week' => 'work_schedule_history_total_hours_per_week'                   ,
+                    'total_work_hours'     => 'work_schedule_history_total_work_hours'                       ,
+                    'start_date'           => 'work_schedule_history_start_date'                             ,
+                    'recurrence_rule'      => 'work_schedule_history_recurrence_rule'
+                ];
+
+            } else {
+                $workSchedule = $currentWorkSchedule;
             }
 
             $workScheduleStartDate = new DateTime($workScheduleStartDateTime->format('Y-m-d'));
             $workScheduleEndDate   = new DateTime($workScheduleEndDateTime  ->format('Y-m-d'));
 
-            $currentWorkScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
-            $currentWorkScheduleEndDateTime   = new DateTime($currentWorkSchedule['end_time'  ]);
-
-            $currentWorkScheduleStartDate = new DateTime(
-                $currentWorkScheduleStartDateTime->format('Y-m-d')
-            );
-
-            $currentWorkScheduleEndDate = new DateTime(
-                $currentWorkScheduleEndDateTime->format('Y-m-d')
-            );
-
-            if ($currentWorkScheduleEndDate > $currentWorkScheduleStartDate     &&
-                $currentWorkScheduleEndDateTime->format('H:i:s') !== '00:00:00') {
+            if ($workScheduleEndDate > $workScheduleStartDate &&
+                $currentDate === $workScheduleEndDate &&
+                $workScheduleEndDateTime->format('H:i:s') !== '00:00:00') {
 
                 $leaveRequestColumns = [
                     'is_half_day'  ,
@@ -392,14 +458,14 @@ class AttendanceService
                         'value'    => $employeeId
                     ],
                     [
-                        'column'   => 'leave_request.start_date'                    ,
-                        'operator' => '<='                                          ,
-                        'value'    => $currentWorkScheduleStartDate->format('Y-m-d')
+                        'column'   => 'leave_request.start_date'             ,
+                        'operator' => '<='                                   ,
+                        'value'    => $workScheduleStartDate->format('Y-m-d')
                     ],
                     [
-                        'column'   => 'leave_request.end_date'                      ,
-                        'operator' => '>='                                          ,
-                        'value'    => $currentWorkScheduleStartDate->format('Y-m-d')
+                        'column'   => 'leave_request.end_date'               ,
+                        'operator' => '>='                                   ,
+                        'value'    => $workScheduleStartDate->format('Y-m-d')
                     ],
                     [
                         'column'     => 'leave_request.status'      ,
@@ -430,7 +496,7 @@ class AttendanceService
                 if ( ! empty($didLeaveOccurYesterday) && ! $didLeaveOccurYesterday['is_half_day']) {
                     return [
                         'status'  => 'warning',
-                        'message' => 'You are currently on leave. You cannot check in or check out.'
+                        'message' => 'You are on leave. You cannot check in or check out.'
                     ];
                 }
             }
@@ -455,7 +521,7 @@ class AttendanceService
                 [
                     'column'   => 'break_schedule.work_schedule_id',
                     'operator' => '='                              ,
-                    'value'    => $currentWorkSchedule['id']
+                    'value'    => $workScheduleId
                 ]
             ];
 
@@ -513,16 +579,16 @@ class AttendanceService
                     ($currentWorkSchedule['total_work_hours'] / 2) * 60;
 
                 if ($halfDayPart === 'first_half') {
-                    $halfDayStartDateTime = clone $currentWorkScheduleStartDateTime;
-                    $halfDayEndDateTime   = clone $currentWorkScheduleStartDateTime;
+                    $halfDayStartDateTime = clone $workScheduleStartDateTime;
+                    $halfDayEndDateTime   = clone $workScheduleStartDateTime;
 
                     $halfDayEndDateTime->modify(
                         '+' . $halfDayDurationInMinutes . ' minutes'
                     );
 
                 } elseif ($halfDayPart === 'second_half') {
-                    $halfDayStartDateTime = clone $currentWorkScheduleEndDateTime;
-                    $halfDayEndDateTime   = clone $currentWorkScheduleEndDateTime;
+                    $halfDayStartDateTime = clone $workScheduleEndDateTime;
+                    $halfDayEndDateTime   = clone $workScheduleEndDateTime;
 
                     $halfDayStartDateTime->modify(
                         '-' . $halfDayDurationInMinutes . ' minutes'
@@ -538,23 +604,34 @@ class AttendanceService
                         }
 
                         foreach ($assignedBreakSchedules as $breakSchedule) {
-                            if ( ! $breakSchedule['break_type_is_paid'] && $breakSchedule['is_flexible']) {
-                                $breakStartTime = $breakSchedule['start_time'];
-                                $breakEndTime   = $breakSchedule['end_time'  ];
+                            if ( ! $breakSchedule['break_type_is_paid']) {
+                                if ($breakSchedule['is_flexible']) {
+                                    $breakStartTime = $breakSchedule['latest_end_time'];
+                                    $breakEndTime   = $breakSchedule['latest_end_time'];
+                                } else {
+                                    $breakStartTime = $breakSchedule['start_time'];
+                                    $breakEndTime   = $breakSchedule['end_time'  ];
+                                }
 
                                 $breakStartDateTime = new DateTime(
-                                    $currentWorkScheduleStartDate->format('Y-m-d') . ' ' . $breakStartTime
+                                    $workScheduleStartDate->format('Y-m-d') . ' ' . $breakStartTime
                                 );
 
                                 $breakEndDateTime = new DateTime(
-                                    $currentWorkScheduleStartDate->format('Y-m-d') . ' ' . $breakEndTime
+                                    $workScheduleStartDate->format('Y-m-d') . ' ' . $breakEndTime
                                 );
 
-                                if ($breakStartDateTime < $currentWorkScheduleStartDateTime) {
+                                $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
+
+                                if ($breakSchedule['is_flexible']) {
+                                    $breakStartDateTime->modify('-' . $breakDurationInMinutes . ' minutes');
+                                }
+
+                                if ($breakStartDateTime < $workScheduleStartDateTime) {
                                     $breakStartDateTime->modify('+1 day');
                                 }
 
-                                if ($breakEndDateTime < $currentWorkScheduleStartDateTime) {
+                                if ($breakEndDateTime < $workScheduleStartDateTime) {
                                     $breakEndDateTime->modify('+1 day');
                                 }
 
@@ -562,10 +639,7 @@ class AttendanceService
                                     $breakEndDateTime->modify('+1 day');
                                 }
 
-                                $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
-
                                 if ($halfDayPart === 'first_half') {
-
                                     if ($halfDayEndDateTime > $breakStartDateTime &&
                                         $halfDayEndDateTime < $breakEndDateTime  ) {
 
@@ -618,25 +692,21 @@ class AttendanceService
                 }
             }
 
-            if ($lastAttendanceRecord['check_in_time' ] !== null &&
-                $lastAttendanceRecord['check_out_time'] !== null &&
-                $lastAttendanceRecord['work_schedule_history_work_schedule_id'] === $currentWorkSchedule['id'] &&
-                $lastAttendanceRecord['date'] === $currentWorkScheduleStartDate->format('Y-m-d')) {
-
+            if ($isUsingLastAttendanceWorkSchedule) {
                 $currentAttendanceRecord = new Attendance(
-                    id                         : null                                                           ,
-                    workScheduleHistoryId      : $lastAttendanceRecord['work_schedule_history_work_schedule_id'],
-                    date                       : $lastAttendanceRecord['date'                                  ],
-                    checkInTime                : $formattedCurrentDateTime                                      ,
-                    checkOutTime               : null                                                           ,
-                    totalBreakDurationInMinutes: $lastAttendanceRecord['total_break_duration_in_minutes'       ],
-                    totalHoursWorked           : $lastAttendanceRecord['total_hours_worked'                    ],
-                    lateCheckIn                : $lastAttendanceRecord['late_check_in'                         ],
-                    earlyCheckOut              : 0                                                              ,
-                    overtimeHours              : 0.00                                                           ,
-                    isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'                  ],
-                    attendanceStatus           : $lastAttendanceRecord['attendance_status'                     ],
-                    remarks                    : $lastAttendanceRecord['remarks'                               ]
+                    id                         : null                                                    ,
+                    workScheduleHistoryId      : $lastAttendanceRecord['work_schedule_history_id'       ],
+                    date                       : $lastAttendanceRecord['date'                           ],
+                    checkInTime                : $formattedCurrentDateTime                               ,
+                    checkOutTime               : null                                                    ,
+                    totalBreakDurationInMinutes: $lastAttendanceRecord['total_break_duration_in_minutes'],
+                    totalHoursWorked           : $lastAttendanceRecord['total_hours_worked'             ],
+                    lateCheckIn                : $lastAttendanceRecord['late_check_in'                  ],
+                    earlyCheckOut              : 0                                                       ,
+                    overtimeHours              : 0.00                                                    ,
+                    isOvertimeApproved         : $lastAttendanceRecord['is_overtime_approved'           ],
+                    attendanceStatus           : $lastAttendanceRecord['attendance_status'              ],
+                    remarks                    : $lastAttendanceRecord['remarks'                        ]
                 );
 
                 $attendanceCheckInResult = $this->attendanceRepository->checkIn($currentAttendanceRecord);
@@ -649,99 +719,63 @@ class AttendanceService
                 }
 
                 return [
-                    'status' => 'success',
+                    'status'  => 'success',
                     'message' => 'Checked-in recorded successfully.'
                 ];
             }
 
-            $minutesAllowedForEarlyCheckIn = 0;
-            $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
-
-            if ( ! $currentWorkSchedule['is_flextime']) {
-                $minutesAllowedForEarlyCheckIn = (int) $this->settingRepository->fetchSettingValue(
-                    settingKey: 'minutes_can_check_in_before_shift',
-                    groupName : 'work_schedule'
-                );
-
-                if ($minutesAllowedForEarlyCheckIn === ActionResult::FAILURE) {
-                    return [
-                        'status' => 'error',
-                        'message' => 'An unexpected error occurred. Please try again later.'
-                    ];
-                }
-
-                $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
-
-                $previousWorkSchedule = $this->getPreviousWorkSchedule(
-                    assignedWorkSchedules: $currentWorkSchedules,
-                    currentWorkSchedule  : $currentWorkSchedule
-                );
-
-                if ( ! empty($previousWorkSchedule)) {
-                    $previousWorkScheduleEndDateTime = new DateTime($previousWorkSchedule['end_time']);
-
-                    if ($previousWorkScheduleEndDateTime > $adjustedCurrentWorkScheduleStartDateTime) {
-                        $interval = $previousWorkScheduleEndDateTime->diff($currentWorkScheduleStartDateTime);
-                        $minutesAllowedForEarlyCheckIn = max(0, ($interval->h * 60) + $interval->i);
-
-                        $adjustedCurrentWorkScheduleStartDateTime = clone $currentWorkScheduleStartDateTime;
-                        $adjustedCurrentWorkScheduleStartDateTime->modify('-' . $minutesAllowedForEarlyCheckIn . ' minutes');
-                    }
-                }
-            }
-
-            if ( ! $currentWorkSchedule['is_flextime'] && $currentDateTime < $adjustedCurrentWorkScheduleStartDateTime) {
+            if ( ! $workSchedule['is_flextime'] && $currentDateTime < $adjustedWorkScheduleStartDateTime) {
                 return [
-                    'status' => 'warning',
+                    'status'  => 'warning',
                     'message' => 'You are not allowed to check in early.'
                 ];
             }
 
             $attendanceStatus = 'Present';
-            $lateCheckIn      = 0        ;
-            $gracePeriod      = 0        ;
+            $lateCheckIn      = 0;
+            $gracePeriod      = 0;
 
-            if ( ! $currentWorkSchedule['is_flextime']) {
-                $gracePeriod = $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
+            if ( ! $workSchedule['is_flextime']) {
+                $gracePeriod = (int) $this->settingRepository->fetchSettingValue('grace_period', 'work_schedule');
 
                 if ($gracePeriod === ActionResult::FAILURE) {
                     return [
-                        'status' => 'error',
+                        'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
 
-                $adjustedStartTime = (clone $currentWorkScheduleStartDateTime)->modify('+' . $gracePeriod . ' minutes');
+                $adjustedStartTime = (clone $workScheduleStartDateTime)->modify('+' . $gracePeriod . ' minutes');
 
                 if ($currentDateTime > $adjustedStartTime) {
-                    $lateCheckIn = max(0, floor(($currentDateTime->getTimestamp() - $adjustedStartTime->getTimestamp()) / 60));
+                    $lateCheckIn      = max(0, floor(($currentDateTime->getTimestamp() - $adjustedStartTime->getTimestamp()) / 60));
                     $attendanceStatus = 'Late';
                 }
             }
 
             $workScheduleHistory = $this->workScheduleRepository
-                ->fetchLatestWorkScheduleHistory($currentWorkSchedule['id']);
+                ->fetchLatestWorkScheduleHistory($workScheduleId);
 
             if ($workScheduleHistory === ActionResult::FAILURE) {
                 return [
-                    'status' => 'error',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
 
-            if ($gracePeriod                   !== $workScheduleHistory['grace_period'                     ] ||
-                $minutesAllowedForEarlyCheckIn !== $workScheduleHistory['minutes_can_check_in_before_shift']) {
+            if ($gracePeriod        !== $workScheduleHistory['grace_period'                     ] ||
+                $earlyCheckInWindow !== $workScheduleHistory['minutes_can_check_in_before_shift']) {
 
                 $workSchedule = new WorkSchedule(
-                    id               : $currentWorkSchedule['id'                  ],
-                    employeeId       : $employeeId                                 ,
-                    startTime        : $currentWorkSchedule['start_time'          ],
-                    endTime          : $currentWorkSchedule['end_time'            ],
-                    isFlextime       : $currentWorkSchedule['is_flextime'         ],
-                    totalHoursPerWeek: $currentWorkSchedule['total_hours_per_week'],
-                    totalWorkHours   : $currentWorkSchedule['total_work_hours'    ],
-                    startDate        : $currentWorkSchedule['start_date'          ],
-                    recurrenceRule   : $currentWorkSchedule['recurrence_rule'     ]
+                    id               : $workSchedule['id'                  ],
+                    employeeId       : $employeeId                          ,
+                    startTime        : $workSchedule['start_time'          ],
+                    endTime          : $workSchedule['end_time'            ],
+                    isFlextime       : $workSchedule['is_flextime'         ],
+                    totalHoursPerWeek: $workSchedule['total_hours_per_week'],
+                    totalWorkHours   : $workSchedule['total_work_hours'    ],
+                    startDate        : $workSchedule['start_date'          ],
+                    recurrenceRule   : $workSchedule['recurrence_rule'     ]
                 );
 
                 $workScheduleHistoryCreateResult = $this->workScheduleRepository
@@ -749,18 +783,18 @@ class AttendanceService
 
                 if ($workScheduleHistoryCreateResult === ActionResult::FAILURE) {
                     return [
-                        'status' => 'error',
+                        'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
             }
 
             $workScheduleHistoryId = $this->workScheduleRepository
-                ->fetchLatestWorkScheduleHistoryId($currentWorkSchedule['id']);
+                ->fetchLatestWorkScheduleHistoryId($workScheduleId);
 
             if ($workScheduleHistoryId === ActionResult::FAILURE) {
                 return [
-                    'status' => 'error',
+                    'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
@@ -768,23 +802,23 @@ class AttendanceService
             try {
                 $this->pdo->beginTransaction();
 
-                $currentAttendanceRecord = new Attendance(
-                    id                         : null                                          ,
-                    workScheduleHistoryId      : $workScheduleHistoryId                        ,
-                    date                       : $currentWorkScheduleStartDate->format('Y-m-d'),
-                    checkInTime                : $formattedCurrentDateTime                     ,
-                    checkOutTime               : null                                          ,
-                    totalBreakDurationInMinutes: 0.00                                          ,
-                    totalHoursWorked           : 0.00                                          ,
-                    lateCheckIn                : $lateCheckIn                                  ,
-                    earlyCheckOut              : 0                                             ,
-                    overtimeHours              : 0.00                                          ,
-                    isOvertimeApproved         : false                                         ,
-                    attendanceStatus           : $attendanceStatus                             ,
+                $attendanceRecord = new Attendance(
+                    id                         : null                                   ,
+                    workScheduleHistoryId      : $workScheduleHistoryId                 ,
+                    date                       : $workScheduleStartDate->format('Y-m-d'),
+                    checkInTime                : $formattedCurrentDateTime              ,
+                    checkOutTime               : null                                   ,
+                    totalBreakDurationInMinutes: 0.00                                   ,
+                    totalHoursWorked           : 0.00                                   ,
+                    lateCheckIn                : $lateCheckIn                           ,
+                    earlyCheckOut              : 0                                      ,
+                    overtimeHours              : 0.00                                   ,
+                    isOvertimeApproved         : false                                  ,
+                    attendanceStatus           : $attendanceStatus                      ,
                     remarks                    : null
                 );
 
-                $attendanceCheckInResult = $this->attendanceRepository->checkIn($currentAttendanceRecord);
+                $attendanceCheckInResult = $this->attendanceRepository->checkIn($attendanceRecord);
 
                 if ($attendanceCheckInResult === ActionResult::FAILURE) {
                     $this->pdo->rollback();
@@ -796,7 +830,7 @@ class AttendanceService
                 }
 
                 if ( ! empty($breakSchedules)) {
-                    $currentAttendanceRecordId = $this->pdo->lastInsertId();
+                    $attendanceRecordId = $this->pdo->lastInsertId();
 
                     foreach ($breakSchedules as $breakSchedule) {
                         $breakScheduleHistoryId = $this->breakScheduleRepository
@@ -812,12 +846,12 @@ class AttendanceService
                         }
 
                         $employeeBreakRecord = new EmployeeBreak(
-                            id                    : null                      ,
-                            attendanceId          : $currentAttendanceRecordId,
-                            breakScheduleHistoryId: $breakScheduleHistoryId   ,
-                            startTime             : null                      ,
-                            endTime               : null                      ,
-                            breakDurationInMinutes: 0                         ,
+                            id                    : null                     ,
+                            attendanceId          : $attendanceRecordId      ,
+                            breakScheduleHistoryId: $breakScheduleHistoryId  ,
+                            startTime             : null                     ,
+                            endTime               : null                     ,
+                            breakDurationInMinutes: 0                        ,
                             createdAt             : $formattedCurrentDateTime
                         );
 
@@ -852,7 +886,7 @@ class AttendanceService
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
-            // if check in
+
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
             $a = 1;
