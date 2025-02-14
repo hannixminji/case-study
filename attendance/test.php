@@ -24,8 +24,7 @@ $employmentTypeBenefitService = new EmploymentTypeBenefitService($employmentType
 
 $employmentTypeBenefit = new EmploymentTypeBenefit(null, "Regular/Permanent", 1, null, null);
 
-$employmentTypeBenefitService->createEmploymentTypeBenefit($employmentTypeBenefit);
-
+//print_r($employmentTypeBenefitService->createEmploymentTypeBenefit($employmentTypeBenefit));
 
 $leaveEntitlementDao = new LeaveEntitlementDao($pdo);
 $leaveEntitlementRepository = new LeaveEntitlementRepository($leaveEntitlementDao);
@@ -46,9 +45,9 @@ $attendanceDao    = new AttendanceDao($pdo);
 $employeeDao      = new EmployeeDao($pdo);
 $leaveRequestDao  = new LeaveRequestDao($pdo);
 $settingDao       = new SettingDao($pdo);
-$workScheduleDao  = new WorkScheduleDao($pdo, $settingDao);
+$workScheduleDao  = new WorkScheduleDao($pdo);
 $breakTypeDao = new BreakTypeDao($pdo);
-$breakScheduleDao = new BreakScheduleDao($pdo, $workScheduleDao, $breakTypeDao);
+$breakScheduleDao = new BreakScheduleDao($pdo);
 $employeeBreakDao = new EmployeeBreakDao($pdo);
 $overtimeRateDao = new OvertimeRateDao($pdo);
 $overtimeRateAssignmentDao = new OvertimeRateAssignmentDao($pdo, $overtimeRateDao);
@@ -64,6 +63,7 @@ $employeeBreakRepository = new EmployeeBreakRepository($employeeBreakDao);
 $overtimeRateRepository = new OvertimeRateRepository($overtimeRateDao);
 $overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overtimeRateAssignmentDao);
 $holidayRepository = new HolidayRepository($holidayDao);
+$breakTypeRepository = new BreakTypeRepository($breakTypeDao);
 
 $attendanceService = new AttendanceService(
     $pdo,
@@ -73,7 +73,8 @@ $attendanceService = new AttendanceService(
     $workScheduleRepository,
     $settingRepository,
     $breakScheduleRepository,
-    $employeeBreakRepository
+    $employeeBreakRepository,
+    $breakTypeRepository
 );
 
 $employeeBreakService = new EmployeeBreakService(
@@ -82,11 +83,19 @@ $employeeBreakService = new EmployeeBreakService(
     $attendanceRepository,
     $breakScheduleRepository
 );
-
+$filterCriteria = [
+    [
+        'column' => 'employee_break.id',
+        'operator' => '=',
+        'value' => 6
+    ]
+];
+$employeeBreaks = $employeeBreakDao->fetchAll([]);
+print_r($employeeBreaks);
 $rfidUid = '123456789';
 $currentDateTime = '2025-01-01 08:00:00';
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
-print_r($response);
+
+//print_r($attendanceService->handleRfidTap($rfidUid, $currentDateTime));
 /*
 $currentDateTime = '2025-01-01 12:00:00';
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);

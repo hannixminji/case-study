@@ -3,7 +3,7 @@
 class WorkSchedule
 {
     public function __construct(
-        private            int|string|null $id               ,
+        private readonly   int|string|null $id               ,
         private readonly   int|string      $employeeId       ,
         private readonly   string          $startTime        ,
         private readonly   string          $endTime          ,
@@ -18,11 +18,6 @@ class WorkSchedule
     public function getId(): int|string|null
     {
         return $this->id;
-    }
-
-    public function setId(int|string|null $id): void
-    {
-        $this->id = $id;
     }
 
     public function getEmployeeId(): int|string
@@ -63,10 +58,5 @@ class WorkSchedule
     public function getRecurrenceRule(): string
     {
         return $this->recurrenceRule;
-    }
-
-    public function setRecurrenceRule(string $recurrenceRule): void
-    {
-        $this->recurrenceRule = $recurrenceRule;
     }
 }

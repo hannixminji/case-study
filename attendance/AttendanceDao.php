@@ -204,49 +204,49 @@ class AttendanceDao
     ): array|ActionResult {
 
         $tableColumns = [
-            "id"                                                      => "attendance.id                                           AS id"                                                     ,
-            "work_schedule_history_id"                                => "attendance.work_schedule_history_id                     AS work_schedule_history_id"                               ,
-            "date"                                                    => "attendance.date                                         AS date"                                                   ,
-            "check_in_time"                                           => "attendance.check_in_time                                AS check_in_time"                                          ,
-            "check_out_time"                                          => "attendance.check_out_time                               AS check_out_time"                                         ,
-            "total_break_duration_in_minutes"                         => "attendance.total_break_duration_in_minutes              AS total_break_duration_in_minutes"                        ,
-            "total_hours_worked"                                      => "attendance.total_hours_worked                           AS total_hours_worked"                                     ,
-            "late_check_in"                                           => "attendance.late_check_in                                AS late_check_in"                                          ,
-            "early_check_out"                                         => "attendance.early_check_out                              AS early_check_out"                                        ,
-            "overtime_hours"                                          => "attendance.overtime_hours                               AS overtime_hours"                                         ,
-            "is_overtime_approved"                                    => "attendance.is_overtime_approved                         AS is_overtime_approved"                                   ,
-            "attendance_status"                                       => "attendance.attendance_status                            AS attendance_status"                                      ,
-            "remarks"                                                 => "attendance.remarks                                      AS remarks"                                                ,
-            "is_processed_for_next_payroll"                           => "attendance.is_processed_for_next_payroll                AS is_processed_for_next_payroll"                          ,
-            "created_at"                                              => "attendance.created_at                                   AS created_at"                                             ,
-            "updated_at"                                              => "attendance.updated_at                                   AS updated_at"                                             ,
-            "deleted_at"                                              => "attendance.deleted_at                                   AS deleted_at"                                             ,
+            "id"                                                       => "attendance.id                                            AS id"                                                      ,
+            "work_schedule_snapshot_id"                                => "attendance.work_schedule_snapshot_id                     AS work_schedule_snapshot_id"                               ,
+            "date"                                                     => "attendance.date                                          AS date"                                                    ,
+            "check_in_time"                                            => "attendance.check_in_time                                 AS check_in_time"                                           ,
+            "check_out_time"                                           => "attendance.check_out_time                                AS check_out_time"                                          ,
+            "total_break_duration_in_minutes"                          => "attendance.total_break_duration_in_minutes               AS total_break_duration_in_minutes"                         ,
+            "total_hours_worked"                                       => "attendance.total_hours_worked                            AS total_hours_worked"                                      ,
+            "late_check_in"                                            => "attendance.late_check_in                                 AS late_check_in"                                           ,
+            "early_check_out"                                          => "attendance.early_check_out                               AS early_check_out"                                         ,
+            "overtime_hours"                                           => "attendance.overtime_hours                                AS overtime_hours"                                          ,
+            "is_overtime_approved"                                     => "attendance.is_overtime_approved                          AS is_overtime_approved"                                    ,
+            "attendance_status"                                        => "attendance.attendance_status                             AS attendance_status"                                       ,
+            "remarks"                                                  => "attendance.remarks                                       AS remarks"                                                 ,
+            "is_processed_for_next_payroll"                            => "attendance.is_processed_for_next_payroll                 AS is_processed_for_next_payroll"                           ,
+            "created_at"                                               => "attendance.created_at                                    AS created_at"                                              ,
+            "updated_at"                                               => "attendance.updated_at                                    AS updated_at"                                              ,
+            "deleted_at"                                               => "attendance.deleted_at                                    AS deleted_at"                                              ,
 
-            "day_of_the_week"                                         => "DAYOFWEEK(attendance.date)                              AS day_of_the_week"                                        ,
+            "day_of_the_week"                                          => "DAYOFWEEK(attendance.date)                               AS day_of_the_week"                                         ,
 
-            "work_schedule_history_work_schedule_id"                  => "work_schedule_history.work_schedule_id                  AS work_schedule_history_work_schedule_id"                 ,
-            "work_schedule_history_employee_id"                       => "work_schedule_history.employee_id                       AS work_schedule_history_employee_id"                      ,
-            "work_schedule_history_start_time"                        => "work_schedule_history.start_time                        AS work_schedule_history_start_time"                       ,
-            "work_schedule_history_end_time"                          => "work_schedule_history.end_time                          AS work_schedule_history_end_time"                         ,
-            "work_schedule_history_is_flextime"                       => "work_schedule_history.is_flextime                       AS work_schedule_history_is_flextime"                      ,
-            "work_schedule_history_total_hours_per_week"              => "work_schedule_history.total_hours_per_week              AS work_schedule_history_total_hours_per_week"             ,
-            "work_schedule_history_total_work_hours"                  => "work_schedule_history.total_work_hours                  AS work_schedule_history_total_work_hours"                 ,
-            "work_schedule_history_start_date"                        => "work_schedule_history.start_date                        AS work_schedule_history_start_date"                       ,
-            "work_schedule_history_recurrence_rule"                   => "work_schedule_history.recurrence_rule                   AS work_schedule_history_recurrence_rule"                  ,
-            "work_schedule_history_grace_period"                      => "work_schedule_history.grace_period                      AS work_schedule_history_grace_period"                     ,
-            "work_schedule_history_minutes_can_check_in_before_shift" => "work_schedule_history.minutes_can_check_in_before_shift AS work_schedule_history_minutes_can_check_in_before_shift",
-            "work_schedule_history_active_at"                         => "work_schedule_history.active_at                         AS work_schedule_history_active_at"                        ,
+            "work_schedule_snapshot_work_schedule_id"                  => "work_schedule_snapshot.work_schedule_id                  AS work_schedule_snapshot_work_schedule_id"                 ,
+            "work_schedule_snapshot_employee_id"                       => "work_schedule_snapshot.employee_id                       AS work_schedule_snapshot_employee_id"                      ,
+            "work_schedule_snapshot_start_time"                        => "work_schedule_snapshot.start_time                        AS work_schedule_snapshot_start_time"                       ,
+            "work_schedule_snapshot_end_time"                          => "work_schedule_snapshot.end_time                          AS work_schedule_snapshot_end_time"                         ,
+            "work_schedule_snapshot_is_flextime"                       => "work_schedule_snapshot.is_flextime                       AS work_schedule_snapshot_is_flextime"                      ,
+            "work_schedule_snapshot_total_hours_per_week"              => "work_schedule_snapshot.total_hours_per_week              AS work_schedule_snapshot_total_hours_per_week"             ,
+            "work_schedule_snapshot_total_work_hours"                  => "work_schedule_snapshot.total_work_hours                  AS work_schedule_snapshot_total_work_hours"                 ,
+            "work_schedule_snapshot_start_date"                        => "work_schedule_snapshot.start_date                        AS work_schedule_snapshot_start_date"                       ,
+            "work_schedule_snapshot_recurrence_rule"                   => "work_schedule_snapshot.recurrence_rule                   AS work_schedule_snapshot_recurrence_rule"                  ,
+            "work_schedule_snapshot_grace_period"                      => "work_schedule_snapshot.grace_period                      AS work_schedule_snapshot_grace_period"                     ,
+            "work_schedule_snapshot_minutes_can_check_in_before_shift" => "work_schedule_snapshot.minutes_can_check_in_before_shift AS work_schedule_snapshot_minutes_can_check_in_before_shift",
+            "work_schedule_snapshot_active_at"                         => "work_schedule_snapshot.active_at                         AS work_schedule_snapshot_active_at"                        ,
 
-            "employee_full_name"                                      => "employee.full_name                                      AS employee_full_name"                                     ,
-            "employee_code"                                           => "employee.employee_code                                  AS employee_code"                                          ,
-            "employee_job_title_id"                                   => "employee.job_title_id                                   AS employee_job_title_id"                                  ,
-            "employee_department_id"                                  => "employee.department_id                                  AS employee_department_id"                                 ,
-            "employee_supervisor_id"                                  => "employee.supervisor_id                                  AS employee_supervisor_id"                                 ,
-            "employee_deleted_at"                                     => "employee.deleted_at                                     AS employee_deleted_at"                                    ,
+            "employee_full_name"                                       => "employee.full_name                                       AS employee_full_name"                                      ,
+            "employee_code"                                            => "employee.employee_code                                   AS employee_code"                                           ,
+            "employee_job_title_id"                                    => "employee.job_title_id                                    AS employee_job_title_id"                                   ,
+            "employee_department_id"                                   => "employee.department_id                                   AS employee_department_id"                                  ,
+            "employee_supervisor_id"                                   => "employee.supervisor_id                                   AS employee_supervisor_id"                                  ,
+            "employee_deleted_at"                                      => "employee.deleted_at                                      AS employee_deleted_at"                                     ,
 
-            "job_title"                                               => "job_title.title                                         AS job_title"                                              ,
+            "job_title"                                                => "job_title.title                                          AS job_title"                                               ,
 
-            "department_name"                                         => "department.name                                         AS department_name"
+            "department_name"                                          => "department.name                                          AS department_name"
         ];
 
         $selectedColumns =
@@ -259,35 +259,35 @@ class AttendanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("work_schedule_history_work_schedule_id"                 , $selectedColumns) ||
-            array_key_exists("work_schedule_history_employee_id"                      , $selectedColumns) ||
-            array_key_exists("work_schedule_history_start_time"                       , $selectedColumns) ||
-            array_key_exists("work_schedule_history_end_time"                         , $selectedColumns) ||
-            array_key_exists("work_schedule_history_is_flextime"                      , $selectedColumns) ||
-            array_key_exists("work_schedule_history_total_hours_per_week"             , $selectedColumns) ||
-            array_key_exists("work_schedule_history_total_work_hours"                 , $selectedColumns) ||
-            array_key_exists("work_schedule_history_start_date"                       , $selectedColumns) ||
-            array_key_exists("work_schedule_history_recurrence_rule"                  , $selectedColumns) ||
-            array_key_exists("work_schedule_history_grace_period"                     , $selectedColumns) ||
-            array_key_exists("work_schedule_history_minutes_can_check_in_before_shift", $selectedColumns) ||
-            array_key_exists("work_schedule_history_active_at"                        , $selectedColumns) ||
+        if (array_key_exists("work_schedule_snapshot_work_schedule_id"                 , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_employee_id"                      , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_start_time"                       , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_end_time"                         , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_is_flextime"                      , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_total_hours_per_week"             , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_total_work_hours"                 , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_start_date"                       , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_recurrence_rule"                  , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_grace_period"                     , $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_minutes_can_check_in_before_shift", $selectedColumns) ||
+            array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
 
-            array_key_exists("employee_full_name"                                     , $selectedColumns) ||
-            array_key_exists("employee_code"                                          , $selectedColumns) ||
-            array_key_exists("employee_job_title_id"                                  , $selectedColumns) ||
-            array_key_exists("employee_department_id"                                 , $selectedColumns) ||
-            array_key_exists("employee_supervisor_id"                                 , $selectedColumns) ||
-            array_key_exists("employee_deleted_at"                                    , $selectedColumns) ||
+            array_key_exists("employee_full_name"                                      , $selectedColumns) ||
+            array_key_exists("employee_code"                                           , $selectedColumns) ||
+            array_key_exists("employee_job_title_id"                                   , $selectedColumns) ||
+            array_key_exists("employee_department_id"                                  , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"                                  , $selectedColumns) ||
+            array_key_exists("employee_deleted_at"                                     , $selectedColumns) ||
 
-            array_key_exists("job_title"                                              , $selectedColumns) ||
+            array_key_exists("job_title"                                               , $selectedColumns) ||
 
-            array_key_exists("department_name"                                        , $selectedColumns)) {
+            array_key_exists("department_name"                                         , $selectedColumns)) {
 
             $joinClauses .= "
                 LEFT JOIN
-                    work_schedules_history AS work_schedule_history
+                    work_schedule_snapshots AS work_schedule_snapshot
                 ON
-                    attendance.work_schedule_history_id = work_schedule_history.id
+                    attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
             ";
         }
 

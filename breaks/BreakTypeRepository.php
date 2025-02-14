@@ -16,9 +16,9 @@ class BreakTypeRepository
         return $this->breakTypeDao->create($breakType);
     }
 
-    public function createBreakTypeHistory(BreakType $breakType): ActionResult
+    public function createBreakTypeSnapshot(BreakTypeSnapshot $breakTypeSnapshot): int|ActionResult
     {
-        return $this->breakTypeDao->createHistory($breakType);
+        return $this->breakTypeDao->createSnapshot($breakTypeSnapshot);
     }
 
     public function fetchAllBreakTypes(
@@ -40,14 +40,9 @@ class BreakTypeRepository
         );
     }
 
-    public function fetchLatestBreakTypeHistoryId(int $breakTypeId): int|ActionResult
+    public function fetchLatestBreakTypeSnapshotById(int $breakTypeId): array|ActionResult
     {
-        return $this->breakTypeDao->fetchLatestHistoryId($breakTypeId);
-    }
-
-    public function fetchLatestBreakTypeHistory(int $breakTypeId): array|ActionResult
-    {
-        return $this->breakTypeDao->fetchLatestHistory($breakTypeId);
+        return $this->breakTypeDao->fetchLatestSnapshotById($breakTypeId);
     }
 
     public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult

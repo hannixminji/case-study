@@ -35,11 +35,6 @@ class WorkScheduleService
         );
     }
 
-    public function fetchWorkScheduleLastInsertedId(): int|ActionResult
-    {
-        return $this->workScheduleRepository->fetchWorkScheduleLastInsertedId();
-    }
-
     public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->workScheduleRepository->updateWorkSchedule($workSchedule, $isHashedId);

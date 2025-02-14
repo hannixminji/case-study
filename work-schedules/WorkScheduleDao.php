@@ -1,20 +1,19 @@
 <?php
 
-require_once __DIR__ . "/../vendor/autoload.php"    ;
+require_once __DIR__ . "/../vendor/autoload.php"            ;
 
-require_once __DIR__ . "/../settings/SettingDao.php";
+require_once __DIR__ . "/../includes/Helper.php"            ;
+require_once __DIR__ . "/../includes/enums/ActionResult.php";
 
 use RRule\RSet;
 
 class WorkScheduleDao
 {
-    private readonly PDO        $pdo       ;
-    private readonly SettingDao $settingDao;
+    private readonly PDO $pdo;
 
-    public function __construct(PDO $pdo, SettingDao $settingDao)
+    public function __construct(PDO $pdo)
     {
-        $this->pdo        = $pdo       ;
-        $this->settingDao = $settingDao;
+        $this->pdo = $pdo;
     }
 
     public function create(WorkSchedule $workSchedule): ActionResult
@@ -62,15 +61,9 @@ class WorkScheduleDao
 
             $statement->execute();
 
-            $workSchedule->setId($this->pdo->lastInsertId());
-
-            if ($this->createHistory($workSchedule) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
-
-                return ActionResult::FAILURE;
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
             }
-
-            $this->pdo->commit();
 
             return ActionResult::SUCCESS;
 
@@ -86,10 +79,10 @@ class WorkScheduleDao
         }
     }
 
-    public function createHistory(WorkSchedule $workSchedule): ActionResult
+    public function createSnapshot(WorkScheduleSnapshot $workScheduleSnapshot): int|ActionResult
     {
         $query = "
-            INSERT INTO work_schedules_history (
+            INSERT INTO work_schedule_snapshots (
                 work_schedule_id                 ,
                 employee_id                      ,
                 start_time                       ,
@@ -117,88 +110,41 @@ class WorkScheduleDao
             )
         ";
 
+        $isLocalTransaction = ! $this->pdo->inTransaction();
+
         try {
-            $gracePeriod                  = 0;
-            $minutesCanCheckInBeforeShift = 0;
-
-            if ( ! $workSchedule->isFlextime()) {
-                $settingColumns = [
-                    "setting_value"
-                ];
-
-                $settingFilterCriteria = [
-                    [
-                        "column"   => "setting.group_name",
-                        "operator" => "="                 ,
-                        "value"    => "work_schedule"
-                    ],
-                    [
-                        "column"   => "setting.setting_key",
-                        "operator" => "="                  ,
-                        "value"    => "grace_period"
-                    ]
-                ];
-
-                $settingFetchResult = $this->settingDao->fetchAll(
-                    columns             : $settingColumns       ,
-                    filterCriteria      : $settingFilterCriteria,
-                    limit               : 1                     ,
-                    includeTotalRowCount: false
-                );
-
-                if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
-                    return ActionResult::FAILURE;
-                }
-
-                $gracePeriod = $settingFetchResult["result_set"][0]["setting_value"];
-
-                $settingFilterCriteria = [
-                    [
-                        "column"   => "setting.group_name",
-                        "operator" => "="                 ,
-                        "value"    => "work_schedule"
-                    ],
-                    [
-                        "column"   => "setting.setting_key"              ,
-                        "operator" => "="                                ,
-                        "value"    => "minutes_can_check_in_before_shift"
-                    ]
-                ];
-
-                $settingFetchResult = $this->settingDao->fetchAll(
-                    columns             : $settingColumns       ,
-                    filterCriteria      : $settingFilterCriteria,
-                    limit               : 1                     ,
-                    includeTotalRowCount: false
-                );
-
-                if ($settingFetchResult === ActionResult::FAILURE || empty($settingFetchResult["result_set"])) {
-                    return ActionResult::FAILURE;
-                }
-
-                $minutesCanCheckInBeforeShift = $settingFetchResult["result_set"][0]["setting_value"];
+            if ($isLocalTransaction) {
+                $this->pdo->beginTransaction();
             }
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_id"                 , $workSchedule->getId()               , Helper::getPdoParameterType($workSchedule->getId()               ));
-            $statement->bindValue(":employee_id"                      , $workSchedule->getEmployeeId()       , Helper::getPdoParameterType($workSchedule->getEmployeeId()       ));
-            $statement->bindValue(":start_time"                       , $workSchedule->getStartTime()        , Helper::getPdoParameterType($workSchedule->getStartTime()        ));
-            $statement->bindValue(":end_time"                         , $workSchedule->getEndTime()          , Helper::getPdoParameterType($workSchedule->getEndTime()          ));
-            $statement->bindValue(":is_flextime"                      , $workSchedule->isFlextime()          , Helper::getPdoParameterType($workSchedule->isFlextime()          ));
-            $statement->bindValue(":total_hours_per_week"             , $workSchedule->getTotalHoursPerWeek(), Helper::getPdoParameterType($workSchedule->getTotalHoursPerWeek()));
-            $statement->bindValue(":total_work_hours"                 , $workSchedule->getTotalWorkHours()   , Helper::getPdoParameterType($workSchedule->getTotalWorkHours()   ));
-            $statement->bindValue(":start_date"                       , $workSchedule->getStartDate()        , Helper::getPdoParameterType($workSchedule->getStartDate()        ));
-            $statement->bindValue(":recurrence_rule"                  , $workSchedule->getRecurrenceRule()   , Helper::getPdoParameterType($workSchedule->getRecurrenceRule()   ));
-            $statement->bindValue(":grace_period"                     , $gracePeriod                         , Helper::getPdoParameterType($gracePeriod                         ));
-            $statement->bindValue(":minutes_can_check_in_before_shift", $minutesCanCheckInBeforeShift        , Helper::getPdoParameterType($minutesCanCheckInBeforeShift        ));
+            $statement->bindValue(":work_schedule_id"                 , $workScheduleSnapshot->getWorkScheduleId()    , Helper::getPdoParameterType($workScheduleSnapshot->getWorkScheduleId()    ));
+            $statement->bindValue(":employee_id"                      , $workScheduleSnapshot->getEmployeeId()        , Helper::getPdoParameterType($workScheduleSnapshot->getEmployeeId()        ));
+            $statement->bindValue(":start_time"                       , $workScheduleSnapshot->getStartTime()         , Helper::getPdoParameterType($workScheduleSnapshot->getStartTime()         ));
+            $statement->bindValue(":end_time"                         , $workScheduleSnapshot->getEndTime()           , Helper::getPdoParameterType($workScheduleSnapshot->getEndTime()           ));
+            $statement->bindValue(":is_flextime"                      , $workScheduleSnapshot->isFlextime()           , Helper::getPdoParameterType($workScheduleSnapshot->isFlextime()           ));
+            $statement->bindValue(":total_hours_per_week"             , $workScheduleSnapshot->getTotalHoursPerWeek() , Helper::getPdoParameterType($workScheduleSnapshot->getTotalHoursPerWeek() ));
+            $statement->bindValue(":total_work_hours"                 , $workScheduleSnapshot->getTotalWorkHours()    , Helper::getPdoParameterType($workScheduleSnapshot->getTotalWorkHours()    ));
+            $statement->bindValue(":start_date"                       , $workScheduleSnapshot->getStartDate()         , Helper::getPdoParameterType($workScheduleSnapshot->getStartDate()         ));
+            $statement->bindValue(":recurrence_rule"                  , $workScheduleSnapshot->getRecurrenceRule()    , Helper::getPdoParameterType($workScheduleSnapshot->getRecurrenceRule()    ));
+            $statement->bindValue(":grace_period"                     , $workScheduleSnapshot->getGracePeriod()       , Helper::getPdoParameterType($workScheduleSnapshot->getGracePeriod()       ));
+            $statement->bindValue(":minutes_can_check_in_before_shift", $workScheduleSnapshot->getEarlyCheckInWindow(), Helper::getPdoParameterType($workScheduleSnapshot->getEarlyCheckInWindow()));
 
             $statement->execute();
+
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
+            }
 
             return ActionResult::SUCCESS;
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while creating the work schedule history. " .
+            if ($isLocalTransaction) {
+                $this->pdo->rollBack();
+            }
+
+            error_log("Database Error: An error occurred while creating the work schedule snapshot. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -426,45 +372,13 @@ class WorkScheduleDao
         }
     }
 
-    public function fetchLatestHistoryId(int $workScheduleId): int|ActionResult
-    {
-        $query = "
-            SELECT
-                id
-            FROM
-                work_schedules_history
-            WHERE
-                work_schedule_id = :work_schedule_id
-            ORDER BY
-                active_at DESC
-            LIMIT 1
-        ";
-
-        try {
-            $statement = $this->pdo->prepare($query);
-
-            $statement->bindValue(":work_schedule_id", $workScheduleId, Helper::getPdoParameterType($workScheduleId));
-
-            $statement->execute();
-
-            return $statement->fetchColumn()
-                ?: ActionResult::FAILURE;
-
-        } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the work schedule history ID. " .
-                      "Exception: {$exception->getMessage()}");
-
-            return ActionResult::FAILURE;
-        }
-    }
-
-    public function fetchLatestHistory(int $workScheduleId): array|ActionResult
+    public function fetchLatestSnapshotById(int $workScheduleId): array|ActionResult
     {
         $query = "
             SELECT
                 *
             FROM
-                work_schedules_history
+                work_schedule_snapshots
             WHERE
                 work_schedule_id = :work_schedule_id
             ORDER BY
@@ -483,7 +397,7 @@ class WorkScheduleDao
                 ?: ActionResult::FAILURE;
 
         } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the work schedule history ID. " .
+            error_log("Database Error: An error occurred while fetching the latest work schedule snapshot. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -572,19 +486,6 @@ class WorkScheduleDao
         }
     }
 
-    public function fetchLastInsertedId(): int|ActionResult
-    {
-        try {
-            return (int) $this->pdo->lastInsertId();
-
-        } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while retrieving the last inserted ID. " .
-                      "Exception: {$exception->getMessage()}");
-
-            return ActionResult::FAILURE;
-        }
-    }
-
     public function update(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
     {
         $query = "
@@ -629,13 +530,9 @@ class WorkScheduleDao
 
             $statement->execute();
 
-            if ($this->createHistory($workSchedule) === ActionResult::FAILURE) {
-                $this->pdo->rollBack();
-
-                return ActionResult::FAILURE;
+            if ($isLocalTransaction) {
+                $this->pdo->commit();
             }
-
-            $this->pdo->commit();
 
             return ActionResult::SUCCESS;
 

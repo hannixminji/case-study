@@ -1,19 +1,19 @@
 <?php
 
-class BreakType
+class BreakTypeSnapshot
 {
     public function __construct(
-        private readonly int|string|null $id                       ,
-        private readonly string          $name                     ,
-        private readonly int             $durationInMinutes        ,
-        private readonly bool            $isPaid                   ,
-        private readonly bool            $requireBreakInAndBreakOut
+        private readonly int    $breakTypeId              ,
+        private readonly string $name                     ,
+        private readonly int    $durationInMinutes        ,
+        private readonly bool   $isPaid                   ,
+        private readonly bool   $requireBreakInAndBreakOut
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getBreakTypeId(): int
     {
-        return $this->id;
+        return $this->breakTypeId;
     }
 
     public function getName(): string

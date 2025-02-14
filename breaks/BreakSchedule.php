@@ -3,7 +3,7 @@
 class BreakSchedule
 {
     public function __construct(
-        private            int|string|null $id               ,
+        private readonly   int|string|null $id               ,
         private readonly   int|string      $workScheduleId   ,
         private readonly   int|string      $breakTypeId      ,
         private readonly ? string          $startTime        ,
@@ -17,11 +17,6 @@ class BreakSchedule
     public function getId(): int|string|null
     {
         return $this->id;
-    }
-
-    public function setId(int|string|null $id): void
-    {
-        $this->id = $id;
     }
 
     public function getWorkScheduleId(): int|string

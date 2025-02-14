@@ -1,7 +1,9 @@
 <?php
 
 require_once __DIR__ . '/Attendance.php'                              ;
+
 require_once __DIR__ . '/../work-schedules/WorkSchedule.php'          ;
+require_once __DIR__ . '/../breaks/BreakSchedule.php'                 ;
 require_once __DIR__ . '/../breaks/EmployeeBreak.php'                 ;
 
 require_once __DIR__ . '/AttendanceRepository.php'                    ;
@@ -12,6 +14,7 @@ require_once __DIR__ . '/../work-schedules/WorkScheduleRepository.php';
 require_once __DIR__ . '/../settings/SettingRepository.php'           ;
 require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'       ;
 require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'       ;
+require_once __DIR__ . '/../breaks/BreakTypeRepository.php'           ;
 
 class AttendanceService
 {
@@ -23,6 +26,7 @@ class AttendanceService
     private readonly SettingRepository       $settingRepository      ;
     private readonly BreakScheduleRepository $breakScheduleRepository;
     private readonly EmployeeBreakRepository $employeeBreakRepository;
+    private readonly BreakTypeRepository     $breakTypeRepository    ;
 
     public function __construct(
         PDO                     $pdo                    ,
@@ -32,7 +36,8 @@ class AttendanceService
         WorkScheduleRepository  $workScheduleRepository ,
         SettingRepository       $settingRepository      ,
         BreakScheduleRepository $breakScheduleRepository,
-        EmployeeBreakRepository $employeeBreakRepository
+        EmployeeBreakRepository $employeeBreakRepository,
+        BreakTypeRepository     $breakTypeRepository
     ) {
         $this->pdo                     = $pdo                    ;
         $this->attendanceRepository    = $attendanceRepository   ;
@@ -42,6 +47,7 @@ class AttendanceService
         $this->settingRepository       = $settingRepository      ;
         $this->breakScheduleRepository = $breakScheduleRepository;
         $this->employeeBreakRepository = $employeeBreakRepository;
+        $this->breakTypeRepository     = $breakTypeRepository    ;
     }
 
     public function handleRfidTap(string $rfidUid, string $currentDateTime)
@@ -155,30 +161,30 @@ class AttendanceService
         }
 
         $attendanceColumns = [
-            'id'                                                     ,
-            'work_schedule_history_id'                               ,
-            'date'                                                   ,
-            'check_in_time'                                          ,
-            'check_out_time'                                         ,
-            'total_break_duration_in_minutes'                        ,
-            'total_hours_worked'                                     ,
-            'late_check_in'                                          ,
-            'early_check_out'                                        ,
-            'overtime_hours'                                         ,
-            'is_overtime_approved'                                   ,
-            'attendance_status'                                      ,
-            'remarks'                                                ,
+            'id'                                                      ,
+            'work_schedule_snapshot_id'                               ,
+            'date'                                                    ,
+            'check_in_time'                                           ,
+            'check_out_time'                                          ,
+            'total_break_duration_in_minutes'                         ,
+            'total_hours_worked'                                      ,
+            'late_check_in'                                           ,
+            'early_check_out'                                         ,
+            'overtime_hours'                                          ,
+            'is_overtime_approved'                                    ,
+            'attendance_status'                                       ,
+            'remarks'                                                 ,
 
-            'work_schedule_history_work_schedule_id'                 ,
-            'work_schedule_history_start_time'                       ,
-            'work_schedule_history_end_time'                         ,
-            'work_schedule_history_is_flextime'                      ,
-            'work_schedule_history_total_hours_per_week'             ,
-            'work_schedule_history_total_work_hours'                 ,
-            'work_schedule_history_start_date'                       ,
-            'work_schedule_history_recurrence_rule'                  ,
-            'work_schedule_history_grace_period'                     ,
-            'work_schedule_history_minutes_can_check_in_before_shift'
+            'work_schedule_snapshot_work_schedule_id'                 ,
+            'work_schedule_snapshot_start_time'                       ,
+            'work_schedule_snapshot_end_time'                         ,
+            'work_schedule_snapshot_is_flextime'                      ,
+            'work_schedule_snapshot_total_hours_per_week'             ,
+            'work_schedule_snapshot_total_work_hours'                 ,
+            'work_schedule_snapshot_start_date'                       ,
+            'work_schedule_snapshot_recurrence_rule'                  ,
+            'work_schedule_snapshot_grace_period'                     ,
+            'work_schedule_snapshot_minutes_can_check_in_before_shift'
         ];
 
         $attendanceFilterCriteria = [
@@ -187,8 +193,8 @@ class AttendanceService
                 'operator' => 'IS NULL'
             ],
             [
-                'column'   => 'work_schedule_history.employee_id',
-                'operator' => '='                                ,
+                'column'   => 'work_schedule_snapshot.employee_id',
+                'operator' => '='                                 ,
                 'value'    => $employeeId
             ]
         ];
@@ -242,9 +248,9 @@ class AttendanceService
             if ( ! empty($lastAttendanceRecord)) {
                 $isUsingLastAttendanceWorkSchedule = true;
 
-                $workScheduleDate      = $lastAttendanceRecord['date'                            ];
-                $workScheduleStartTime = $lastAttendanceRecord['work_schedule_history_start_time'];
-                $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_history_end_time'  ];
+                $workScheduleDate      = $lastAttendanceRecord['date'                             ];
+                $workScheduleStartTime = $lastAttendanceRecord['work_schedule_snapshot_start_time'];
+                $workScheduleEndTime   = $lastAttendanceRecord['work_schedule_snapshot_end_time'  ];
 
                 $workScheduleStartDateTime = new DateTime($workScheduleDate . ' ' . $workScheduleStartTime);
                 $workScheduleEndDateTime   = new DateTime($workScheduleDate . ' ' . $workScheduleEndTime  );
@@ -253,9 +259,9 @@ class AttendanceService
                     $workScheduleEndDateTime->modify('+1 day');
                 }
 
-                $workScheduleId = $lastAttendanceRecord['work_schedule_history_work_schedule_id'];
+                $workScheduleId = $lastAttendanceRecord['work_schedule_snapshot_work_schedule_id'];
 
-                $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_history_minutes_can_check_in_before_shift'];
+                $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
 
                 $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
                     ->modify('-' . $earlyCheckInWindow . ' minutes');
@@ -420,15 +426,15 @@ class AttendanceService
 
             if ($isUsingLastAttendanceWorkSchedule) {
                 $workSchedule = [
-                    'id'                   => $lastAttendanceRecord['work_schedule_history_work_schedule_id'],
+                    'id'                   => $lastAttendanceRecord['work_schedule_snapshot_work_schedule_id'],
                     'employee_id'          => $employeeId                                                    ,
-                    'start_time'           => 'work_schedule_history_start_time'                             ,
-                    'end_time'             => 'work_schedule_history_end_time'                               ,
-                    'is_flextime'          => 'work_schedule_history_is_flextime'                            ,
-                    'total_hours_per_week' => 'work_schedule_history_total_hours_per_week'                   ,
-                    'total_work_hours'     => 'work_schedule_history_total_work_hours'                       ,
-                    'start_date'           => 'work_schedule_history_start_date'                             ,
-                    'recurrence_rule'      => 'work_schedule_history_recurrence_rule'
+                    'start_time'           => 'work_schedule_snapshot_start_time'                             ,
+                    'end_time'             => 'work_schedule_snapshot_end_time'                               ,
+                    'is_flextime'          => 'work_schedule_snapshot_is_flextime'                            ,
+                    'total_hours_per_week' => 'work_schedule_snapshot_total_hours_per_week'                   ,
+                    'total_work_hours'     => 'work_schedule_snapshot_total_work_hours'                       ,
+                    'start_date'           => 'work_schedule_snapshot_start_date'                             ,
+                    'recurrence_rule'      => 'work_schedule_snapshot_recurrence_rule'
                 ];
 
             } else {
@@ -698,7 +704,7 @@ class AttendanceService
             if ($isUsingLastAttendanceWorkSchedule) {
                 $currentAttendanceRecord = new Attendance(
                     id                         : null                                                    ,
-                    workScheduleHistoryId      : $lastAttendanceRecord['work_schedule_history_id'       ],
+                    workScheduleHistoryId      : $lastAttendanceRecord['work_schedule_snapshot_id'      ],
                     date                       : $lastAttendanceRecord['date'                           ],
                     checkInTime                : $formattedCurrentDateTime                               ,
                     checkOutTime               : null                                                    ,
@@ -767,7 +773,14 @@ class AttendanceService
             }
 
             if ($gracePeriod        !== $workScheduleHistory['grace_period'                     ] ||
-                $earlyCheckInWindow !== $workScheduleHistory['minutes_can_check_in_before_shift']) {
+                $earlyCheckInWindow !== $workScheduleHistory['minutes_can_check_in_before_shift'] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory[''] ||
+                $workSchedule['start_time'] !== $workScheduleHistory['']) {
 
                 $workSchedule = new WorkSchedule(
                     id               : $workSchedule['id'                  ],
@@ -836,6 +849,36 @@ class AttendanceService
                     $currentAttendanceRecordId = $this->pdo->lastInsertId();
 
                     foreach ($breakSchedules as $breakSchedule) {
+                        /*
+                        $breakScheduleHistory = $this->breakScheduleRepository
+                            ->fetchLatestBreakScheduleHistory($breakSchedule['id']);
+
+                        if ($breakScheduleHistory === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        $breakTypeHistoryId = $this->breakTypeRepository
+                            ->fetchLatestBreakTypeHistoryId($breakSchedule['break_type_id']);
+
+                        if ($breakTypeHistoryId === ActionResult::FAILURE) {
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred. Please try again later.'
+                            ];
+                        }
+
+                        if ($breakScheduleHistory['work_schedule_history_id'] !== $workScheduleHistoryId                ||
+                            $breakScheduleHistory['break_type_history_id'   ] !== $breakTypeHistoryId                   ||
+                            $breakScheduleHistory['start_time'              ] !== $breakSchedule['start_time'         ] ||
+                            $breakScheduleHistory['end_time'                ] !== $breakSchedule['end_time'           ] ||
+                            $breakScheduleHistory['is_flexible'             ] !== $breakSchedule['is_flexible'        ] ||
+                            $breakScheduleHistory['earliest_start_time'     ] !== $breakSchedule['earliest_start_time'] ||
+                            $breakScheduleHistory['latest_end_time'         ] !== $breakSchedule['latest_end_time'    ]) {
+                        }
+                        */
                         $breakScheduleHistoryId = $this->breakScheduleRepository
                             ->fetchLatestBreakScheduleHistoryId($breakSchedule['id']);
 
