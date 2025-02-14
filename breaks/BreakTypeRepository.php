@@ -16,6 +16,11 @@ class BreakTypeRepository
         return $this->breakTypeDao->create($breakType);
     }
 
+    public function createBreakTypeHistory(BreakType $breakType): ActionResult
+    {
+        return $this->breakTypeDao->createHistory($breakType);
+    }
+
     public function fetchAllBreakTypes(
         ? array $columns              = null,
         ? array $filterCriteria       = null,
@@ -35,9 +40,14 @@ class BreakTypeRepository
         );
     }
 
-    public function fetchLatestBreakTypeHistoryId(int $breakTypeId): int|null|ActionResult
+    public function fetchLatestBreakTypeHistoryId(int $breakTypeId): int|ActionResult
     {
         return $this->breakTypeDao->fetchLatestHistoryId($breakTypeId);
+    }
+
+    public function fetchLatestBreakTypeHistory(int $breakTypeId): array|ActionResult
+    {
+        return $this->breakTypeDao->fetchLatestHistory($breakTypeId);
     }
 
     public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult

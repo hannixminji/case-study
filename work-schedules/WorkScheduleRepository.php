@@ -40,19 +40,19 @@ class WorkScheduleRepository
         );
     }
 
-    public function fetchLatestWorkScheduleHistoryId(int $workScheduleId): int|null|ActionResult
+    public function fetchLatestWorkScheduleHistoryId(int $workScheduleId): int|ActionResult
     {
         return $this->workScheduleDao->fetchLatestHistoryId($workScheduleId);
-    }
-
-    public function fetchWorkScheduleLastInsertedId(): ActionResult|int
-    {
-        return $this->workScheduleDao->fetchLastInsertedId();
     }
 
     public function fetchLatestWorkScheduleHistory(int $workScheduleId): array|ActionResult
     {
         return $this->workScheduleDao->fetchLatestHistory($workScheduleId);
+    }
+
+    public function fetchWorkScheduleLastInsertedId(): int|ActionResult
+    {
+        return $this->workScheduleDao->fetchLastInsertedId();
     }
 
     public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult

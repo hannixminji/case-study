@@ -503,6 +503,7 @@ class AttendanceService
 
             $breakScheduleColumns = [
                 'id'                            ,
+                'break_type_id'                 ,
                 'start_time'                    ,
                 'end_time'                      ,
                 'is_flexible'                   ,

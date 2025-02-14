@@ -89,7 +89,7 @@ class BreakScheduleDao
         }
     }
 
-    private function createHistory(BreakSchedule $breakSchedule): ActionResult
+    public function createHistory(BreakSchedule $breakSchedule): ActionResult
     {
         $query = "
             INSERT INTO break_schedules_history (
@@ -374,6 +374,38 @@ class BreakScheduleDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break schedule history ID. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchLatestHistory(int $breakScheduleId): array|ActionResult
+    {
+        $query = "
+            SELECT
+                *
+            FROM
+                break_schedules_history
+            WHERE
+                break_schedule_id = :break_schedule_id
+            ORDER BY
+                active_at DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":break_schedule_id", $breakScheduleId, Helper::getPdoParameterType($breakScheduleId));
+
+            $statement->execute();
+
+            return $statement->fetch(PDO::FETCH_ASSOC)
+                ?: ActionResult::FAILURE;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the latest break schedule. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

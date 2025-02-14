@@ -305,6 +305,38 @@ class BreakTypeDao
         }
     }
 
+    public function fetchLatestHistory(int $breakTypeId): array|ActionResult
+    {
+        $query = "
+            SELECT
+                *
+            FROM
+                break_types_history
+            WHERE
+                break_type_id = :break_type_id
+            ORDER BY
+                active_at DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":break_type_id", $breakTypeId, Helper::getPdoParameterType($breakTypeId));
+
+            $statement->execute();
+
+            return $statement->fetch(PDO::FETCH_ASSOC)
+                ?: ActionResult::FAILURE;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the break type history. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
     public function update(BreakType $breakType, bool $isHashedId = false): ActionResult
     {
         $query = "

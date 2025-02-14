@@ -16,11 +16,6 @@ class WorkScheduleService
         return $this->workScheduleRepository->createWorkSchedule($workSchedule);
     }
 
-    public function createWorkScheduleHistory(WorkSchedule $workSchedule): ActionResult
-    {
-        return $this->workScheduleRepository->createWorkScheduleHistory($workSchedule);
-    }
-
     public function fetchAllWorkSchedules(
         ? array $columns              = null,
         ? array $filterCriteria       = null,
@@ -40,12 +35,7 @@ class WorkScheduleService
         );
     }
 
-    public function fetchLatestWorkScheduleHistoryId(int $workScheduleId): int|null|ActionResult
-    {
-        return $this->workScheduleRepository->fetchLatestWorkScheduleHistoryId($workScheduleId);
-    }
-
-    public function fetchWorkScheduleLastInsertedId(): ActionResult|int
+    public function fetchWorkScheduleLastInsertedId(): int|ActionResult
     {
         return $this->workScheduleRepository->fetchWorkScheduleLastInsertedId();
     }

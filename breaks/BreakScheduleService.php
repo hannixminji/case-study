@@ -35,11 +35,6 @@ class BreakScheduleService
         );
     }
 
-    public function fetchLatestBreakScheduleHistoryId(int $breakScheduleId): int|null|ActionResult
-    {
-        return $this->breakScheduleRepository->fetchLatestBreakScheduleHistoryId($breakScheduleId);
-    }
-
     public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
     {
         return $this->breakScheduleRepository->updateBreakSchedule($breakSchedule, $isHashedId);
