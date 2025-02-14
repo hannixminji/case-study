@@ -133,11 +133,13 @@ class WorkScheduleDao
 
             $statement->execute();
 
+            $lastInsertId = $this->pdo->lastInsertId();
+
             if ($isLocalTransaction) {
                 $this->pdo->commit();
             }
 
-            return ActionResult::SUCCESS;
+            return $lastInsertId;
 
         } catch (PDOException $exception) {
             if ($isLocalTransaction) {
@@ -393,8 +395,7 @@ class WorkScheduleDao
 
             $statement->execute();
 
-            return $statement->fetch(PDO::FETCH_ASSOC)
-                ?: ActionResult::FAILURE;
+            return $statement->fetch(PDO::FETCH_ASSOC) ?: [];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the latest work schedule snapshot. " .
@@ -491,7 +492,6 @@ class WorkScheduleDao
         $query = "
             UPDATE work_schedules
             SET
-                employee_id          = :employee_id         ,
                 start_time           = :start_time          ,
                 end_time             = :end_time            ,
                 is_flextime          = :is_flextime         ,
@@ -517,7 +517,6 @@ class WorkScheduleDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"         , $workSchedule->getEmployeeId()       , Helper::getPdoParameterType($workSchedule->getEmployeeId()       ));
             $statement->bindValue(":start_time"          , $workSchedule->getStartTime()        , Helper::getPdoParameterType($workSchedule->getStartTime()        ));
             $statement->bindValue(":end_time"            , $workSchedule->getEndTime()          , Helper::getPdoParameterType($workSchedule->getEndTime()          ));
             $statement->bindValue(":is_flextime"         , $workSchedule->isFlextime()          , Helper::getPdoParameterType($workSchedule->isFlextime()          ));

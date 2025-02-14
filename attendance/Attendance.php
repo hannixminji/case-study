@@ -4,7 +4,7 @@ class Attendance
 {
     public function __construct(
         private readonly   int|string|null $id                         ,
-        private readonly   int|string      $workScheduleHistoryId      ,
+        private readonly   int|string      $workScheduleSnapshotId     ,
         private readonly   string          $date                       ,
         private readonly ? string          $checkInTime                ,
         private readonly ? string          $checkOutTime               ,
@@ -29,9 +29,9 @@ class Attendance
         $this->id = $id;
     }
 
-    public function getWorkScheduleHistoryId(): int|string
+    public function getWorkScheduleSnapshotId(): int|string
     {
-        return $this->workScheduleHistoryId;
+        return $this->workScheduleSnapshotId;
     }
 
     public function getDate(): string

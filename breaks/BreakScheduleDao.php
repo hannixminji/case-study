@@ -117,17 +117,19 @@ class BreakScheduleDao
 
             $statement->execute();
 
+            $lastInsertId = $this->pdo->lastInsertId();
+
             if ($isLocalTransaction) {
                 $this->pdo->commit();
             }
 
-            return $this->pdo->lastInsertId();
+            return $lastInsertId;
 
         } catch (PDOException $exception) {
             if ($isLocalTransaction) {
                 $this->pdo->rollBack();
             }
-            
+
             error_log("Database Error: An error occurred while creating the break schedule snapshot. " .
                       "Exception: {$exception->getMessage()}");
 
@@ -348,8 +350,7 @@ class BreakScheduleDao
 
             $statement->execute();
 
-            return $statement->fetch(PDO::FETCH_ASSOC)
-                ?: ActionResult::FAILURE;
+            return $statement->fetch(PDO::FETCH_ASSOC) ?: [];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the latest break schedule snapshot. " .

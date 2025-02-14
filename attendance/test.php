@@ -90,12 +90,11 @@ $filterCriteria = [
         'value' => 6
     ]
 ];
-$employeeBreaks = $employeeBreakDao->fetchAll([]);
-print_r($employeeBreaks);
+
 $rfidUid = '123456789';
 $currentDateTime = '2025-01-01 08:00:00';
 
-//print_r($attendanceService->handleRfidTap($rfidUid, $currentDateTime));
+print_r($attendanceService->handleRfidTap($rfidUid, $currentDateTime));
 /*
 $currentDateTime = '2025-01-01 12:00:00';
 $response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);

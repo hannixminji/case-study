@@ -99,11 +99,13 @@ class BreakTypeDao
 
             $statement->execute();
 
+            $lastInsertId = $this->pdo->lastInsertId();
+
             if ($isLocalTransaction) {
                 $this->pdo->commit();
             }
 
-            return $this->pdo->lastInsertId();
+            return $lastInsertId;
 
         } catch (PDOException $exception) {
             if ($isLocalTransaction) {
@@ -298,8 +300,7 @@ class BreakTypeDao
 
             $statement->execute();
 
-            return $statement->fetch(PDO::FETCH_ASSOC)
-                ?: ActionResult::FAILURE;
+            return $statement->fetch(PDO::FETCH_ASSOC) ?: [];
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the break type snapshot. " .

@@ -16,7 +16,7 @@ class AttendanceDao
     {
         $query = "
             INSERT INTO attendance (
-                work_schedule_history_id       ,
+                work_schedule_snapshot_id      ,
                 date                           ,
                 check_in_time                  ,
                 check_out_time                 ,
@@ -30,7 +30,7 @@ class AttendanceDao
                 remarks
             )
             VALUES (
-                :work_schedule_history_id       ,
+                :work_schedule_snapshot_id      ,
                 :date                           ,
                 :check_in_time                  ,
                 :check_out_time                 ,
@@ -54,7 +54,7 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_history_id"       , $attendance->getWorkScheduleHistoryId()      , Helper::getPdoParameterType($attendance->getWorkScheduleHistoryId()      ));
+            $statement->bindValue(":work_schedule_snapshot_id"      , $attendance->getWorkScheduleSnapshotId()     , Helper::getPdoParameterType($attendance->getWorkScheduleSnapshotId()     ));
             $statement->bindValue(":date"                           , $attendance->getDate()                       , Helper::getPdoParameterType($attendance->getDate()                       ));
             $statement->bindValue(":check_in_time"                  , $attendance->getCheckInTime()                , Helper::getPdoParameterType($attendance->getCheckInTime()                ));
             $statement->bindValue(":check_out_time"                 , $attendance->getCheckOutTime()               , Helper::getPdoParameterType($attendance->getCheckOutTime()               ));
@@ -91,17 +91,17 @@ class AttendanceDao
     {
         $query = "
             INSERT INTO attendance (
-                work_schedule_history_id,
-                date                    ,
-                check_in_time           ,
-                late_check_in           ,
+                work_schedule_snapshot_id,
+                date                     ,
+                check_in_time            ,
+                late_check_in            ,
                 attendance_status
             )
             VALUES (
-                :work_schedule_history_id,
-                :date                    ,
-                :check_in_time           ,
-                :late_check_in           ,
+                :work_schedule_snapshot_id,
+                :date                     ,
+                :check_in_time            ,
+                :late_check_in            ,
                 :attendance_status
             )
         ";
@@ -115,11 +115,11 @@ class AttendanceDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":work_schedule_history_id", $attendance->getWorkScheduleHistoryId(), Helper::getPdoParameterType($attendance->getWorkScheduleHistoryId()));
-            $statement->bindValue(":date"                    , $attendance->getDate()                 , Helper::getPdoParameterType($attendance->getDate()                 ));
-            $statement->bindValue(":check_in_time"           , $attendance->getCheckInTime()          , Helper::getPdoParameterType($attendance->getCheckInTime()          ));
-            $statement->bindValue(":late_check_in"           , $attendance->getLateCheckIn()          , Helper::getPdoParameterType($attendance->getLateCheckIn()          ));
-            $statement->bindValue(":attendance_status"       , $attendance->getAttendanceStatus()     , Helper::getPdoParameterType($attendance->getAttendanceStatus()     ));
+            $statement->bindValue(":work_schedule_snapshot_id", $attendance->getWorkScheduleSnapshotId(), Helper::getPdoParameterType($attendance->getWorkScheduleSnapshotId()));
+            $statement->bindValue(":date"                     , $attendance->getDate()                  , Helper::getPdoParameterType($attendance->getDate()                  ));
+            $statement->bindValue(":check_in_time"            , $attendance->getCheckInTime()           , Helper::getPdoParameterType($attendance->getCheckInTime()           ));
+            $statement->bindValue(":late_check_in"            , $attendance->getLateCheckIn()           , Helper::getPdoParameterType($attendance->getLateCheckIn()           ));
+            $statement->bindValue(":attendance_status"        , $attendance->getAttendanceStatus()      , Helper::getPdoParameterType($attendance->getAttendanceStatus()      ));
 
             $statement->execute();
 
@@ -306,7 +306,7 @@ class AttendanceDao
                 LEFT JOIN
                     employees AS employee
                 ON
-                    work_schedule_history.employee_id = employee.id
+                    work_schedule_snapshot.employee_id = employee.id
             ";
         }
 
