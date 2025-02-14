@@ -23,7 +23,7 @@ class EmployeeRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->employeeDao->fetchAll(
             columns             : $columns             ,
@@ -35,7 +35,7 @@ class EmployeeRepository
         );
     }
 
-    public function fetchLastEmployeeId(): int|string
+    public function fetchLastEmployeeId(): int
     {
         return $this->employeeDao->fetchLastInsertedId();
     }
@@ -50,7 +50,7 @@ class EmployeeRepository
         return $this->employeeDao->changePassword($employeeId, $newHashedPassword, $isHashedId);
     }
 
-    public function countTotalRecords(): ActionResult|int
+    public function countTotalRecords(): int|ActionResult
     {
         return $this->employeeDao->countTotalRecords();
     }

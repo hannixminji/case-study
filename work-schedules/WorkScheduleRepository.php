@@ -28,7 +28,7 @@ class WorkScheduleRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->workScheduleDao->fetchAll(
             columns             : $columns             ,
@@ -60,7 +60,7 @@ class WorkScheduleRepository
         return $this->workScheduleDao->update($workSchedule, $isHashedId);
     }
 
-    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array
+    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array|ActionResult
     {
         return $this->workScheduleDao->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
     }

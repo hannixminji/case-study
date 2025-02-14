@@ -73,7 +73,7 @@ class AllowanceDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"          => "allowance.id          AS id"         ,

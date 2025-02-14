@@ -23,7 +23,7 @@ class LeaveRequestAttachmentRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->leaveRequestAttachmentDao->fetchAll(
             columns             : $columns             ,

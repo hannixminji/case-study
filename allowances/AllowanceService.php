@@ -23,7 +23,7 @@ class AllowanceService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->allowanceRepository->fetchAllAllowances(
             columns             : $columns             ,

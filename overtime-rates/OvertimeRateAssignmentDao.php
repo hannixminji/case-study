@@ -13,7 +13,7 @@ class OvertimeRateAssignmentDao
         $this->overtimeRateDao = $overtimeRateDao;
     }
 
-    public function create(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
+    public function create(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
     {
         $query = "
             INSERT INTO overtime_rate_assignments (
@@ -76,7 +76,7 @@ class OvertimeRateAssignmentDao
                 if ($isLocalTransaction) {
                     $this->pdo->rollBack();
                 }
-                
+
                 return ActionResult::FAILURE;
             }
 
@@ -132,7 +132,7 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function findId(OvertimeRateAssignment $overtimeRateAssignment, bool $isHashedId = false): ActionResult|int
+    public function findId(OvertimeRateAssignment $overtimeRateAssignment, bool $isHashedId = false): int|ActionResult
     {
         $query = "
             SELECT

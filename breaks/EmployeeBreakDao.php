@@ -172,7 +172,7 @@ class EmployeeBreakDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                                      => "employee_break.id                                       AS id"                                                     ,

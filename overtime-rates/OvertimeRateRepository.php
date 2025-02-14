@@ -16,7 +16,7 @@ class OvertimeRateRepository
         return $this->overtimeRateDao->create($overtimeRate);
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): ActionResult|array
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): array|ActionResult
     {
         return $this->overtimeRateDao->fetchOvertimeRates($overtimeRateAssignmentId, $isHashedId);
     }

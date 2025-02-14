@@ -23,7 +23,7 @@ class EmploymentTypeBenefitRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->employmentTypeBenefitDao->fetchAll(
             columns             : $columns             ,

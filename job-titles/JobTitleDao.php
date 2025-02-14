@@ -70,7 +70,7 @@ class JobTitleDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"              => "job_title.id            AS id"             ,

@@ -23,7 +23,7 @@ class LeaveTypeService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->leaveTypeRepository->fetchAllLeaveTypes(
             columns             : $columns             ,

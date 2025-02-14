@@ -23,7 +23,7 @@ class LeaveEntitlementService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(
             columns             : $columns             ,

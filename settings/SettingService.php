@@ -18,7 +18,7 @@ class SettingService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->settingRepository->fetchAllSettings(
             columns             : $columns             ,
@@ -30,7 +30,7 @@ class SettingService
         );
     }
 
-    public function fetchSettingValue(string $settingKey, string $groupName): ActionResult|string
+    public function fetchSettingValue(string $settingKey, string $groupName): string|ActionResult
     {
         return $this->settingRepository->fetchSettingValue($settingKey, $groupName);
     }

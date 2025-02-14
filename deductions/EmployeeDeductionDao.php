@@ -67,7 +67,7 @@ class EmployeeDeductionDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                  => "employee_deduction.id           AS id"                 ,

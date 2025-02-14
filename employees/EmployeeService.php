@@ -23,7 +23,7 @@ class EmployeeService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->employeeRepository->fetchAllEmployees(
             columns             : $columns             ,
@@ -35,7 +35,7 @@ class EmployeeService
         );
     }
 
-    public function fetchLastEmployeeId(): int|string
+    public function fetchLastEmployeeId(): int
     {
         return $this->employeeRepository->fetchLastEmployeeId();
     }
@@ -50,7 +50,7 @@ class EmployeeService
         return $this->employeeRepository->changePassword($employeeId, $newHashedPassword, $isHashedId);
     }
 
-    public function countTotalRecords(): ActionResult|int
+    public function countTotalRecords(): int|ActionResult
     {
         return $this->employeeRepository->countTotalRecords();
     }

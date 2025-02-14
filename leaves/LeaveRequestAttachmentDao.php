@@ -64,7 +64,7 @@ class LeaveRequestAttachmentDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"               => "leave_request_attachment.id               AS id"              ,

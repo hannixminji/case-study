@@ -72,7 +72,7 @@ class OvertimeRateDao
         }
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): ActionResult|array
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): array|ActionResult
     {
         $query = "
             SELECT

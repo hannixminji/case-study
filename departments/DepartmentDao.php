@@ -70,7 +70,7 @@ class DepartmentDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                        => "department.id                 AS id"                       ,
@@ -239,7 +239,7 @@ class DepartmentDao
         }
     }
 
-    public function fetchEmployeeCountsPerDepartment(): ActionResult|array
+    public function fetchEmployeeCountsPerDepartment(): array|ActionResult
     {
         $query = "
             SELECT
@@ -340,7 +340,7 @@ class DepartmentDao
         }
     }
 
-    public function isDepartmentHead(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isDepartmentHead(int|string $employeeId, bool $isHashedId = false): bool|ActionResult
     {
         $query = "
             SELECT

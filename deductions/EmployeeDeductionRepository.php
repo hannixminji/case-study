@@ -23,8 +23,8 @@ class EmployeeDeductionRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
-        
+    ): array|ActionResult {
+
         return $this->employeeDeductionDao->fetchAll(
             columns             : $columns             ,
             filterCriteria      : $filterCriteria      ,

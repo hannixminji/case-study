@@ -23,7 +23,7 @@ class HolidayRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->holidayDao->fetchAll(
             columns             : $columns             ,
@@ -40,7 +40,7 @@ class HolidayRepository
         return $this->holidayDao->update($holiday, $isHashedId);
     }
 
-    public function getHolidayDatesForPeriod(string $startDate, string $endDate): ActionResult|array
+    public function getHolidayDatesForPeriod(string $startDate, string $endDate): array|ActionResult
     {
         $columns = [
             'name'                 ,

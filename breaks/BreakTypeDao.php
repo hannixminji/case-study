@@ -120,7 +120,7 @@ class BreakTypeDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                => "break_type.id                                AS id"                               ,

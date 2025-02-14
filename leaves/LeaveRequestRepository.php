@@ -23,7 +23,7 @@ class LeaveRequestRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->leaveRequestDao->fetchAll(
             columns             : $columns             ,
@@ -50,12 +50,12 @@ class LeaveRequestRepository
         return $this->leaveRequestDao->updateLeaveRequestStatuses($currentDate);
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|array|null
+    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): array|null|ActionResult
     {
         return $this->leaveRequestDao->isEmployeeOnLeave($employeeId, $isHashedId);
     }
 
-    public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): ActionResult|array
+    public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): array|ActionResult
     {
         $columns = [
             'leave_type_is_paid',

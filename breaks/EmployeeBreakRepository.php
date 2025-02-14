@@ -33,7 +33,7 @@ class EmployeeBreakRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->employeeBreakDao->fetchAll(
             columns             : $columns             ,

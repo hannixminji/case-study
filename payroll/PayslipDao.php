@@ -121,7 +121,7 @@ class PayslipDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                => "payslip.id                                AS id"                               ,

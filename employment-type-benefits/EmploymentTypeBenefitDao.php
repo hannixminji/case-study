@@ -80,7 +80,7 @@ class EmploymentTypeBenefitDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                => "employment_type_benefit.id              AS id"                               ,
@@ -299,7 +299,7 @@ class EmploymentTypeBenefitDao
         }
     }
 
-    public function checkIfExists(EmploymentTypeBenefit $benefit): ActionResult|bool
+    public function checkIfExists(EmploymentTypeBenefit $benefit): bool|ActionResult
     {
         $query = "
             SELECT

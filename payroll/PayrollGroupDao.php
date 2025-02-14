@@ -85,7 +85,7 @@ class PayrollGroupDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                         => "payroll_group.id                         AS id"                        ,

@@ -12,7 +12,7 @@ class EmployeeDao
         $this->pdo = $pdo;
     }
 
-    public function create(Employee $employee): ActionResult|string
+    public function create(Employee $employee): ActionResult
     {
         $query = "
             INSERT INTO employees (
@@ -196,7 +196,7 @@ class EmployeeDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                              => "employee.id                              AS id"                             ,
@@ -465,12 +465,12 @@ class EmployeeDao
         }
     }
 
-    public function fetchLastInsertedId(): int|string
+    public function fetchLastInsertedId(): int
     {
         return $this->pdo->lastInsertId();
     }
 
-    public function update(Employee $employee, bool $isHashedId = false): ActionResult|string
+    public function update(Employee $employee, bool $isHashedId = false): ActionResult
     {
         $query = "
             UPDATE employees
@@ -656,7 +656,7 @@ class EmployeeDao
         }
     }
 
-    public function countTotalRecords(): ActionResult|int
+    public function countTotalRecords(): int|ActionResult
     {
         $query = "
             SELECT

@@ -201,7 +201,7 @@ class AttendanceDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                                      => "attendance.id                                           AS id"                                                     ,

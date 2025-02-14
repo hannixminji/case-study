@@ -163,7 +163,7 @@ class BreakScheduleDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                                => "break_schedule.id                            AS id"                               ,

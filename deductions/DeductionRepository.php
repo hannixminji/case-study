@@ -23,7 +23,7 @@ class DeductionRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->deductionDao->fetchAll(
             columns             : $columns             ,

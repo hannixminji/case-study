@@ -23,8 +23,8 @@ class EmployeeAllowanceService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
-        
+    ): array|ActionResult {
+
         return $this->employeeAllowanceRepository->fetchAllEmployeeAllowances(
             columns             : $columns             ,
             filterCriteria      : $filterCriteria      ,

@@ -82,7 +82,7 @@ class LeaveRequestDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                       => "leave_request.id            AS id"                      ,
@@ -100,6 +100,7 @@ class LeaveRequestDao
             "deleted_at"               => "leave_request.deleted_at    AS deleted_at"              ,
 
             "employee_full_name"       => "employee.full_name          AS employee_full_name"      ,
+            "employee_profile_picture" => "employee.profile_picture    AS employee_profile_picture",
             "employee_job_title_id"    => "employee.job_title_id       AS employee_job_title_id"   ,
             "employee_department_id"   => "employee.department_id      AS employee_department_id"  ,
             "employee_supervisor_id"   => "employee.supervisor_id      AS employee_supervisor_id"  ,
@@ -490,7 +491,7 @@ class LeaveRequestDao
         }
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): ActionResult|array|null
+    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): array|null|ActionResult
     {
         $query = "
             SELECT

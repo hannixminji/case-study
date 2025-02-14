@@ -23,7 +23,7 @@ class PayslipRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->payslipDao->fetchAll(
             columns             : $columns             ,

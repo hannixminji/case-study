@@ -23,7 +23,7 @@ class DepartmentRepository
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->departmentDao->fetchAll(
             columns             : $columns             ,
@@ -35,12 +35,12 @@ class DepartmentRepository
         );
     }
 
-    public function fetchEmployeeCountsPerDepartment(): ActionResult|array
+    public function fetchEmployeeCountsPerDepartment(): array|ActionResult
     {
         return $this->departmentDao->fetchEmployeeCountsPerDepartment();
     }
 
-    public function isEmployeeDepartmentHead(int|string $employeeId, bool $isHashedId = false): ActionResult|bool
+    public function isEmployeeDepartmentHead(int|string $employeeId, bool $isHashedId = false): bool|ActionResult
     {
         return $this->departmentDao->isDepartmentHead($employeeId, $isHashedId);
     }

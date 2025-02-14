@@ -212,7 +212,7 @@ class WorkScheduleDao
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         $tableColumns = [
             "id"                       => "work_schedule.id                   AS id"                      ,
@@ -490,7 +490,7 @@ class WorkScheduleDao
         }
     }
 
-    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): ActionResult|array
+    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array|ActionResult
     {
         try {
             $recurrenceSet = new RSet();
@@ -547,7 +547,7 @@ class WorkScheduleDao
         }
     }
 
-    private function parseRecurrenceRule(string $rule): ActionResult|array
+    private function parseRecurrenceRule(string $rule): array|ActionResult
     {
         try {
             $rule = rtrim($rule, ';');
@@ -572,7 +572,7 @@ class WorkScheduleDao
         }
     }
 
-    public function fetchLastInsertedId(): ActionResult|int
+    public function fetchLastInsertedId(): int|ActionResult
     {
         try {
             return (int) $this->pdo->lastInsertId();

@@ -11,7 +11,7 @@ class OvertimeRateAssignmentService
         $this->overtimeRateAssignmentRepository = $overtimeRateAssignmentRepository;
     }
 
-    public function createOvertimeRateAssignment(OvertimeRateAssignment $overtimeRateAssignment): ActionResult|int
+    public function createOvertimeRateAssignment(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
     {
         return $this->overtimeRateAssignmentRepository->createOvertimeRateAssignment($overtimeRateAssignment);
     }
@@ -21,7 +21,7 @@ class OvertimeRateAssignmentService
         return $this->overtimeRateAssignmentRepository->assignOvertimeRateAssignment($overtimeRateAssignment, $overtimeRates, $isHashedId);
     }
 
-    public function findOvertimeRateAssignmentId(OvertimeRateAssignment $overtimeRateAssignment, bool $isHashedId = false): ActionResult|int
+    public function findOvertimeRateAssignmentId(OvertimeRateAssignment $overtimeRateAssignment, bool $isHashedId = false): int|ActionResult
     {
         return $this->overtimeRateAssignmentRepository->findOvertimeRateAssignmentId($overtimeRateAssignment, $isHashedId);
     }

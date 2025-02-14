@@ -23,7 +23,7 @@ class EmploymentTypeBenefitService
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
-    ): ActionResult|array {
+    ): array|ActionResult {
 
         return $this->employmentTypeBenefitRepository->fetchAllEmploymentTypeBenefits(
             columns             : $columns             ,
