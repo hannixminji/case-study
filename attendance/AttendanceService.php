@@ -1202,8 +1202,19 @@ class AttendanceService
             }
 
             $attendanceColumns = [
+                'id'                             ,
+                'work_schedule_snapshot_id'      ,
+                'date'                           ,
+                'check_in_time'                  ,
+                'check_out_time'                 ,
                 'total_break_duration_in_minutes',
-                'total_hours_worked'
+                'total_hours_worked'             ,
+                'late_check_in'                  ,
+                'early_check_out'                ,
+                'overtime_hours'                 ,
+                'is_overtime_approved'           ,
+                'attendance_status'              ,
+                'remarks'
             ];
 
             $attendanceFilterCriteria = [
@@ -1317,6 +1328,36 @@ class AttendanceService
                         'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
+                }
+
+                if ( ! empty($currentAttendanceRecords)) {
+                    $lastRecordIndex = count($currentAttendanceRecords) - 1;
+                    $lastRecord = $currentAttendanceRecords[$lastRecordIndex];
+
+                    $currentAttendanceRecord = new Attendance(
+                        id                         : $lastRecord['id'                             ],
+                        workScheduleSnapshotId     : $lastRecord['work_schedule_snapshot_id'      ],
+                        date                       : $lastRecord['date'                           ],
+                        checkInTime                : $lastRecord['check_in_time'                  ],
+                        checkOutTime               : $lastRecord['check_out_time'                 ],
+                        totalBreakDurationInMinutes: $lastRecord['total_break_duration_in_minutes'],
+                        totalHoursWorked           : $lastRecord['total_hours_worked'             ],
+                        lateCheckIn                : $lastRecord['late_check_in'                  ],
+                        earlyCheckOut              : $earlyCheckOutInMinutes                       ,
+                        overtimeHours              : $lastRecord['overtime_hours'                 ],
+                        isOvertimeApproved         : $lastRecord['is_overtime_approved'           ],
+                        attendanceStatus           : $currentAttendanceStatus                      ,
+                        remarks                    : $lastRecord['remarks'                        ]
+                    );
+
+                    $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($currentAttendanceRecord);
+
+                    if ($attendanceUpdateResult === ActionResult::FAILURE) {
+                        return [
+                            'status' => 'error',
+                            'message' => 'Failed to update the last attendance record.'
+                        ];
+                    }
                 }
 
                 $this->pdo->commit();
