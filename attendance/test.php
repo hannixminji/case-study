@@ -92,7 +92,7 @@ $filterCriteria = [
 ];
 
 $rfidUid = '123456789';
-$currentDateTime = '2025-01-01 08:00:00';
+$currentDateTime = '2025-01-01 17:00:00';
 
 print_r($attendanceService->handleRfidTap($rfidUid, $currentDateTime));
 /*
