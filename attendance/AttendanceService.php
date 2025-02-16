@@ -200,6 +200,11 @@ class AttendanceService
                 'column'   => 'work_schedule_snapshot.employee_id',
                 'operator' => '='                                 ,
                 'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.date'    ,
+                'operator' => '<='                 ,
+                'value'    => $formattedCurrentDate
             ]
         ];
 
@@ -210,6 +215,10 @@ class AttendanceService
             ],
             [
                 'column'    => 'attendance.check_in_time',
+                'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'attendance.id',
                 'direction' => 'DESC'
             ]
         ];
@@ -513,32 +522,36 @@ class AttendanceService
                 }
             }
 
-            $breakScheduleColumns = [
-                'id'                               ,
-                'break_type_id'                    ,
-                'start_time'                       ,
-                'end_time'                         ,
-                'is_flexible'                      ,
-                'earliest_start_time'              ,
-                'latest_end_time'                  ,
+            if ($isUsingLastAttendanceWorkSchedule) {
 
-                'break_type_name'                  ,
-                'break_type_duration_in_minutes'   ,
-                'break_type_is_paid'               ,
-                'is_require_break_in_and_break_out'
-            ];
+            } else {
+                $breakScheduleColumns = [
+                    'id'                               ,
+                    'break_type_id'                    ,
+                    'start_time'                       ,
+                    'end_time'                         ,
+                    'is_flexible'                      ,
+                    'earliest_start_time'              ,
+                    'latest_end_time'                  ,
 
-            $breakScheduleFilterCriteria = [
-                [
-                    'column'   => 'break_schedule.deleted_at',
-                    'operator' => 'IS NULL'
-                ],
-                [
-                    'column'   => 'break_schedule.work_schedule_id',
-                    'operator' => '='                              ,
-                    'value'    => $workScheduleId
-                ]
-            ];
+                    'break_type_name'                  ,
+                    'break_type_duration_in_minutes'   ,
+                    'break_type_is_paid'               ,
+                    'is_require_break_in_and_break_out'
+                ];
+
+                $breakScheduleFilterCriteria = [
+                    [
+                        'column'   => 'break_schedule.deleted_at',
+                        'operator' => 'IS NULL'
+                    ],
+                    [
+                        'column'   => 'break_schedule.work_schedule_id',
+                        'operator' => '='                              ,
+                        'value'    => $workScheduleId
+                    ]
+                ];
+            }
 
             $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
                 columns             : $breakScheduleColumns       ,
@@ -857,8 +870,6 @@ class AttendanceService
                 }
 
                 if ( ! empty($breakSchedules)) {
-                    $currentAttendanceRecordId = $this->pdo->lastInsertId();
-
                     foreach ($breakSchedules as $breakSchedule) {
                         $latestBreakTypeSnapshot = $this->breakTypeRepository
                             ->fetchLatestBreakTypeSnapshotById($breakSchedule['break_type_id']);
@@ -948,7 +959,7 @@ class AttendanceService
 
                         $employeeBreakRecord = new EmployeeBreak(
                             id                     : null                      ,
-                            attendanceId           : $currentAttendanceRecordId,
+                            attendanceId           : null                      ,
                             breakScheduleSnapshotId: $breakScheduleSnapshotId  ,
                             startTime              : null                      ,
                             endTime                : null                      ,
@@ -1004,6 +1015,11 @@ class AttendanceService
                 $workScheduleEndDateTime->modify('+1 day');
             }
 
+            $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
+
+            $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
+                ->modify('-' . $earlyCheckInWindow . ' minutes');
+
             $checkInDateTime  = new DateTime($lastAttendanceRecord['check_in_time']);
             $checkOutDateTime = $currentDateTime;
 
@@ -1028,9 +1044,15 @@ class AttendanceService
                     'operator' => 'IS NULL'
                 ],
                 [
-                    'column'   => 'employee_break.attendance_id',
-                    'operator' => '='                           ,
-                    'value'    => $lastAttendanceRecord['id']
+                    'column'   => 'break_schedule_snapshot.work_schedule_snapshot_id',
+                    'operator' => '='                                                ,
+                    'value'    => $lastAttendanceRecord['work_schedule_snapshot_id']
+                ],
+                [
+                    'column'      => 'employee_break.created_at'                              ,
+                    'operator'    => 'BETWEEN'                                                ,
+                    'lower_bound' => $adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s'),
+                    'upper_bound' => $workScheduleEndDateTime          ->format('Y-m-d H:i:s')
                 ]
             ];
 
@@ -1219,14 +1241,18 @@ class AttendanceService
 
             $attendanceFilterCriteria = [
                 [
-                    'column'   => 'attendance.date'            ,
-                    'operator' => '='                          ,
-                    'value'    => $lastAttendanceRecord['date']
+                    'column'   => 'attendance.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'attendance.work_schedule_snapshot_id'            ,
                     'operator' => '='                                               ,
                     'value'    => $lastAttendanceRecord['work_schedule_snapshot_id']
+                ],
+                [
+                    'column'   => 'attendance.date'            ,
+                    'operator' => '='                          ,
+                    'value'    => $lastAttendanceRecord['date']
                 ],
                 [
                     'column'   => 'attendance.id'            ,
@@ -1294,7 +1320,7 @@ class AttendanceService
                 $earlyCheckOutInMinutes = ($lastAttendanceRecord['work_schedule_snapshot_total_work_hours'] - $totalHoursWorked) * 60;
                 $currentAttendanceStatus = 'Undertime';
 
-            } elseif ($totalHoursWorked > $lastAttendanceRecord['work_schedule_snapshot_total_work_hours']) {
+            } elseif (floor($totalHoursWorked) > $lastAttendanceRecord['work_schedule_snapshot_total_work_hours']) {
                 $overtimeHours = floor($totalHoursWorked) - $lastAttendanceRecord['work_schedule_snapshot_total_work_hours'];
                 $currentAttendanceStatus = 'Overtime';
 
@@ -1343,7 +1369,7 @@ class AttendanceService
                         totalBreakDurationInMinutes: $lastRecord['total_break_duration_in_minutes'],
                         totalHoursWorked           : $lastRecord['total_hours_worked'             ],
                         lateCheckIn                : $lastRecord['late_check_in'                  ],
-                        earlyCheckOut              : $earlyCheckOutInMinutes                       ,
+                        earlyCheckOut              : 0                                             ,
                         overtimeHours              : $lastRecord['overtime_hours'                 ],
                         isOvertimeApproved         : $lastRecord['is_overtime_approved'           ],
                         attendanceStatus           : $currentAttendanceStatus                      ,
@@ -1382,12 +1408,13 @@ class AttendanceService
 
         if ($isCheckIn) {
             return [
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Checked-in recorded successfully.'
             ];
+
         } else {
             return [
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Checked-out recorded successfully.'
             ];
         }

@@ -4,7 +4,7 @@ class EmployeeBreak
 {
     public function __construct(
         private readonly   int|string|null $id                     ,
-        private readonly   int|string      $attendanceId           ,
+        private readonly   int|string|null $attendanceId           ,
         private readonly   int|string      $breakScheduleSnapshotId,
         private readonly ? string          $startTime              ,
         private readonly ? string          $endTime                ,
