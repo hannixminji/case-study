@@ -948,12 +948,11 @@ class AttendanceService
                         }
 
                         $employeeBreakRecord = new EmployeeBreak(
-                            id                     : null                      ,
-                            attendanceId           : null                      ,
-                            breakScheduleSnapshotId: $breakScheduleSnapshotId  ,
-                            startTime              : null                      ,
-                            endTime                : null                      ,
-                            breakDurationInMinutes : 0                         ,
+                            id                     : null                     ,
+                            breakScheduleSnapshotId: $breakScheduleSnapshotId ,
+                            startTime              : null                     ,
+                            endTime                : null                     ,
+                            breakDurationInMinutes : 0                        ,
                             createdAt              : $formattedCurrentDateTime
                         );
 

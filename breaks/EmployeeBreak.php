@@ -4,7 +4,6 @@ class EmployeeBreak
 {
     public function __construct(
         private readonly   int|string|null $id                     ,
-        private readonly   int|string|null $attendanceId           ,
         private readonly   int|string      $breakScheduleSnapshotId,
         private readonly ? string          $startTime              ,
         private readonly ? string          $endTime                ,
@@ -16,11 +15,6 @@ class EmployeeBreak
     public function getId(): int|string|null
     {
         return $this->id;
-    }
-
-    public function getAttendanceId(): int|string
-    {
-        return $this->attendanceId;
     }
 
     public function getBreakScheduleSnapshotId(): int|string

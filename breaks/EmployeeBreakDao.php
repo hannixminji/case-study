@@ -16,7 +16,6 @@ class EmployeeBreakDao
     {
         $query = "
             INSERT INTO employee_breaks (
-                attendance_id             ,
                 break_schedule_snapshot_id,
                 start_time                ,
                 end_time                  ,
@@ -24,7 +23,6 @@ class EmployeeBreakDao
                 created_at
             )
             VALUES (
-                :attendance_id             ,
                 :break_schedule_snapshot_id,
                 :start_time                ,
                 :end_time                  ,
@@ -42,7 +40,6 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":attendance_id"             , $employeeBreak->getAttendanceId()           , Helper::getPdoParameterType($employeeBreak->getAttendanceId()           ));
             $statement->bindValue(":break_schedule_snapshot_id", $employeeBreak->getBreakScheduleSnapshotId(), Helper::getPdoParameterType($employeeBreak->getBreakScheduleSnapshotId()));
             $statement->bindValue(":start_time"                , $employeeBreak->getStartTime()              , Helper::getPdoParameterType($employeeBreak->getStartTime()              ));
             $statement->bindValue(":end_time"                  , $employeeBreak->getEndTime()                , Helper::getPdoParameterType($employeeBreak->getEndTime()                ));
@@ -73,13 +70,11 @@ class EmployeeBreakDao
     {
         $query = "
             INSERT INTO employee_breaks (
-                attendance_id             ,
                 break_schedule_snapshot_id,
                 start_time                ,
                 created_at
             )
             VALUES (
-                :attendance_id             ,
                 :break_schedule_snapshot_id,
                 :start_time                ,
                 :created_at
@@ -95,7 +90,6 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":attendance_id"             , $employeeBreak->getAttendanceId()           , Helper::getPdoParameterType($employeeBreak->getAttendanceId()           ));
             $statement->bindValue(":break_schedule_snapshot_id", $employeeBreak->getBreakScheduleSnapshotId(), Helper::getPdoParameterType($employeeBreak->getBreakScheduleSnapshotId()));
             $statement->bindValue(":start_time"                , $employeeBreak->getStartTime()              , Helper::getPdoParameterType($employeeBreak->getStartTime()              ));
             $statement->bindValue(":created_at"                , $employeeBreak->getCreatedAt()              , Helper::getPdoParameterType($employeeBreak->getCreatedAt()              ));
@@ -176,7 +170,6 @@ class EmployeeBreakDao
 
         $tableColumns = [
             "id"                                                       => "employee_break.id                                        AS id"                                                      ,
-            "attendance_id"                                            => "employee_break.attendance_id                             AS attendance_id"                                           ,
             "break_schedule_snapshot_id"                               => "employee_break.break_schedule_snapshot_id                AS break_schedule_snapshot_id"                              ,
             "start_time"                                               => "employee_break.start_time                                AS start_time"                                              ,
             "end_time"                                                 => "employee_break.end_time                                  AS end_time"                                                ,
@@ -184,10 +177,6 @@ class EmployeeBreakDao
             "created_at"                                               => "employee_break.created_at                                AS created_at"                                              ,
             "updated_at"                                               => "employee_break.updated_at                                AS updated_at"                                              ,
             "deleted_at"                                               => "employee_break.deleted_at                                AS deleted_at"                                              ,
-
-            "attendance_date"                                          => "attendance.date                                          AS attendance_date"                                         ,
-            "attendance_check_in_time"                                 => "attendance.check_in_time                                 AS attendance_check_in_time"                                ,
-            "attendance_check_out_time"                                => "attendance.check_out_time                                AS attendance_check_out_time"                               ,
 
             "break_schedule_snapshot_break_schedule_id"                => "break_schedule_snapshot.break_schedule_id                AS break_schedule_snapshot_break_schedule_id"               ,
             "break_schedule_snapshot_work_schedule_snapshot_id"        => "break_schedule_snapshot.work_schedule_snapshot_id        AS break_schedule_snapshot_work_schedule_snapshot_id"       ,
@@ -265,18 +254,6 @@ class EmployeeBreakDao
                 );
 
         $joinClauses = "";
-
-        if (array_key_exists("attendance_date"          , $selectedColumns) ||
-            array_key_exists("attendance_check_in_time" , $selectedColumns) ||
-            array_key_exists("attendance_check_out_time", $selectedColumns)) {
-
-            $joinClauses .= "
-                LEFT JOIN
-                    attendance AS attendance
-                ON
-                    employee_break.attendance_id = attendance.id
-            ";
-        }
 
         if (array_key_exists("break_schedule_snapshot_break_schedule_id"               , $selectedColumns) ||
             array_key_exists("break_schedule_snapshot_work_schedule_snapshot_id"       , $selectedColumns) ||
@@ -616,7 +593,6 @@ class EmployeeBreakDao
         $query = "
             UPDATE employee_breaks
             SET
-                attendance_id              = :attendance_id             ,
                 break_schedule_snapshot_id = :break_schedule_snapshot_id,
                 start_time                 = :start_time                ,
                 end_time                   = :end_time                  ,
@@ -640,7 +616,6 @@ class EmployeeBreakDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":attendance_id"             , $employeeBreak->getAttendanceId()           , Helper::getPdoParameterType($employeeBreak->getAttendanceId()           ));
             $statement->bindValue(":break_schedule_snapshot_id", $employeeBreak->getBreakScheduleSnapshotId(), Helper::getPdoParameterType($employeeBreak->getBreakScheduleSnapshotId()));
             $statement->bindValue(":start_time"                , $employeeBreak->getStartTime()              , Helper::getPdoParameterType($employeeBreak->getStartTime()              ));
             $statement->bindValue(":end_time"                  , $employeeBreak->getEndTime()                , Helper::getPdoParameterType($employeeBreak->getEndTime()                ));
