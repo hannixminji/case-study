@@ -101,6 +101,7 @@ class DeductionDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "deduction.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

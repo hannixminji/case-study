@@ -220,6 +220,7 @@ class PayslipDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "payslip.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

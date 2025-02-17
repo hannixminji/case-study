@@ -110,6 +110,7 @@ class JobTitleDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "job_title.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

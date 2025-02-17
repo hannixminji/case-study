@@ -101,6 +101,7 @@ class AllowanceDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "allowance.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

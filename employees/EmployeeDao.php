@@ -321,6 +321,7 @@ class EmployeeDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "employee.deleted_at is NULL";
+            
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

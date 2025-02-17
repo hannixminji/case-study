@@ -117,6 +117,7 @@ class PayrollGroupDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "payroll_group.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

@@ -332,14 +332,22 @@ class AttendanceDao
         $queryParameters  = [];
         $filterParameters = [];
 
-        if ( ! empty($filterCriteria)) {
+        if (empty($filterCriteria)) {
+            $whereClauses[] = "attendance.deleted_at is NULL";
+
+        } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
                 $operator = $filterCriterion["operator"];
+                $boolean  = isset($filterCriterion["boolean"])
+                    ? strtoupper($filterCriterion["boolean"])
+                    : 'AND';
 
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case "<="  :
+                    case ">="  :
                     case "LIKE":
                         $whereClauses    [] = "{$column} {$operator} ?";
                         $queryParameters [] = $filterCriterion["value"];
@@ -363,7 +371,13 @@ class AttendanceDao
 
                         break;
                 }
+
+                $whereClauses[] = " {$boolean}";
             }
+        }
+
+        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+            array_pop($whereClauses);
         }
 
         $orderByClauses = [];
@@ -375,6 +389,7 @@ class AttendanceDao
                 if (isset($sortCriterion["direction"])) {
                     $direction = $sortCriterion["direction"];
                     $orderByClauses[] = "{$column} {$direction}";
+
                 } elseif (isset($sortCriterion["custom_order"])) {
                     $customOrder = $sortCriterion["custom_order"];
                     $caseExpressions = ["CASE {$column}"];
@@ -408,7 +423,8 @@ class AttendanceDao
             FROM
                 attendance
             {$joinClauses}
-            " . (empty($whereClauses) ? "" : "WHERE " . implode(" AND ", $whereClauses)) . "
+            WHERE
+                " . implode(" ", $whereClauses) . "
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -437,7 +453,7 @@ class AttendanceDao
                     FROM
                         attendance AS attendance
                     {$joinClauses}
-                    " . (empty($whereClauses) ? "" : "WHERE " . implode(" AND ", $whereClauses)) . "
+                        " . implode(" ", $whereClauses) . "
                 ";
 
                 $countStatement = $this->pdo->prepare($totalRowCountQuery);
@@ -458,6 +474,73 @@ class AttendanceDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the attendance records. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchEmployeeLastAttendanceRecord(int $employeeId, string $currentDateTime): array|ActionResult
+    {
+        $query = "
+            SELECT
+                attendance.id                                            AS id                                                      ,
+                attendance.work_schedule_snapshot_id                     AS work_schedule_snapshot_id                               ,
+                attendance.date                                          AS date                                                    ,
+                attendance.check_in_time                                 AS check_in_time                                           ,
+                attendance.check_out_time                                AS check_out_time                                          ,
+                attendance.total_break_duration_in_minutes               AS total_break_duration_in_minutes                         ,
+                attendance.total_hours_worked                            AS total_hours_worked                                      ,
+                attendance.late_check_in                                 AS late_check_in                                           ,
+                attendance.early_check_out                               AS early_check_out                                         ,
+                attendance.overtime_hours                                AS overtime_hours                                          ,
+                attendance.is_overtime_approved                          AS is_overtime_approved                                    ,
+                attendance.attendance_status                             AS attendance_status                                       ,
+                attendance.remarks                                       AS remarks                                                 ,
+
+                work_schedule_snapshot.work_schedule_id                  AS work_schedule_snapshot_work_schedule_id                 ,
+                work_schedule_snapshot.start_time                        AS work_schedule_snapshot_start_time                       ,
+                work_schedule_snapshot.end_time                          AS work_schedule_snapshot_end_time                         ,
+                work_schedule_snapshot.is_flextime                       AS work_schedule_snapshot_is_flextime                      ,
+                work_schedule_snapshot.total_hours_per_week              AS work_schedule_snapshot_total_hours_per_week             ,
+                work_schedule_snapshot.total_work_hours                  AS work_schedule_snapshot_total_work_hours                 ,
+                work_schedule_snapshot.start_date                        AS work_schedule_snapshot_start_date                       ,
+                work_schedule_snapshot.recurrence_rule                   AS work_schedule_snapshot_recurrence_rule                  ,
+                work_schedule_snapshot.grace_period                      AS work_schedule_snapshot_grace_period                     ,
+                work_schedule_snapshot.minutes_can_check_in_before_shift AS work_schedule_snapshot_minutes_can_check_in_before_shift
+            FROM
+                attendance
+            LEFT JOIN
+                work_schedule_snapshots AS work_schedule_snapshot
+            ON
+                attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
+            WHERE
+                attendance.deleted_at IS NULL
+            AND
+                work_schedule_snapshot.employee_id = :employee_id
+            AND (
+                (attendance.check_in_time <= :current_date_time AND attendance.check_out_time <= :current_date_time)
+                OR
+                (attendance.check_in_time <= :current_date_time AND attendance.check_out_time IS NULL)
+            )
+            ORDER BY
+                attendance.date          DESC,
+                attendance.check_in_time DESC
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_id"      , $employeeId     , Helper::getPdoParameterType($employeeId     ));
+            $statement->bindValue(":current_date_time", $currentDateTime, Helper::getPdoParameterType($currentDateTime));
+
+            $statement->execute();
+
+            return $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the employee last attendance record. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

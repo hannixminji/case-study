@@ -201,6 +201,7 @@ class LeaveEntitlementDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "leave_entitlement.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

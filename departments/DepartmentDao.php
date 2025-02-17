@@ -110,6 +110,7 @@ class DepartmentDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "department.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

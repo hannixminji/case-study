@@ -170,6 +170,7 @@ class EmploymentTypeBenefitDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "employment_type_benefit.deleted_at IS NULL";
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];

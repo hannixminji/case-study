@@ -45,6 +45,11 @@ class AttendanceRepository
         );
     }
 
+    public function fetchEmployeeLastAttendanceRecord(int $employeeId, string $currentDateTime): array|ActionResult
+    {
+        return $this->attendanceDao->fetchEmployeeLastAttendanceRecord($employeeId, $currentDateTime);
+    }
+
     public function updateAttendance(Attendance $attendance, bool $isHashedId = false): ActionResult
     {
         return $this->attendanceDao->update($attendance, $isHashedId);
