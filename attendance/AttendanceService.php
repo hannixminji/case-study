@@ -129,9 +129,9 @@ class AttendanceService
             	'upper_bound' => 'leave_request.end_date'
             ],
             [
-                'column'   => 'leave_request.status',
-                'operator' => '='                   ,
-                'value'    => 'In Progress'
+                'column'     => 'leave_request.status'      ,
+                'operator'   => 'IN'                        ,
+                'value_list' => ['In Progress', 'Completed']
             ]
         ];
 
@@ -208,6 +208,10 @@ class AttendanceService
             [
                 'column'    => 'attendance.check_in_time',
                 'direction' => 'DESC'
+            ],
+            [
+                'column'    => 'work_schedule_snapshot_start_time',
+                'direction' => 'DESC'
             ]
         ];
 
@@ -231,7 +235,7 @@ class AttendanceService
                 ? $lastAttendanceRecord['result_set'][0]
                 : [];
 
-        if (empty($lastAttendanceRecord) ||
+        if (empty($lastAttendanceRecord)                      ||
 
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
             $lastAttendanceRecord['check_out_time'] !== null) ||
@@ -306,14 +310,14 @@ class AttendanceService
                     ]
                 ];
 
-                $workScheduleFetchResult = $this->workScheduleRepository->fetchAllWorkSchedules(
+                $workSchedules = $this->workScheduleRepository->fetchAllWorkSchedules(
                     columns             : $workScheduleColumns       ,
                     filterCriteria      : $workScheduleFilterCriteria,
                     sortCriteria        : $workScheduleSortCriteria  ,
                     includeTotalRowCount: false
                 );
 
-                if ($workScheduleFetchResult === ActionResult::FAILURE) {
+                if ($workSchedules === ActionResult::FAILURE) {
                     return [
                         'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
@@ -321,8 +325,8 @@ class AttendanceService
                 }
 
                 $workSchedules =
-                    ! empty($workScheduleFetchResult['result_set'])
-                        ? $workScheduleFetchResult['result_set']
+                    ! empty($workSchedules['result_set'])
+                        ? $workSchedules['result_set']
                         : [];
 
                 if (empty($workSchedules)) {
@@ -467,30 +471,26 @@ class AttendanceService
                         'value'    => $employeeId
                     ],
                     [
-                        'column'   => 'leave_request.start_date'             ,
-                        'operator' => '<='                                   ,
-                        'value'    => $workScheduleStartDate->format('Y-m-d')
-                    ],
-                    [
-                        'column'   => 'leave_request.end_date'               ,
-                        'operator' => '>='                                   ,
-                        'value'    => $workScheduleStartDate->format('Y-m-d')
+                        'column'      => $formattedPreviousDate    ,
+                        'operator'    => 'BETWEEN'                 ,
+                        'lower_bound' => 'leave_request.start_date',
+                        'upper_bound' => 'leave_request.end_date'
                     ],
                     [
                         'column'     => 'leave_request.status'      ,
                         'operator'   => 'IN'                        ,
-                        'value_list' => ['Completed', 'In Progress']
+                        'value_list' => ['In Progress', 'Completed']
                     ]
                 ];
 
-                $leaveRequestFetchResult = $this->leaveRequestRepository->fetchAllLeaveRequests(
+                $didLeaveOccurYesterday = $this->leaveRequestRepository->fetchAllLeaveRequests(
                     columns             : $leaveRequestColumns       ,
                     filterCriteria      : $leaveRequestFilterCriteria,
                     limit               : 1                          ,
                     includeTotalRowCount: false
                 );
 
-                if ($leaveRequestFetchResult === ActionResult::FAILURE) {
+                if ($didLeaveOccurYesterday === ActionResult::FAILURE) {
                     return [
                         'status'  => 'error',
                         'message' => 'An unexpected error occurred. Please try again later.'
@@ -498,8 +498,8 @@ class AttendanceService
                 }
 
                 $didLeaveOccurYesterday =
-                    ! empty($leaveRequestFetchResult['result_set'])
-                        ? $leaveRequestFetchResult['result_set'][0]
+                    ! empty($didLeaveOccurYesterday['result_set'])
+                        ? $didLeaveOccurYesterday['result_set'][0]
                         : [];
 
                 if ( ! empty($didLeaveOccurYesterday) && ! $didLeaveOccurYesterday['is_half_day']) {
@@ -511,45 +511,102 @@ class AttendanceService
             }
 
             if ($isUsingLastAttendanceWorkSchedule) {
+                $employeeBreakColumns = [
+                    'break_schedule_snapshot_start_time'         ,
+                    'break_schedule_snapshot_end_time'           ,
+                    'break_schedule_snapshot_is_flexible'        ,
+                    'break_schedule_snapshot_earliest_start_time',
+                    'break_schedule_snapshot_latest_end_time'    ,
+
+                    'break_type_snapshot_duration_in_minutes'    ,
+                    'break_type_snapshot_is_paid'
+                ];
+
+                $employeeBreakFilterCriteria = [
+                    [
+                        'column'   => 'employee_break.deleted_at',
+                        'operator' => 'IS NULL'
+                    ],
+                    [
+                        'column'   => 'break_schedule_snapshot.work_schedule_snapshot_id',
+                        'operator' => '='                                                ,
+                        'value'    => $lastAttendanceRecord['work_schedule_snapshot_id']
+                    ],
+                    [
+                        'column'      => 'employee_break.created_at'                              ,
+                        'operator'    => 'BETWEEN'                                                ,
+                        'lower_bound' => $adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s'),
+                        'upper_bound' => $workScheduleEndDateTime          ->format('Y-m-d H:i:s')
+                    ]
+                ];
+
+                $employeeGroupByColumns = [
+                    'employee_break.break_schedule_snapshot_id'
+                ];
+
+                $breakSchedules = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                    columns             : $employeeBreakColumns       ,
+                    filterCriteria      : $employeeBreakFilterCriteria,
+                    groupByColumns      : $employeeGroupByColumns     ,
+                    includeTotalRowCount: false
+                );
+
+                $mapKeys = [
+                    "break_schedule_snapshot_start_time"          => "start_time"                    ,
+                    "break_schedule_snapshot_end_time"            => "end_time"                      ,
+                    "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
+                    "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
+                    "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
+                    "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
+                    "break_type_snapshot_is_paid"                 => "break_type_is_paid"
+                ];
+
+                $breakSchedules['result_set'] = array_map(function ($item) use ($mapKeys) {
+                    $newItem = [];
+                    foreach ($mapKeys as $oldKey => $newKey) {
+                        if (isset($item[$oldKey])) {
+                            $newItem[$newKey] = $item[$oldKey];
+                        }
+                    }
+                    return $newItem;
+                }, $breakSchedules['result_set']);
 
             } else {
+                $breakScheduleColumns = [
+                    'id'                               ,
+                    'break_type_id'                    ,
+                    'start_time'                       ,
+                    'end_time'                         ,
+                    'is_flexible'                      ,
+                    'earliest_start_time'              ,
+                    'latest_end_time'                  ,
 
+                    'break_type_name'                  ,
+                    'break_type_duration_in_minutes'   ,
+                    'break_type_is_paid'               ,
+                    'is_require_break_in_and_break_out'
+                ];
+
+                $breakScheduleFilterCriteria = [
+                    [
+                        'column'   => 'break_schedule.deleted_at',
+                        'operator' => 'IS NULL'
+                    ],
+                    [
+                        'column'   => 'break_schedule.work_schedule_id',
+                        'operator' => '='                              ,
+                        'value'    => $workScheduleId
+                    ]
+                ];
+
+                $breakSchedules = $this->breakScheduleRepository->fetchAllBreakSchedules(
+                    columns             : $breakScheduleColumns       ,
+                    filterCriteria      : $breakScheduleFilterCriteria,
+                    includeTotalRowCount: false
+                );
             }
 
-            $breakScheduleColumns = [
-                'id'                               ,
-                'break_type_id'                    ,
-                'start_time'                       ,
-                'end_time'                         ,
-                'is_flexible'                      ,
-                'earliest_start_time'              ,
-                'latest_end_time'                  ,
-
-                'break_type_name'                  ,
-                'break_type_duration_in_minutes'   ,
-                'break_type_is_paid'               ,
-                'is_require_break_in_and_break_out'
-            ];
-
-            $breakScheduleFilterCriteria = [
-                [
-                    'column'   => 'break_schedule.deleted_at',
-                    'operator' => 'IS NULL'
-                ],
-                [
-                    'column'   => 'break_schedule.work_schedule_id',
-                    'operator' => '='                              ,
-                    'value'    => $workScheduleId
-                ]
-            ];
-
-            $breakScheduleFetchResult = $this->breakScheduleRepository->fetchAllBreakSchedules(
-                columns             : $breakScheduleColumns       ,
-                filterCriteria      : $breakScheduleFilterCriteria,
-                includeTotalRowCount: false
-            );
-
-            if ($breakScheduleFetchResult === ActionResult::FAILURE) {
+            if ($breakSchedules === ActionResult::FAILURE) {
                 return [
                     'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
@@ -557,8 +614,8 @@ class AttendanceService
             }
 
             $breakSchedules =
-                ! empty($breakScheduleFetchResult['result_set'])
-                    ? $breakScheduleFetchResult['result_set']
+                ! empty($breakSchedules['result_set'])
+                    ? $breakSchedules['result_set']
                     : [];
 
             if ( ! empty($breakSchedules)) {
@@ -594,7 +651,7 @@ class AttendanceService
                         : $isOnLeaveToday        ['half_day_part'];
 
                 $halfDayDurationInMinutes =
-                    ($currentWorkSchedule['total_work_hours'] / 2) * 60;
+                    ($workSchedule['total_work_hours'] / 2) * 60;
 
                 if ($halfDayPart === 'first_half') {
                     $halfDayStartDateTime = clone $workScheduleStartDateTime;

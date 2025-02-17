@@ -163,6 +163,7 @@ class EmployeeBreakDao
         ? array $columns              = null,
         ? array $filterCriteria       = null,
         ? array $sortCriteria         = null,
+        ? array $groupByColumns       = null,
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
@@ -512,6 +513,11 @@ class EmployeeBreakDao
             }
         }
 
+        $groupByClause = "";
+        if ( ! empty($groupByColumns)) {
+            $groupByClause = "GROUP BY " . implode(", ", $groupByColumns);
+        }
+
         $limitClause = "";
         if ($limit !== null) {
             $limitClause = " LIMIT ?";
@@ -532,6 +538,7 @@ class EmployeeBreakDao
             {$joinClauses}
             WHERE
                 " . implode(" AND ", $whereClauses) . "
+            {$groupByClause}
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}

@@ -30,6 +30,7 @@ class EmployeeBreakRepository
         ? array $columns              = null,
         ? array $filterCriteria       = null,
         ? array $sortCriteria         = null,
+        ? array $groupByColumns       = null,
         ? int   $limit                = null,
         ? int   $offset               = null,
           bool  $includeTotalRowCount = true
@@ -39,6 +40,7 @@ class EmployeeBreakRepository
             columns             : $columns             ,
             filterCriteria      : $filterCriteria      ,
             sortCriteria        : $sortCriteria        ,
+            groupByColumns      : $groupByColumns      ,
             limit               : $limit               ,
             offset              : $offset              ,
             includeTotalRowCount: $includeTotalRowCount
