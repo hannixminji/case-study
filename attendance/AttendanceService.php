@@ -7,8 +7,8 @@ require_once __DIR__ . '/../breaks/BreakSchedule.php'                 ;
 require_once __DIR__ . '/../breaks/EmployeeBreak.php'                 ;
 
 require_once __DIR__ . '/../work-schedules/WorkScheduleSnapshot.php'  ;
-require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'             ;
 require_once __DIR__ . '/../breaks/BreakScheduleSnapshot.php'         ;
+require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'             ;
 
 require_once __DIR__ . '/AttendanceRepository.php'                    ;
 
@@ -54,7 +54,7 @@ class AttendanceService
         $this->breakTypeRepository     = $breakTypeRepository    ;
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentDateTime)
+    public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeColumns = [
 			'id'
