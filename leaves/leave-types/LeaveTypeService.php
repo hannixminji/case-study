@@ -35,13 +35,13 @@ class LeaveTypeService
         );
     }
 
-    public function updateLeaveType(LeaveType $leaveType, bool $isHashedId = false): ActionResult
+    public function updateLeaveType(LeaveType $leaveType): ActionResult
     {
-        return $this->leaveTypeRepository->updateLeaveType($leaveType, $isHashedId);
+        return $this->leaveTypeRepository->updateLeaveType($leaveType);
     }
 
-    public function deleteLeaveType(int|string $leaveTypeId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveType(int|string $leaveTypeId): ActionResult
     {
-        return $this->leaveTypeRepository->deleteLeaveType($leaveTypeId, $isHashedId);
+        return $this->leaveTypeRepository->deleteLeaveType($leaveTypeId);
     }
 }

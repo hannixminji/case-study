@@ -47,13 +47,13 @@ class EmployeeBreakRepository
         );
     }
 
-    public function updateEmployeeBreak(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
+    public function updateEmployeeBreak(EmployeeBreak $employeeBreak): ActionResult
     {
-        return $this->employeeBreakDao->update($employeeBreak, $isHashedId);
+        return $this->employeeBreakDao->update($employeeBreak);
     }
 
-    public function deleteEmployeeBreak(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    public function deleteEmployeeBreak(int|string $employeeBreakId): ActionResult
     {
-        return $this->employeeBreakDao->delete($employeeBreakId, $isHashedId);
+        return $this->employeeBreakDao->delete($employeeBreakId);
     }
 }

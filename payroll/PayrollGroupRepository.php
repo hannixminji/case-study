@@ -35,13 +35,13 @@ class PayrollGroupRepository
         );
     }
 
-    public function updatePayrollGroup(PayrollGroup $payrollGroup, bool $isHashedId = false): ActionResult
+    public function updatePayrollGroup(PayrollGroup $payrollGroup): ActionResult
     {
-        return $this->payrollGroupDao->update($payrollGroup, $isHashedId);
+        return $this->payrollGroupDao->update($payrollGroup);
     }
 
-    public function deletePayrollGroup(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
+    public function deletePayrollGroup(int|string $payrollGroupId): ActionResult
     {
-        return $this->payrollGroupDao->delete($payrollGroupId, $isHashedId);
+        return $this->payrollGroupDao->delete($payrollGroupId);
     }
 }

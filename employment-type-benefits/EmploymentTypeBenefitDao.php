@@ -339,12 +339,12 @@ class EmploymentTypeBenefitDao
         }
     }
 
-    public function delete(int|string $employmentTypeBenefitId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employmentTypeBenefitId): ActionResult
     {
-        return $this->softDelete($employmentTypeBenefitId, $isHashedId);
+        return $this->softDelete($employmentTypeBenefitId);
     }
 
-    private function softDelete(int|string $employmentTypeBenefitId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employmentTypeBenefitId): ActionResult
     {
         $query = "
             UPDATE employment_type_benefits
@@ -353,7 +353,7 @@ class EmploymentTypeBenefitDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employmentTypeBenefitId)) {
             $query .= " SHA2(id, 256) = :employment_benefit_id";
         } else {
             $query .= " id = :employment_benefit_id";

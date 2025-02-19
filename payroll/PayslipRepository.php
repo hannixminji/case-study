@@ -35,8 +35,8 @@ class PayslipRepository
         );
     }
 
-    public function updatePayslip(Payslip $payslip, bool $isHashedId = false): ActionResult
+    public function updatePayslip(Payslip $payslip): ActionResult
     {
-        return $this->payslipDao->update($payslip, $isHashedId);
+        return $this->payslipDao->update($payslip);
     }
 }

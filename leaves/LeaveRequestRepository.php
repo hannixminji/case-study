@@ -35,14 +35,14 @@ class LeaveRequestRepository
         );
     }
 
-    public function updateLeaveRequest(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult
+    public function updateLeaveRequest(LeaveRequest $leaveRequest): ActionResult
     {
-        return $this->leaveRequestDao->update($leaveRequest, $isHashedId);
+        return $this->leaveRequestDao->update($leaveRequest);
     }
 
-    public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
+    public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status): ActionResult
     {
-        return $this->leaveRequestDao->updateStatus($leaveRequestId, $status, $isHashedId);
+        return $this->leaveRequestDao->updateStatus($leaveRequestId, $status);
     }
 
     public function updateLeaveRequestStatuses(string $currentDate): ActionResult
@@ -50,9 +50,9 @@ class LeaveRequestRepository
         return $this->leaveRequestDao->updateLeaveRequestStatuses($currentDate);
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): array|null|ActionResult
+    public function isEmployeeOnLeave(int|string $employeeId): array|null|ActionResult
     {
-        return $this->leaveRequestDao->isEmployeeOnLeave($employeeId, $isHashedId);
+        return $this->leaveRequestDao->isEmployeeOnLeave($employeeId);
     }
 
     public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): array|ActionResult
@@ -137,8 +137,8 @@ class LeaveRequestRepository
         return $datesMarkedAsLeave;
     }
 
-    public function deleteLeaveRequest(int|string $leaveRequestId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveRequest(int|string $leaveRequestId): ActionResult
     {
-        return $this->leaveRequestDao->delete($leaveRequestId, $isHashedId);
+        return $this->leaveRequestDao->delete($leaveRequestId);
     }
 }

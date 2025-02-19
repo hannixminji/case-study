@@ -45,13 +45,13 @@ class BreakScheduleRepository
         return $this->breakScheduleDao->fetchLatestSnapshotById($breakScheduleId);
     }
 
-    public function updateBreakSchedule(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
+    public function updateBreakSchedule(BreakSchedule $breakSchedule): ActionResult
     {
-        return $this->$breakSchedule->update($breakSchedule, $isHashedId);
+        return $this->$breakSchedule->update($breakSchedule);
     }
 
-    public function deleteBreakSchedule(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteBreakSchedule(int|string $breakScheduleId): ActionResult
     {
-        return $this->breakScheduleDao->delete($breakScheduleId, $isHashedId);
+        return $this->breakScheduleDao->delete($breakScheduleId);
     }
 }

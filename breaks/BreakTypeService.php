@@ -35,13 +35,13 @@ class BreakTypeService
         );
     }
 
-    public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult
+    public function updateBreakType(BreakType $breakType): ActionResult
     {
-        return $this->breakTypeRepository->updateBreakType($breakType, $isHashedId);
+        return $this->breakTypeRepository->updateBreakType($breakType);
     }
 
-    public function deleteBreakType(int|string $breakTypeId, bool $isHashedId = false): ActionResult
+    public function deleteBreakType(int|string $breakTypeId): ActionResult
     {
-        return $this->breakTypeRepository->deleteBreakType($breakTypeId, $isHashedId);
+        return $this->breakTypeRepository->deleteBreakType($breakTypeId);
     }
 }

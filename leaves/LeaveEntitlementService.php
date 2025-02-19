@@ -35,18 +35,18 @@ class LeaveEntitlementService
         );
     }
 
-    public function updateLeaveEntitlementBalance(LeaveEntitlement $leaveEntitlement, bool $isHashedId = false): ActionResult
+    public function updateLeaveEntitlementBalance(LeaveEntitlement $leaveEntitlement): ActionResult
     {
-        return $this->leaveEntitlementRepository->updateLeaveEntitlementBalance($leaveEntitlement, $isHashedId);
+        return $this->leaveEntitlementRepository->updateLeaveEntitlementBalance($leaveEntitlement);
     }
 
-    public function resetEmployeeAllLeaveBalances(int|string $employeeId, bool $isHashedId = false): ActionResult
+    public function resetEmployeeAllLeaveBalances(int|string $employeeId): ActionResult
     {
-        return $this->resetEmployeeAllLeaveBalances($employeeId, $isHashedId);
+        return $this->resetEmployeeAllLeaveBalances($employeeId);
     }
 
-    public function deleteLeaveEntitlement(int|string $leaveEntitlementId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveEntitlement(int|string $leaveEntitlementId): ActionResult
     {
-        return $this->leaveEntitlementRepository->deleteLeaveEntitlement($leaveEntitlementId, $isHashedId);
+        return $this->leaveEntitlementRepository->deleteLeaveEntitlement($leaveEntitlementId);
     }
 }

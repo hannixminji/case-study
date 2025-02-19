@@ -350,7 +350,7 @@ class PayslipDao
         }
     }
 
-    public function update(Payslip $payslip, bool $isHashedId = false): ActionResult
+    public function update(Payslip $payslip): ActionResult
     {
         $query = "
             UPDATE payslips
@@ -379,7 +379,7 @@ class PayslipDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($payslip->getId())) {
             $query .= " SHA2(id, 256) = :payslip_id";
         } else {
             $query .= " id = :payslip_id";

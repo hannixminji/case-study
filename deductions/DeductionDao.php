@@ -234,7 +234,7 @@ class DeductionDao
         }
     }
 
-    public function update(Deduction $deduction, bool $isHashedId = false): ActionResult
+    public function update(Deduction $deduction): ActionResult
     {
         $query = "
             UPDATE deductions
@@ -247,7 +247,7 @@ class DeductionDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($deduction->getId())) {
             $query .= " SHA2(id, 256) = :deduction_id";
         } else {
             $query .= " id = :deduction_id";
@@ -290,12 +290,12 @@ class DeductionDao
         }
     }
 
-    public function delete(int|string $deductionId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $deductionId): ActionResult
     {
-        return $this->softDelete($deductionId, $isHashedId);
+        return $this->softDelete($deductionId);
     }
 
-    private function softDelete(int|string $deductionId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $deductionId): ActionResult
     {
         $query = "
             UPDATE deductions
@@ -305,7 +305,7 @@ class DeductionDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($deductionId)) {
             $query .= " SHA2(id, 256) = :deduction_id";
         } else {
             $query .= " id = :deduction_id";

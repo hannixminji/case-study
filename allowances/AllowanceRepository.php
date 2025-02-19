@@ -35,13 +35,13 @@ class AllowanceRepository
         );
     }
 
-    public function updateAllowance(Allowance $allowance, bool $isHashedId = false): ActionResult
+    public function updateAllowance(Allowance $allowance): ActionResult
     {
-        return $this->allowanceDao->update($allowance, $isHashedId);
+        return $this->allowanceDao->update($allowance);
     }
 
-    public function deleteAllowance(int|string $allowanceId, bool $isHashedId = false): ActionResult
+    public function deleteAllowance(int|string $allowanceId): ActionResult
     {
-        return $this->allowanceDao->delete($allowanceId, $isHashedId);
+        return $this->allowanceDao->delete($allowanceId);
     }
 }

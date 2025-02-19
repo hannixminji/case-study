@@ -40,18 +40,18 @@ class DepartmentService
         return $this->departmentRepository->fetchEmployeeCountsPerDepartment();
     }
 
-    public function isEmployeeDepartmentHead(int|string $employeeId, bool $isHashedId = false): bool|ActionResult
+    public function isEmployeeDepartmentHead(int|string $employeeId): bool|ActionResult
     {
-        return $this->departmentRepository->isEmployeeDepartmentHead($employeeId, $isHashedId);
+        return $this->departmentRepository->isEmployeeDepartmentHead($employeeId);
     }
 
-    public function updateDepartment(Department $department, bool $isHashedId = false): ActionResult
+    public function updateDepartment(Department $department): ActionResult
     {
-        return $this->departmentRepository->updateDepartment($department, $isHashedId);
+        return $this->departmentRepository->updateDepartment($department);
     }
 
-    public function deleteDepartment(int|string $departmentId, bool $isHashedId = false): ActionResult
+    public function deleteDepartment(int|string $departmentId): ActionResult
     {
-        return $this->departmentRepository->deleteDepartment($departmentId, $isHashedId);
+        return $this->departmentRepository->deleteDepartment($departmentId);
     }
 }

@@ -35,13 +35,13 @@ class WorkScheduleService
         );
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
+    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
     {
-        return $this->workScheduleRepository->updateWorkSchedule($workSchedule, $isHashedId);
+        return $this->workScheduleRepository->updateWorkSchedule($workSchedule);
     }
 
-    public function deleteWorkSchedule(int|string $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteWorkSchedule(int|string $workScheduleId): ActionResult
     {
-        return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId, $isHashedId);
+        return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId);
     }
 }

@@ -230,12 +230,12 @@ class EmployeeDeductionDao
         }
     }
 
-    public function delete(int|string $employeeDeductionId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeDeductionId): ActionResult
     {
-        return $this->softDelete($employeeDeductionId, $isHashedId);
+        return $this->softDelete($employeeDeductionId);
     }
 
-    private function softDelete(int|string $employeeDeductionId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeDeductionId): ActionResult
     {
         $query = "
             UPDATE employee_deductions
@@ -244,7 +244,7 @@ class EmployeeDeductionDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeDeductionId)) {
             $query .= " SHA2(id, 256) = :employee_deduction_id";
         } else {
             $query .= " id = :employee_deduction_id";

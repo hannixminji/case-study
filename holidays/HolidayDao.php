@@ -239,7 +239,7 @@ class HolidayDao
         }
     }
 
-    public function update(Holiday $holiday, bool $isHashedId = false): ActionResult
+    public function update(Holiday $holiday): ActionResult
     {
         $query = "
             UPDATE holidays
@@ -254,7 +254,7 @@ class HolidayDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($holiday->getId())) {
             $query .= " SHA2(id, 256) = :holiday_id";
         } else {
             $query .= " id = :holiday_id";
@@ -299,12 +299,12 @@ class HolidayDao
         }
     }
 
-    public function delete(int|string $holidayId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $holidayId): ActionResult
     {
-        return $this->softDelete($holidayId, $isHashedId);
+        return $this->softDelete($holidayId);
     }
 
-    private function softDelete(int|string $holidayId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $holidayId): ActionResult
     {
         $query = "
             UPDATE holidays
@@ -314,7 +314,7 @@ class HolidayDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($holidayId)) {
             $query .= " SHA2(id, 256) = :holiday_id";
         } else {
             $query .= " id = :holiday_id";

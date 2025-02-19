@@ -35,8 +35,8 @@ class EmploymentTypeBenefitRepository
         );
     }
 
-    public function deleteEmploymentTypeBenefit(int|string $employmentTypeBenefitId, bool $isHashedId = false): ActionResult
+    public function deleteEmploymentTypeBenefit(int|string $employmentTypeBenefitId): ActionResult
     {
-        return $this->employmentTypeBenefitDao->delete($employmentTypeBenefitId, $isHashedId);
+        return $this->employmentTypeBenefitDao->delete($employmentTypeBenefitId);
     }
 }

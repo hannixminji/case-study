@@ -42,19 +42,19 @@ class LeaveRequestService
         );
     }
 
-    public function updateLeaveRequest(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult
+    public function updateLeaveRequest(LeaveRequest $leaveRequest): ActionResult
     {
-        return $this->leaveRequestRepository->updateLeaveRequest($leaveRequest, $isHashedId);
+        return $this->leaveRequestRepository->updateLeaveRequest($leaveRequest);
     }
 
-    public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
+    public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status): ActionResult
     {
-        return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status, $isHashedId);
+        return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status);
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): array|null|ActionResult
+    public function isEmployeeOnLeave(int|string $employeeId): array|null|ActionResult
     {
-        return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId, $isHashedId);
+        return $this->leaveRequestRepository->isEmployeeOnLeave($employeeId);
     }
 
     public function getLeaveDatesForPeriod(int|string $employeeId, string $startDate, string $endDate): array|null|ActionResult
@@ -62,9 +62,9 @@ class LeaveRequestService
         return $this->leaveRequestRepository->getLeaveDatesForPeriod($employeeId, $startDate, $endDate);
     }
 
-    public function deleteLeaveRequest(int|string $leaveRequestId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveRequest(int|string $leaveRequestId): ActionResult
     {
-        return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId, $isHashedId);
+        return $this->leaveRequestRepository->deleteLeaveRequest($leaveRequestId);
     }
 
     public function createLeaveRequestAttachment(LeaveRequestAttachment $leaveRequestAttachment): ActionResult
@@ -82,8 +82,8 @@ class LeaveRequestService
         return $this->leaveRequestAttachmentRepository->fetchAllLeaveRequestAttachments($columns, $filterCriteria, $sortCriteria, $limit, $offset);
     }
 
-    public function deleteLeaveRequestAttachment(int|string $leaveRequestAttachmentId, bool $isHashedId = false): ActionResult
+    public function deleteLeaveRequestAttachment(int|string $leaveRequestAttachmentId): ActionResult
     {
-        return $this->leaveRequestAttachmentRepository->deleteLeaveRequestAttachment($leaveRequestAttachmentId, $isHashedId);
+        return $this->leaveRequestAttachmentRepository->deleteLeaveRequestAttachment($leaveRequestAttachmentId);
     }
 }

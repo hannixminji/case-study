@@ -312,7 +312,7 @@ class BreakTypeDao
         }
     }
 
-    public function update(BreakType $breakType, bool $isHashedId = false): ActionResult
+    public function update(BreakType $breakType): ActionResult
     {
         $query = "
             UPDATE break_types
@@ -324,7 +324,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($breakType->getId())) {
             $query .= " SHA2(id, 256) = :break_type_id";
         } else {
             $query .= " id = :break_type_id";
@@ -366,12 +366,12 @@ class BreakTypeDao
         }
     }
 
-    public function delete(int|string $breakTypeId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $breakTypeId): ActionResult
     {
-        return $this->softDelete($breakTypeId, $isHashedId);
+        return $this->softDelete($breakTypeId);
     }
 
-    private function softDelete(int|string $breakTypeId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $breakTypeId): ActionResult
     {
         $query = "
             UPDATE break_types
@@ -380,7 +380,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($breakTypeId)) {
             $query .= " SHA2(id, 256) = :break_type_id";
         } else {
             $query .= " id = :break_type_id";

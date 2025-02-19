@@ -45,13 +45,13 @@ class BreakTypeRepository
         return $this->breakTypeDao->fetchLatestSnapshotById($breakTypeId);
     }
 
-    public function updateBreakType(BreakType $breakType, bool $isHashedId = false): ActionResult
+    public function updateBreakType(BreakType $breakType): ActionResult
     {
-        return $this->breakTypeDao->update($breakType, $isHashedId);
+        return $this->breakTypeDao->update($breakType);
     }
 
-    public function deleteBreakType(int|string $breakTypeId, bool $isHashedId = false): ActionResult
+    public function deleteBreakType(int|string $breakTypeId): ActionResult
     {
-        return $this->breakTypeDao->delete($breakTypeId, $isHashedId);
+        return $this->breakTypeDao->delete($breakTypeId);
     }
 }

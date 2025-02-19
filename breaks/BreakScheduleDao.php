@@ -362,7 +362,7 @@ class BreakScheduleDao
         }
     }
 
-    public function update(BreakSchedule $breakSchedule, bool $isHashedId = false): ActionResult
+    public function update(BreakSchedule $breakSchedule): ActionResult
     {
         $query = "
             UPDATE break_schedules
@@ -375,7 +375,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($breakSchedule->getId())) {
             $query .= " SHA2(id, 256) = :break_schedule_id";
         } else {
             $query .= " id = :break_schedule_id";
@@ -418,12 +418,12 @@ class BreakScheduleDao
         }
     }
 
-    public function delete(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $breakScheduleId): ActionResult
     {
-        return $this->softDelete($breakScheduleId, $isHashedId);
+        return $this->softDelete($breakScheduleId);
     }
 
-    private function softDelete(int|string $breakScheduleId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $breakScheduleId): ActionResult
     {
         $query = "
             UPDATE break_schedules
@@ -432,7 +432,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($breakScheduleId)) {
             $query .= " SHA2(id, 256) = :break_schedule_id";
         } else {
             $query .= " id = :break_schedule_id";

@@ -547,7 +547,7 @@ class AttendanceDao
         }
     }
 
-    public function update(Attendance $attendance, bool $isHashedId = false): ActionResult
+    public function update(Attendance $attendance): ActionResult
     {
         $query = "
             UPDATE attendance
@@ -565,7 +565,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($attendance->getId())) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";
@@ -613,7 +613,7 @@ class AttendanceDao
         }
     }
 
-    public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    public function approveOvertime(int|string $attendanceId): ActionResult
     {
         $query = "
             UPDATE attendance
@@ -622,7 +622,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($attendanceId)) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";
@@ -700,12 +700,12 @@ class AttendanceDao
         }
     }
 
-    public function delete(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $attendanceId): ActionResult
     {
-        return $this->softDelete($attendanceId, $isHashedId);
+        return $this->softDelete($attendanceId);
     }
 
-    private function softDelete(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $attendanceId): ActionResult
     {
         $query = "
             UPDATE attendance
@@ -714,7 +714,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($attendanceId)) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";

@@ -245,12 +245,12 @@ class EmployeeAllowanceDao
         }
     }
 
-    public function delete(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeAllowanceId): ActionResult
     {
-        return $this->softDelete($employeeAllowanceId, $isHashedId);
+        return $this->softDelete($employeeAllowanceId);
     }
 
-    private function softDelete(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeAllowanceId): ActionResult
     {
         $query = "
             UPDATE employee_allowances
@@ -259,7 +259,7 @@ class EmployeeAllowanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeAllowanceId)) {
             $query .= " SHA2(id, 256) = :employee_allowance_id";
         } else {
             $query .= " id = :employee_allowance_id";

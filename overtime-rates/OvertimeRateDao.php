@@ -72,7 +72,7 @@ class OvertimeRateDao
         }
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId, bool $isHashedId = false): array|ActionResult
+    public function fetchOvertimeRates(int $overtimeRateAssignmentId): array|ActionResult
     {
         $query = "
             SELECT
@@ -89,7 +89,7 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($overtimeRateAssignmentId)) {
             $query .= " SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
         } else {
             $query .= " overtime_rate_assignment_id = :overtime_rate_assignment_id";
@@ -112,7 +112,7 @@ class OvertimeRateDao
         }
     }
 
-    public function update(OvertimeRate $overtimeRate, bool $isHashedId = false): ActionResult
+    public function update(OvertimeRate $overtimeRate): ActionResult
     {
         $query = "
             UPDATE overtime_rates
@@ -124,18 +124,16 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ($isHashedId) {
-            $query .= "
-                SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id
-            AND
-                SHA2(id, 256) = :overtime_rate_id
-            ";
+        if (is_string($overtimeRate->getOvertimeRateAssignmentId())) {
+            $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id ";
         } else {
-            $query .= "
-                overtime_rate_assignment_id = :overtime_rate_assignment_id
-            AND
-                id = :overtime_rate_id
-            ";
+            $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id ";
+        }
+
+        if (is_string($overtimeRate->getId())) {
+            $query .= "AND SHA2(id, 256) = :overtime_rate_id";
+        } else {
+            $query .= "AND id = :overtime_rate_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -35,8 +35,8 @@ class EmployeeAllowanceService
         );
     }
 
-    public function deleteEmployeeAllowance(int|string $employeeAllowanceId, bool $isHashedId = false): ActionResult
+    public function deleteEmployeeAllowance(int|string $employeeAllowanceId): ActionResult
     {
-        return $this->employeeAllowanceRepository->deleteEmployeeAllowance($employeeAllowanceId, $isHashedId);
+        return $this->employeeAllowanceRepository->deleteEmployeeAllowance($employeeAllowanceId);
     }
 }

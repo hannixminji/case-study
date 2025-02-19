@@ -321,7 +321,7 @@ class EmployeeDao
 
         if (empty($filterCriteria)) {
             $whereClauses[] = "employee.deleted_at is NULL";
-            
+
         } else {
             foreach ($filterCriteria as $filterCriterion) {
                 $column   = $filterCriterion["column"  ];
@@ -471,7 +471,7 @@ class EmployeeDao
         return $this->pdo->lastInsertId();
     }
 
-    public function update(Employee $employee, bool $isHashedId = false): ActionResult
+    public function update(Employee $employee): ActionResult
     {
         $query = "
             UPDATE employees
@@ -525,7 +525,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employee->getId())) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";
@@ -609,7 +609,7 @@ class EmployeeDao
         }
     }
 
-    public function changePassword(int|string $employeeId, string $newHashedPassword, bool $isHashedId = false): ActionResult
+    public function changePassword(int|string $employeeId, string $newHashedPassword): ActionResult
     {
         $query = "
             UPDATE employees
@@ -618,7 +618,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeId)) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";
@@ -683,12 +683,12 @@ class EmployeeDao
         }
     }
 
-    public function delete(int|string $employeeId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeId): ActionResult
     {
-        return $this->softDelete($employeeId, $isHashedId);
+        return $this->softDelete($employeeId);
     }
 
-    private function softDelete(int|string $employeeId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeId): ActionResult
     {
         $query = "
             UPDATE employees
@@ -697,7 +697,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeId)) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";

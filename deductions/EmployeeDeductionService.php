@@ -35,8 +35,8 @@ class EmployeeDeductionService
         );
     }
 
-    public function deleteEmployeeDeduction(int|string $employeeDeductionId, bool $isHashedId = false): ActionResult
+    public function deleteEmployeeDeduction(int|string $employeeDeductionId): ActionResult
     {
-        return $this->employeeDeductionRepository->deleteEmployeeDeduction($employeeDeductionId, $isHashedId);
+        return $this->employeeDeductionRepository->deleteEmployeeDeduction($employeeDeductionId);
     }
 }

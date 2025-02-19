@@ -261,7 +261,7 @@ class PayrollGroupDao
         }
     }
 
-    public function update(PayrollGroup $payrollGroup, bool $isHashedId = false): ActionResult
+    public function update(PayrollGroup $payrollGroup): ActionResult
     {
         $query = "
             UPDATE payroll_groups
@@ -278,7 +278,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($payrollGroup->getId())) {
             $query .= " SHA2(id, 256) = :payroll_group_id";
         } else {
             $query .= " id = :payroll_group_id";
@@ -325,12 +325,12 @@ class PayrollGroupDao
         }
     }
 
-    public function delete(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $payrollGroupId): ActionResult
     {
-        return $this->softDelete($payrollGroupId, $isHashedId);
+        return $this->softDelete($payrollGroupId);
     }
 
-    private function softDelete(int|string $payrollGroupId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $payrollGroupId): ActionResult
     {
         $query = "
             UPDATE payroll_groups
@@ -340,7 +340,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($payrollGroupId)) {
             $query .= " SHA2(id, 256) = :payroll_group_id";
         } else {
             $query .= " id = :payroll_group_id";

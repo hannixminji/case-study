@@ -216,12 +216,12 @@ class LeaveRequestAttachmentDao
         }
     }
 
-    public function delete(int|string $leaveRequestAttachmentId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $leaveRequestAttachmentId): ActionResult
     {
-        return $this->softDelete($leaveRequestAttachmentId, $isHashedId);
+        return $this->softDelete($leaveRequestAttachmentId);
     }
 
-    private function softDelete(int|string $leaveRequestAttachmentId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $leaveRequestAttachmentId): ActionResult
     {
         $query = "
             UPDATE leave_request_attachments
@@ -230,7 +230,7 @@ class LeaveRequestAttachmentDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($leaveRequestAttachmentId)) {
             $query .= " SHA2(id, 256) = :leave_request_attachment_id";
         } else {
             $query .= " id = :leave_request_attachment_id";

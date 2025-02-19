@@ -45,9 +45,9 @@ class WorkScheduleRepository
         return $this->workScheduleDao->fetchLatestSnapshotById($workScheduleId);
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule, bool $isHashedId = false): ActionResult
+    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
     {
-        return $this->workScheduleDao->update($workSchedule, $isHashedId);
+        return $this->workScheduleDao->update($workSchedule);
     }
 
     public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array|ActionResult
@@ -55,8 +55,8 @@ class WorkScheduleRepository
         return $this->workScheduleDao->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
     }
 
-    public function deleteWorkSchedule(int|string $workScheduleId, bool $isHashedId = false): ActionResult
+    public function deleteWorkSchedule(int|string $workScheduleId): ActionResult
     {
-        return $this->workScheduleDao->delete($workScheduleId, $isHashedId);
+        return $this->workScheduleDao->delete($workScheduleId);
     }
 }

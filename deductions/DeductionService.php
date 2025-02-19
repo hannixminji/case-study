@@ -35,13 +35,13 @@ class DeductionService
         );
     }
 
-    public function updateDeduction(Deduction $deduction, bool $isHashedId = false): ActionResult
+    public function updateDeduction(Deduction $deduction): ActionResult
     {
-        return $this->deductionRepository->updateDeduction($deduction, $isHashedId);
+        return $this->deductionRepository->updateDeduction($deduction);
     }
 
-    public function deleteDeduction(int|string $deductionId, bool $isHashedId = false): ActionResult
+    public function deleteDeduction(int|string $deductionId): ActionResult
     {
-        return $this->deductionRepository->deleteDeduction($deductionId, $isHashedId);
+        return $this->deductionRepository->deleteDeduction($deductionId);
     }
 }

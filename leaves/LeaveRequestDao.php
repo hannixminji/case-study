@@ -339,7 +339,7 @@ class LeaveRequestDao
         }
     }
 
-    public function update(LeaveRequest $leaveRequest, bool $isHashedId = false): ActionResult
+    public function update(LeaveRequest $leaveRequest): ActionResult
     {
         $query = "
             UPDATE leave_requests
@@ -354,7 +354,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($leaveRequest->getId())) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";
@@ -399,7 +399,7 @@ class LeaveRequestDao
         }
     }
 
-    public function updateStatus(int|string $leaveRequestId, string $status, bool $isHashedId = false): ActionResult
+    public function updateStatus(int|string $leaveRequestId, string $status): ActionResult
     {
         $query = "
             UPDATE leave_requests
@@ -408,7 +408,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($leaveRequestId)) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";
@@ -493,7 +493,7 @@ class LeaveRequestDao
         }
     }
 
-    public function isEmployeeOnLeave(int|string $employeeId, bool $isHashedId = false): array|null|ActionResult
+    public function isEmployeeOnLeave(int|string $employeeId): array|null|ActionResult
     {
         $query = "
             SELECT
@@ -503,7 +503,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeId)) {
             $query .= " SHA2(employee_id, 256) = :employee_id";
         } else {
             $query .= " employee_id = :employee_id";
@@ -536,12 +536,12 @@ class LeaveRequestDao
         }
     }
 
-    public function delete(int|string $leaveRequestId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $leaveRequestId): ActionResult
     {
-        return $this->softDelete($leaveRequestId, $isHashedId);
+        return $this->softDelete($leaveRequestId);
     }
 
-    private function softDelete(int|string $leaveRequestId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $leaveRequestId): ActionResult
     {
         $query = "
             UPDATE leave_requests
@@ -550,7 +550,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($leaveRequestId)) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";

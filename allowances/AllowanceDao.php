@@ -229,7 +229,7 @@ class AllowanceDao
         }
     }
 
-    public function update(Allowance $allowance, bool $isHashedId = false): ActionResult
+    public function update(Allowance $allowance): ActionResult
     {
         $query = "
             UPDATE allowances
@@ -242,7 +242,7 @@ class AllowanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($allowance->getId())) {
             $query .= " SHA2(id, 256) = :allowance_id";
         } else {
             $query .= " id = :allowance_id";
@@ -285,12 +285,12 @@ class AllowanceDao
         }
     }
 
-    public function delete(int|string $allowanceId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $allowanceId): ActionResult
     {
-        return $this->softDelete($allowanceId, $isHashedId);
+        return $this->softDelete($allowanceId);
     }
 
-    private function softDelete(int|string $allowanceId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $allowanceId): ActionResult
     {
         $query = "
             UPDATE allowances
@@ -300,7 +300,7 @@ class AllowanceDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($allowanceId)) {
             $query .= " SHA2(id, 256) = :allowance_id";
         } else {
             $query .= " id = :allowance_id";

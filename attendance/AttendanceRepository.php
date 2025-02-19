@@ -50,14 +50,14 @@ class AttendanceRepository
         return $this->attendanceDao->fetchEmployeeLastAttendanceRecord($employeeId, $currentDateTime);
     }
 
-    public function updateAttendance(Attendance $attendance, bool $isHashedId = false): ActionResult
+    public function updateAttendance(Attendance $attendance): ActionResult
     {
-        return $this->attendanceDao->update($attendance, $isHashedId);
+        return $this->attendanceDao->update($attendance);
     }
 
-    public function approveOvertime(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    public function approveOvertime(int|string $attendanceId): ActionResult
     {
-        return $this->attendanceDao->approveOvertime($attendanceId, $isHashedId);
+        return $this->attendanceDao->approveOvertime($attendanceId);
     }
 
     public function markAsProcessedForNextPayroll(int $attendanceId): ActionResult
@@ -65,8 +65,8 @@ class AttendanceRepository
         return $this->attendanceDao->markAsProcessedForNextPayroll($attendanceId);
     }
 
-    public function deleteAttendance(int|string $attendanceId, bool $isHashedId = false): ActionResult
+    public function deleteAttendance(int|string $attendanceId): ActionResult
     {
-        return $this->attendanceDao->delete($attendanceId, $isHashedId);
+        return $this->attendanceDao->delete($attendanceId);
     }
 }

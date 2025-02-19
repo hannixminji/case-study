@@ -287,7 +287,7 @@ class DepartmentDao
         }
     }
 
-    public function update(Department $department, bool $isHashedId = false): ActionResult
+    public function update(Department $department): ActionResult
     {
         $query = "
             UPDATE departments
@@ -299,7 +299,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($department->getId())) {
             $query .= " SHA2(id, 256) = :department_id";
         } else {
             $query .= " id = :department_id";
@@ -341,7 +341,7 @@ class DepartmentDao
         }
     }
 
-    public function isDepartmentHead(int|string $employeeId, bool $isHashedId = false): bool|ActionResult
+    public function isDepartmentHead(int|string $employeeId): bool|ActionResult
     {
         $query = "
             SELECT
@@ -351,7 +351,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeId)) {
             $query .= " SHA2(department_head_id, 256) = :employee_id";
         } else {
             $query .= " department_head_id = :employee_id";
@@ -381,12 +381,12 @@ class DepartmentDao
         }
     }
 
-    public function delete(int|string $departmentId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $departmentId): ActionResult
     {
-        return $this->softDelete($departmentId, $isHashedId);
+        return $this->softDelete($departmentId);
     }
 
-    private function softDelete(int|string $departmentId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $departmentId): ActionResult
     {
         $query = "
             UPDATE departments
@@ -396,7 +396,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($departmentId)) {
             $query .= " SHA2(id, 256) = :department_id";
         } else {
             $query .= " id = :department_id";

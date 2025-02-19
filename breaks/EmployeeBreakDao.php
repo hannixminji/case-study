@@ -595,7 +595,7 @@ class EmployeeBreakDao
         }
     }
 
-    public function update(EmployeeBreak $employeeBreak, bool $isHashedId = false): ActionResult
+    public function update(EmployeeBreak $employeeBreak): ActionResult
     {
         $query = "
             UPDATE employee_breaks
@@ -608,7 +608,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeBreak->getId())) {
             $query .= " SHA2(id, 256) = :employee_break_id";
         } else {
             $query .= " id = :employee_break_id";
@@ -651,12 +651,12 @@ class EmployeeBreakDao
         }
     }
 
-    public function delete(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    public function delete(int|string $employeeBreakId): ActionResult
     {
-        return $this->softDelete($employeeBreakId, $isHashedId);
+        return $this->softDelete($employeeBreakId);
     }
 
-    private function softDelete(int|string $employeeBreakId, bool $isHashedId = false): ActionResult
+    private function softDelete(int|string $employeeBreakId): ActionResult
     {
         $query = "
             UPDATE employee_breaks
@@ -665,7 +665,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if ($isHashedId) {
+        if (is_string($employeeBreakId)) {
             $query .= " SHA2(id, 256) = :employee_break_id";
         } else {
             $query .= " id = :employee_break_id";
