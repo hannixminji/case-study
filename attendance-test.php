@@ -2,9 +2,10 @@
 
 echo '<pre>';
 
-require_once __DIR__ . '/database/database.php'           ;
+require_once __DIR__ . '/database/database.php'               ;
 
-require_once __DIR__ . '/attendance/AttendanceService.php';
+require_once __DIR__ . '/attendance/AttendanceService.php'    ;
+require_once __DIR__ . '/breaks/EmployeeBreakServiceTest.php' ;
 
 $attendanceDao    = new AttendanceDao   ($pdo);
 $employeeDao      = new EmployeeDao     ($pdo);
@@ -36,6 +37,12 @@ $attendanceService = new AttendanceService(
     $breakTypeRepository
 );
 
+$employeeBreakService = new EmployeeBreakService(
+    employeeBreakRepository: $employeeBreakRepository,
+    employeeRepository     : $employeeRepository     ,
+    attendanceRepository   : $attendanceRepository
+);
+
 // Dito mo lagay yung rfid uid ng employee, simulate lang para matest.
 $employeeRfidUid = '123456789';
 
@@ -57,11 +64,14 @@ $currentDateTime = '2025-01-01 08:00:00';
     Ibig sabihin check out
     check_in_time !== null && check_out_time === null
 */
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+$attendanceResponse = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
 
 /*
 $employeeRfidUid = '123456789';
 $currentDateTime = '2025-01-01 08:00:00';
 
-$response = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+$attendanceResponse = $attendanceService->handleRfidTap($rfidUid, $currentDateTime);
+
+// Eto sa break in at break out
+$breakResponse = $employeeBreakService->handleRfidTap($rfidUid, $currentDateTime);
 */

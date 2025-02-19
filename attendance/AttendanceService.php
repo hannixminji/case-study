@@ -551,25 +551,27 @@ class AttendanceService
                     includeTotalRowCount: false
                 );
 
-                $mapKeys = [
-                    "break_schedule_snapshot_start_time"          => "start_time"                    ,
-                    "break_schedule_snapshot_end_time"            => "end_time"                      ,
-                    "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
-                    "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
-                    "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
-                    "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
-                    "break_type_snapshot_is_paid"                 => "break_type_is_paid"
-                ];
+                if ( ! empty($breakSchedules['result_set'])) {
+                    $mapKeys = [
+                        "break_schedule_snapshot_start_time"          => "start_time"                    ,
+                        "break_schedule_snapshot_end_time"            => "end_time"                      ,
+                        "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
+                        "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
+                        "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
+                        "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
+                        "break_type_snapshot_is_paid"                 => "break_type_is_paid"
+                    ];
 
-                $breakSchedules['result_set'] = array_map(function ($item) use ($mapKeys) {
-                    $newItem = [];
-                    foreach ($mapKeys as $oldKey => $newKey) {
-                        if (isset($item[$oldKey])) {
-                            $newItem[$newKey] = $item[$oldKey];
+                    $breakSchedules['result_set'] = array_map(function ($item) use ($mapKeys) {
+                        $newItem = [];
+                        foreach ($mapKeys as $oldKey => $newKey) {
+                            if (isset($item[$oldKey])) {
+                                $newItem[$newKey] = $item[$oldKey];
+                            }
                         }
-                    }
-                    return $newItem;
-                }, $breakSchedules['result_set']);
+                        return $newItem;
+                    }, $breakSchedules['result_set']);
+                }
 
             } else {
                 $breakScheduleColumns = [

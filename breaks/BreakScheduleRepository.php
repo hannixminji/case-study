@@ -47,7 +47,7 @@ class BreakScheduleRepository
 
     public function updateBreakSchedule(BreakSchedule $breakSchedule): ActionResult
     {
-        return $this->$breakSchedule->update($breakSchedule);
+        return $this->breakScheduleDao->update($breakSchedule);
     }
 
     public function deleteBreakSchedule(int|string $breakScheduleId): ActionResult
