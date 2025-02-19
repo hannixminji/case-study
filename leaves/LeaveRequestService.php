@@ -73,13 +73,22 @@ class LeaveRequestService
     }
 
     public function fetchAllLeaveRequestAttachments(
-        ? array $columns        = null,
-        ? array $filterCriteria = null,
-        ? array $sortCriteria   = null,
-        ? int   $limit          = null,
-        ? int   $offset         = null
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
     ): array|ActionResult {
-        return $this->leaveRequestAttachmentRepository->fetchAllLeaveRequestAttachments($columns, $filterCriteria, $sortCriteria, $limit, $offset);
+
+        return $this->leaveRequestAttachmentRepository->fetchAllLeaveRequestAttachments(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
     }
 
     public function deleteLeaveRequestAttachment(int|string $leaveRequestAttachmentId): ActionResult

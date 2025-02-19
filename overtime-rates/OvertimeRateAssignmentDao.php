@@ -367,4 +367,61 @@ class OvertimeRateAssignmentDao
             return ActionResult::FAILURE;
         }
     }
+
+    public function hasExistingAssignment(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
+    {
+        $query = "
+            SELECT
+                id
+            FROM
+                overtime_rate_assignments
+            WHERE
+        ";
+
+        if (is_string($overtimeRateAssignment->getEmployeeId())) {
+            $query .= " SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
+        } else {
+            $query .= " employee_id = :employee_id ";
+        }
+
+        if (is_string($overtimeRateAssignment->getJobTitleId())) {
+            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
+        } else {
+            $query .= "AND job_title_id = :job_title_id ";
+        }
+
+        if (is_string($overtimeRateAssignment->getDepartmentId())) {
+            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) ";
+        } else {
+            $query .= "AND department_id = :department_id ";
+        }
+
+        $query = "
+            LIMIT 1
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_id"  , $overtimeRateAssignment->getEmployeeId()  , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()  ));
+            $statement->bindValue(":job_title_id" , $overtimeRateAssignment->getJobTitleId()  , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()  ));
+            $statement->bindValue(":department_id", $overtimeRateAssignment->getDepartmentId(), Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()));
+
+            $statement->execute();
+
+            $overtimeRateAssignmentId = $statement->fetchColumn();
+
+            if ($overtimeRateAssignmentId === false) {
+                return ActionResult::NO_RECORD_FOUND;
+            }
+
+            return $overtimeRateAssignmentId;
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while creating the overtime rate assignment. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
 }
