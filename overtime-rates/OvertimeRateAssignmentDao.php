@@ -172,7 +172,7 @@ class OvertimeRateAssignmentDao
                 $this->pdo->beginTransaction();
             }
 
-            $overtimeRateAssignmentId = $this->create($overtimeRateAssignment);
+            $overtimeRateAssignmentId = $this->fetchId($overtimeRateAssignment);
 
             if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
                 if ($isLocalTransaction) {
@@ -182,9 +182,21 @@ class OvertimeRateAssignmentDao
                 return ActionResult::FAILURE;
             }
 
-            if ($overtimeRateAssignmentId === ActionResult::DUPLICATE_ENTRY_ERROR) {
+            if ($overtimeRateAssignmentId === ActionResult::NO_RECORD_FOUND) {
+                $overtimeRateAssignmentId = $this->create($overtimeRateAssignment);
+
+                if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
+                    if ($isLocalTransaction) {
+                        $this->pdo->rollBack();
+                    }
+
+                    return ActionResult::FAILURE;
+                }
+
                 foreach ($overtimeRates as $overtimeRate) {
-                    $result = $this->overtimeRateDao->update($overtimeRate);
+                    $overtimeRate->setOvertimeRateAssignmentId($overtimeRateAssignmentId);
+
+                    $result = $this->overtimeRateDao->create($overtimeRate);
 
                     if ($result === ActionResult::FAILURE) {
                         if ($isLocalTransaction) {
@@ -203,9 +215,7 @@ class OvertimeRateAssignmentDao
             }
 
             foreach ($overtimeRates as $overtimeRate) {
-                $overtimeRate->setOvertimeRateAssignmentId($overtimeRateAssignmentId);
-
-                $result = $this->overtimeRateDao->create($overtimeRate);
+                $result = $this->overtimeRateDao->update($overtimeRate);
 
                 if ($result === ActionResult::FAILURE) {
                     if ($isLocalTransaction) {
@@ -368,7 +378,7 @@ class OvertimeRateAssignmentDao
         }
     }
 
-    public function hasExistingAssignment(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
+    public function fetchId(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
     {
         $query = "
             SELECT
