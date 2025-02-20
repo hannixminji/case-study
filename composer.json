@@ -2,14 +2,14 @@
     "name": "payroll/payroll",
     "description": "Group 3 Case Study: Payroll Management System",
     "type": "project",
-    "require": {
-        "rlanvin/php-rrule": "^2.5"
-    },
     "license": "MIT",
     "autoload": {
         "psr-4": {
             "App\\": "./"
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "require": {
+        "rlanvin/php-rrule": "^2.5"
+    }
 }

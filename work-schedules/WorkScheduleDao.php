@@ -415,7 +415,6 @@ class WorkScheduleDao
             $datesToExclude = "";
 
             if (strpos($recurrenceRule, "EXDATE=") !== false) {
-
                 list($recurrenceRule, $datesToExclude) = explode("EXDATE=", $recurrenceRule);
                 $datesToExclude = rtrim($datesToExclude, ";");
             }

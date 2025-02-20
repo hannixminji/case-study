@@ -70,6 +70,8 @@ class EmployeeBreakService
         $attendanceRecordColumns = [
             'work_schedule_snapshot_id'                               ,
             'date'                                                    ,
+            'check_in_time'                                           ,
+            'check_out_time'                                          ,
 
             'work_schedule_snapshot_start_time'                       ,
             'work_schedule_snapshot_end_time'                         ,
@@ -99,7 +101,7 @@ class EmployeeBreakService
                 'direction' => 'DESC'
             ],
             [
-                'column'    => 'work_schedule_snapshot_start_time',
+                'column'    => 'work_schedule_snapshot.start_time',
                 'direction' => 'DESC'
             ]
         ];
@@ -183,6 +185,7 @@ class EmployeeBreakService
                 'break_schedule_snapshot_id'                       ,
                 'start_time'                                       ,
                 'end_time'                                         ,
+                'created_at'                                       ,
 
                 'break_schedule_snapshot_work_schedule_snapshot_id'
             ];
@@ -242,6 +245,9 @@ class EmployeeBreakService
                 $lastBreakRecord['end_time'  ] !== null) ||
 
                ($lastBreakRecord['start_time'] === null  &&
+                $lastBreakRecord['end_time'  ] !== null) ||
+
+               ($lastBreakRecord['start_time'] === null  &&
                 $lastBreakRecord['end_time'  ] === null)) {
 
                 $isBreakIn = true;
@@ -259,6 +265,7 @@ class EmployeeBreakService
                     'break_schedule_snapshot_id'                 ,
                     'start_time'                                 ,
                     'end_time'                                   ,
+                    'created_at'                                 ,
 
                     'break_schedule_snapshot_start_time'         ,
                     'break_schedule_snapshot_end_time'           ,
@@ -311,16 +318,19 @@ class EmployeeBreakService
                 }
 
                 $mapKeys = [
-                    "start_time"                                  => "break_start_time"              ,
-                    "end_time"                                    => "break_end_time"                ,
+                    'id'                                          => 'employee_break_id'             ,
+                    'break_schedule_snapshot_id'                  => 'break_schedule_snapshot_id'    ,
+                    'start_time'                                  => 'employee_break_start_time'     ,
+                    'end_time'                                    => 'employee_break_end_time'       ,
+                    'created_at'                                  => 'employee_break_created_at'     ,
 
-                    "break_schedule_snapshot_start_time"          => "start_time"                    ,
-                    "break_schedule_snapshot_end_time"            => "end_time"                      ,
-                    "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
-                    "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
-                    "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
-                    "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
-                    "break_type_snapshot_is_paid"                 => "break_type_is_paid"
+                    'break_schedule_snapshot_start_time'          => 'start_time'                    ,
+                    'break_schedule_snapshot_end_time'            => 'end_time'                      ,
+                    'break_schedule_snapshot_is_flexible'         => 'is_flexible'                   ,
+                    'break_schedule_snapshot_earliest_start_time' => 'earliest_start_time'           ,
+                    'break_schedule_snapshot_latest_end_time'     => 'latest_end_time'               ,
+
+                    'break_type_snapshot_duration_in_minutes'     => 'break_type_duration_in_minutes'
                 ];
 
                 $breakSchedules = array_map(function ($item) use ($mapKeys) {
@@ -384,21 +394,21 @@ class EmployeeBreakService
 
                 $formattedBreakStartDateTime = $currentDateTime->format('Y-m-d H:i:s');
 
-                if ($currentBreakSchedule['break_start_time'] === null &&
-                    $currentBreakSchedule['break_end_time'  ] === null) {
+                if ($currentBreakSchedule['employee_break_start_time'] === null &&
+                    $currentBreakSchedule['employee_break_end_time'  ] === null) {
 
                     $employeeBreak = new EmployeeBreak(
-                        id                     : $currentBreakSchedule['id'                        ],
+                        id                     : $currentBreakSchedule['employee_break_id'         ],
                         breakScheduleSnapshotId: $currentBreakSchedule['break_schedule_snapshot_id'],
                         startTime              : $formattedBreakStartDateTime                       ,
                         endTime                : null                                               ,
                         breakDurationInMinutes : 0                                                  ,
-                        createdAt              : $formattedBreakStartDateTime
+                        createdAt              : $currentBreakSchedule['employee_break_created_at' ]
                     );
 
-                    $employeeBreakInResult = $this->employeeBreakRepository->breakIn($employeeBreak);
+                    $employeeBreakUpdateResult = $this->employeeBreakRepository->updateEmployeeBreak($employeeBreak);
 
-                    if ($employeeBreakInResult === ActionResult::FAILURE) {
+                    if ($employeeBreakUpdateResult === ActionResult::FAILURE) {
                         return [
                             'status'  => 'error',
                             'message' => 'An unexpected error occurred. Please try again later.'

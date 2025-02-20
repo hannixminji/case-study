@@ -210,7 +210,7 @@ class AttendanceService
                 'direction' => 'DESC'
             ],
             [
-                'column'    => 'work_schedule_snapshot_start_time',
+                'column'    => 'work_schedule_snapshot.start_time',
                 'direction' => 'DESC'
             ]
         ];
@@ -566,6 +566,7 @@ class AttendanceService
                         "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
                         "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
                         "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
+
                         "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
                         "break_type_snapshot_is_paid"                 => "break_type_is_paid"
                     ];
