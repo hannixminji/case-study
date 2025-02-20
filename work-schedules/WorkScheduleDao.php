@@ -504,7 +504,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if ( ! is_int($workSchedule->getId())) {
+        if ( ! ctype_digit($workSchedule->getId())) {
             $query .= " SHA2(id, 256) = :work_schedule_id";
         } else {
             $query .= " id = :work_schedule_id";
@@ -563,7 +563,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if ( ! is_int($workScheduleId)) {
+        if ( ! ctype_digit($workScheduleId)) {
             $query .= " SHA2(id, 256) = :work_schedule_id";
         } else {
             $query .= " id = :work_schedule_id";

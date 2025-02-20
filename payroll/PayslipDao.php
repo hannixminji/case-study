@@ -379,7 +379,7 @@ class PayslipDao
             WHERE
         ";
 
-        if ( ! is_int($payslip->getId())) {
+        if ( ! ctype_digit($payslip->getId())) {
             $query .= " SHA2(id, 256) = :payslip_id";
         } else {
             $query .= " id = :payslip_id";

@@ -375,7 +375,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ( ! is_int($breakSchedule->getId())) {
+        if ( ! ctype_digit($breakSchedule->getId())) {
             $query .= " SHA2(id, 256) = :break_schedule_id";
         } else {
             $query .= " id = :break_schedule_id";
@@ -432,7 +432,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ( ! is_int($breakScheduleId)) {
+        if ( ! ctype_digit($breakScheduleId)) {
             $query .= " SHA2(id, 256) = :break_schedule_id";
         } else {
             $query .= " id = :break_schedule_id";
