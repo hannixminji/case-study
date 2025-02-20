@@ -62,7 +62,7 @@ class RSet implements RRuleInterface
 	 */
 	public function __construct($string = null, $default_dtstart = null)
 	{
-		if ($string && is_string($string)) {
+		if ($string &&  ! is_int($string)) {
 			$string = trim($string);
 			$rrules = array();
 			$exrules = array();
@@ -138,7 +138,7 @@ class RSet implements RRuleInterface
 	 */
 	public function addRRule($rrule)
 	{
-		if (is_string($rrule) || is_array($rrule)) {
+		if ( ! is_int($rrule) || is_array($rrule)) {
 			$rrule = new RRule($rrule);
 		}
 		elseif (! $rrule instanceof RRuleInterface) {
@@ -174,7 +174,7 @@ class RSet implements RRuleInterface
 	 */
 	public function addExRule($rrule)
 	{
-		if (is_string($rrule) || is_array($rrule)) {
+		if ( ! is_int($rrule) || is_array($rrule)) {
 			$rrule = new RRule($rrule);
 		}
 		elseif (! $rrule instanceof RRuleInterface) {

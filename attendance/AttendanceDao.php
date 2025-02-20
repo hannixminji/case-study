@@ -565,7 +565,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (is_string($attendance->getId())) {
+        if ( ! is_int($attendance->getId())) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";
@@ -622,7 +622,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (is_string($attendanceId)) {
+        if ( ! is_int($attendanceId)) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";
@@ -714,7 +714,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (is_string($attendanceId)) {
+        if ( ! is_int($attendanceId)) {
             $query .= " SHA2(id, 256) = :attendance_id";
         } else {
             $query .= " id = :attendance_id";

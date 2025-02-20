@@ -187,7 +187,7 @@ class RRule implements RRuleInterface
 	 */
 	public function __construct($parts, $dtstart = null)
 	{
-		if (is_string($parts)) {
+		if ( ! is_int($parts)) {
 			$parts = RfcParser::parseRRule($parts, $dtstart);
 			$parts = array_change_key_case($parts, CASE_UPPER);
 		}
@@ -219,7 +219,7 @@ class RRule implements RRuleInterface
 		$this->rule = $parts; // save original rule
 
 		// WKST
-		if (is_string($parts['WKST'])) {
+		if ( ! is_int($parts['WKST'])) {
 			$parts['WKST'] = strtoupper($parts['WKST']);
 			if (array_key_exists($parts['WKST'], self::WEEKDAYS)) {
 				$this->wkst = self::WEEKDAYS[$parts['WKST']];
@@ -239,7 +239,7 @@ class RRule implements RRuleInterface
 				$this->freq = $parts['FREQ'];
 			}
 		}
-		elseif (is_string($parts['FREQ'])) {
+		elseif ( ! is_int($parts['FREQ'])) {
 			$parts['FREQ'] = strtoupper($parts['FREQ']);
 			if (array_key_exists($parts['FREQ'], self::FREQUENCIES)) {
 				$this->freq = self::FREQUENCIES[$parts['FREQ']];

@@ -608,7 +608,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (is_string($employeeBreak->getId())) {
+        if ( ! is_int($employeeBreak->getId())) {
             $query .= " SHA2(id, 256) = :employee_break_id";
         } else {
             $query .= " id = :employee_break_id";
@@ -665,7 +665,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (is_string($employeeBreakId)) {
+        if ( ! is_int($employeeBreakId)) {
             $query .= " SHA2(id, 256) = :employee_break_id";
         } else {
             $query .= " id = :employee_break_id";

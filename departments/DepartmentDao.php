@@ -299,7 +299,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (is_string($department->getId())) {
+        if ( ! is_int($department->getId())) {
             $query .= " SHA2(id, 256) = :department_id";
         } else {
             $query .= " id = :department_id";
@@ -351,7 +351,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (is_string($employeeId)) {
+        if ( ! is_int($employeeId)) {
             $query .= " SHA2(department_head_id, 256) = :employee_id";
         } else {
             $query .= " department_head_id = :employee_id";
@@ -396,7 +396,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (is_string($departmentId)) {
+        if ( ! is_int($departmentId)) {
             $query .= " SHA2(id, 256) = :department_id";
         } else {
             $query .= " id = :department_id";

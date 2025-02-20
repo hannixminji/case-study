@@ -353,7 +353,7 @@ class EmploymentTypeBenefitDao
             WHERE
         ";
 
-        if (is_string($employmentTypeBenefitId)) {
+        if ( ! is_int($employmentTypeBenefitId)) {
             $query .= " SHA2(id, 256) = :employment_benefit_id";
         } else {
             $query .= " id = :employment_benefit_id";

@@ -244,7 +244,7 @@ class EmployeeDeductionDao
             WHERE
         ";
 
-        if (is_string($employeeDeductionId)) {
+        if ( ! is_int($employeeDeductionId)) {
             $query .= " SHA2(id, 256) = :employee_deduction_id";
         } else {
             $query .= " id = :employee_deduction_id";

@@ -22,13 +22,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (is_string($leaveEntitlement->getEmployeeId())) {
+        if ( ! is_int($leaveEntitlement->getEmployeeId())) {
             $isExistingQuery .= "SHA2(employee_id, 256) = :employee_id ";
         } else {
             $isExistingQuery .= "employee_id = :employee_id ";
         }
 
-        if (is_string($leaveEntitlement->getLeaveTypeId())) {
+        if ( ! is_int($leaveEntitlement->getLeaveTypeId())) {
             $isExistingQuery .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
         } else {
             $isExistingQuery .= "AND leave_type_id = :leave_type_id";
@@ -64,13 +64,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (is_string($leaveEntitlement->getEmployeeId())) {
+        if ( ! is_int($leaveEntitlement->getEmployeeId())) {
             $updateQuery .= "SHA2(employee_id, 256) = :employee_id ";
         } else {
             $updateQuery .= "employee_id = :employee_id ";
         }
 
-        if (is_string($leaveEntitlement->getLeaveTypeId())) {
+        if ( ! is_int($leaveEntitlement->getLeaveTypeId())) {
             $updateQuery .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
         } else {
             $updateQuery .= "AND leave_type_id = :leave_type_id";
@@ -342,13 +342,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (is_string($leaveEntitlement->getEmployeeId())) {
+        if ( ! is_int($leaveEntitlement->getEmployeeId())) {
             $query .= "SHA2(employee_id, 256) = :employee_id ";
         } else {
             $query .= "employee_id = :employee_id ";
         }
 
-        if (is_string($leaveEntitlement->getLeaveTypeId())) {
+        if ( ! is_int($leaveEntitlement->getLeaveTypeId())) {
             $query .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
         } else {
             $query .= "AND leave_type_id = :leave_type_id";
@@ -399,7 +399,7 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (is_string($employeeId)) {
+        if ( ! is_int($employeeId)) {
             $query .= " SHA2(employee_id, 256) = :employee_id";
         } else {
             $query .= " employee_id = :employee_id";
@@ -450,7 +450,7 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (is_string($leaveEntitlementId)) {
+        if ( ! is_int($leaveEntitlementId)) {
             $query .= " SHA2(id, 256) = :leave_entitlement_id";
         } else {
             $query .= " id = :leave_entitlement_id";
