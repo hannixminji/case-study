@@ -34,7 +34,7 @@ class OvertimeRateAssignmentDao
         $jobTitleId   = $overtimeRateAssignment->getJobTitleId()  ;
         $employeeId   = $overtimeRateAssignment->getEmployeeId()  ;
 
-        if ( ! ctype_digit($departmentId)) {
+        if ( ! ctype_digit( (string) $departmentId)) {
             $departmentColumns = [
                 "id"
             ];
@@ -61,7 +61,7 @@ class OvertimeRateAssignmentDao
             $departmentId = $departmentId['result_set'][0]['id'];
         }
 
-        if ( ! ctype_digit($jobTitleId)) {
+        if ( ! ctype_digit( (string) $jobTitleId)) {
             $jobTitleColumns = [
                 "id"
             ];
@@ -88,7 +88,7 @@ class OvertimeRateAssignmentDao
             $jobTitleId = $jobTitleId['result_set'][0]['id'];
         }
 
-        if ( ! ctype_digit($employeeId)) {
+        if ( ! ctype_digit( (string) $employeeId)) {
             $employeeColumns = [
                 "id"
             ];
@@ -254,19 +254,19 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getEmployeeId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
             $query .= "(SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
         } else {
             $query .= "(employee_id = :employee_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getJobTitleId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
             $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
         } else {
             $query .= "AND job_title_id = :job_title_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
         } else {
             $query .= "AND department_id = :department_id) ";
@@ -276,13 +276,13 @@ class OvertimeRateAssignmentDao
         OR
             (employee_id IS NULL ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getJobTitleId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
             $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
         } else {
             $query .= "AND job_title_id = :job_title_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
         } else {
             $query .= "AND department_id = :department_id) ";
@@ -292,7 +292,7 @@ class OvertimeRateAssignmentDao
         OR
             (employee_id IS NULL AND job_title_id IS NULL ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
         } else {
             $query .= "AND department_id = :department_id) ";
@@ -304,19 +304,19 @@ class OvertimeRateAssignmentDao
         ORDER BY
             CASE ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getEmployeeId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
             $query .= "WHEN SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
         } else {
             $query .= "WHEN employee_id = :employee_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getJobTitleId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
             $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
         } else {
             $query .= "AND job_title_id = :job_title_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 1 ";
         } else {
             $query .= "AND department_id = :department_id THEN 1 ";
@@ -325,13 +325,13 @@ class OvertimeRateAssignmentDao
         $query .= "
             WHEN employee_id IS NULL ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getJobTitleId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
             $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
         } else {
             $query .= "AND job_title_id = :job_title_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 2 ";
         } else {
             $query .= "AND department_id = :department_id THEN 2 ";
@@ -340,7 +340,7 @@ class OvertimeRateAssignmentDao
         $query .= "
             WHEN employee_id IS NULL AND job_title_id IS NULL ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 3";
         } else {
             $query .= "AND department_id = :department_id THEN 3";
@@ -388,19 +388,19 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit($overtimeRateAssignment->getEmployeeId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
             $query .= " SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
         } else {
             $query .= " employee_id = :employee_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getJobTitleId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
             $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
         } else {
             $query .= "AND job_title_id = :job_title_id ";
         }
 
-        if ( ! ctype_digit($overtimeRateAssignment->getDepartmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
             $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) ";
         } else {
             $query .= "AND department_id = :department_id ";

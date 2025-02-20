@@ -324,7 +324,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($breakType->getId())) {
+        if ( ! ctype_digit( (string) $breakType->getId())) {
             $query .= " SHA2(id, 256) = :break_type_id";
         } else {
             $query .= " id = :break_type_id";
@@ -380,7 +380,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($breakTypeId)) {
+        if ( ! ctype_digit( (string) $breakTypeId)) {
             $query .= " SHA2(id, 256) = :break_type_id";
         } else {
             $query .= " id = :break_type_id";

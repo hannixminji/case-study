@@ -278,7 +278,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ( ! ctype_digit($payrollGroup->getId())) {
+        if ( ! ctype_digit( (string) $payrollGroup->getId())) {
             $query .= " SHA2(id, 256) = :payroll_group_id";
         } else {
             $query .= " id = :payroll_group_id";
@@ -340,7 +340,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ( ! ctype_digit($payrollGroupId)) {
+        if ( ! ctype_digit( (string) $payrollGroupId)) {
             $query .= " SHA2(id, 256) = :payroll_group_id";
         } else {
             $query .= " id = :payroll_group_id";

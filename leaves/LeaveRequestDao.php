@@ -354,7 +354,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit($leaveRequest->getId())) {
+        if ( ! ctype_digit( (string) $leaveRequest->getId())) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";
@@ -408,7 +408,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit($leaveRequestId)) {
+        if ( ! ctype_digit( (string) $leaveRequestId)) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";
@@ -503,7 +503,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit($employeeId)) {
+        if ( ! ctype_digit( (string) $employeeId)) {
             $query .= " SHA2(employee_id, 256) = :employee_id";
         } else {
             $query .= " employee_id = :employee_id";
@@ -550,7 +550,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit($leaveRequestId)) {
+        if ( ! ctype_digit( (string) $leaveRequestId)) {
             $query .= " SHA2(id, 256) = :leave_request_id";
         } else {
             $query .= " id = :leave_request_id";

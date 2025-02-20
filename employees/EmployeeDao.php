@@ -525,7 +525,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($employee->getId())) {
+        if ( ! ctype_digit( (string) $employee->getId())) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";
@@ -618,7 +618,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($employeeId)) {
+        if ( ! ctype_digit( (string) $employeeId)) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";
@@ -697,7 +697,7 @@ class EmployeeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($employeeId)) {
+        if ( ! ctype_digit( (string) $employeeId)) {
             $query .= " SHA2(id, 256) = :employee_id";
         } else {
             $query .= " id = :employee_id";

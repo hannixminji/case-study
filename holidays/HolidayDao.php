@@ -254,7 +254,7 @@ class HolidayDao
             WHERE
         ";
 
-        if ( ! ctype_digit($holiday->getId())) {
+        if ( ! ctype_digit( (string) $holiday->getId())) {
             $query .= " SHA2(id, 256) = :holiday_id";
         } else {
             $query .= " id = :holiday_id";
@@ -314,7 +314,7 @@ class HolidayDao
             WHERE
         ";
 
-        if ( ! ctype_digit($holidayId)) {
+        if ( ! ctype_digit( (string) $holidayId)) {
             $query .= " SHA2(id, 256) = :holiday_id";
         } else {
             $query .= " id = :holiday_id";

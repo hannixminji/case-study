@@ -574,7 +574,7 @@ class AttendanceService
                     $breakSchedules['result_set'] = array_map(function ($item) use ($mapKeys) {
                         $newItem = [];
                         foreach ($mapKeys as $oldKey => $newKey) {
-                            if (isset($item[$oldKey])) {
+                            if (array_key_exists($oldKey, $item)) {
                                 $newItem[$newKey] = $item[$oldKey];
                             }
                         }

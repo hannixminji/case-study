@@ -256,7 +256,7 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($leaveType->getId())) {
+        if ( ! ctype_digit( (string) $leaveType->getId())) {
             $query .= " SHA2(id, 256) = :leave_type_id";
         } else {
             $query .= " id = :leave_type_id";
@@ -315,7 +315,7 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit($leaveTypeId)) {
+        if ( ! ctype_digit( (string) $leaveTypeId)) {
             $query .= " SHA2(id, 256) = :leave_type_id";
         } else {
             $query .= " id = :leave_type_id";

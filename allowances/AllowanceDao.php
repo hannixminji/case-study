@@ -242,7 +242,7 @@ class AllowanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit($allowance->getId())) {
+        if ( ! ctype_digit( (string) $allowance->getId())) {
             $query .= " SHA2(id, 256) = :allowance_id";
         } else {
             $query .= " id = :allowance_id";
@@ -300,7 +300,7 @@ class AllowanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit($allowanceId)) {
+        if ( ! ctype_digit( (string) $allowanceId)) {
             $query .= " SHA2(id, 256) = :allowance_id";
         } else {
             $query .= " id = :allowance_id";

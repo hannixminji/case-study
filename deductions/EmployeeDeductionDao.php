@@ -244,7 +244,7 @@ class EmployeeDeductionDao
             WHERE
         ";
 
-        if ( ! ctype_digit($employeeDeductionId)) {
+        if ( ! ctype_digit( (string) $employeeDeductionId)) {
             $query .= " SHA2(id, 256) = :employee_deduction_id";
         } else {
             $query .= " id = :employee_deduction_id";

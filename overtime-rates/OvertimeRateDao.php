@@ -89,7 +89,7 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ( ! ctype_digit($overtimeRateAssignmentId)) {
+        if ( ! ctype_digit( (string) $overtimeRateAssignmentId)) {
             $query .= " SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
         } else {
             $query .= " overtime_rate_assignment_id = :overtime_rate_assignment_id";
@@ -124,13 +124,13 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ( ! ctype_digit($overtimeRate->getOvertimeRateAssignmentId())) {
+        if ( ! ctype_digit( (string) $overtimeRate->getOvertimeRateAssignmentId())) {
             $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id ";
         } else {
             $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id ";
         }
 
-        if ( ! ctype_digit($overtimeRate->getId())) {
+        if ( ! ctype_digit( (string) $overtimeRate->getId())) {
             $query .= "AND SHA2(id, 256) = :overtime_rate_id";
         } else {
             $query .= "AND id = :overtime_rate_id";

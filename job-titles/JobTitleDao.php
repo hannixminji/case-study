@@ -252,7 +252,7 @@ class JobTitleDao
             WHERE
         ";
 
-        if ( ! ctype_digit($jobTitle->getId())) {
+        if ( ! ctype_digit( (string) $jobTitle->getId())) {
             $query .= " SHA2(id, 256) = :job_title_id";
         } else {
             $query .= " id = :job_title_id";
@@ -309,7 +309,7 @@ class JobTitleDao
             WHERE
         ";
 
-        if ( ! ctype_digit($jobTitleId)) {
+        if ( ! ctype_digit( (string) $jobTitleId)) {
             $query .= " SHA2(id, 256) = :job_title_id";
         } else {
             $query .= " id = :job_title_id";
