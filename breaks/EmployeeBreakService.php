@@ -195,12 +195,12 @@ class EmployeeBreakService
                 [
                     'column'   => 'break_schedule_snapshot.work_schedule_snapshot_id',
                     'operator' => '='                                                ,
-                    'value'    => $formattedAdjustedWorkScheduleStartDateTime
+                    'value'    => $workScheduleSnapshotId
                 ],
                 [
-                    'column'      => 'employee_break.created_at'        ,
-                    'operator'    => 'BETWEEN'                          ,
-                    'lower_bound' => $formattedWorkScheduleStartDateTime,
+                    'column'      => 'employee_break.created_at'                ,
+                    'operator'    => 'BETWEEN'                                  ,
+                    'lower_bound' => $formattedAdjustedWorkScheduleStartDateTime,
                     'upper_bound' => $formattedWorkScheduleEndDateTime
                 ]
             ];
