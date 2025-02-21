@@ -123,10 +123,14 @@ class AttendanceService
                 'value'    => $employeeId
             ],
             [
-            	'column'      => $formattedCurrentDate     ,
-            	'operator'    => 'BETWEEN'                 ,
-            	'lower_bound' => 'leave_request.start_date',
-            	'upper_bound' => 'leave_request.end_date'
+                'column'   => 'leave_request.start_date',
+                'operator' => '<='                      ,
+                'value'    => $formattedCurrentDate
+            ],
+            [
+                'column'   => 'leave_request.end_date',
+                'operator' => '>='                    ,
+                'value'    => $formattedCurrentDate
             ],
             [
                 'column'     => 'leave_request.status'      ,
@@ -390,6 +394,8 @@ class AttendanceService
                 $workScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
                 $workScheduleEndDateTime   = new DateTime($currentWorkSchedule['end_time'  ]);
 
+                $workScheduleDate = (new DateTime($workScheduleStartDateTime->format('Y-m-d')))->format('Y-m-d');
+
                 $workScheduleId = $currentWorkSchedule['id'];
 
                 $earlyCheckInWindow = 0;
@@ -443,8 +449,8 @@ class AttendanceService
                 $workSchedule = [
                     'id'                   => $lastAttendanceRecord['work_schedule_snapshot_work_schedule_id'    ],
                     'employee_id'          => $employeeId                                                         ,
-                    'start_time'           => $lastAttendanceRecord['work_schedule_snapshot_start_time'          ],
-                    'end_time'             => $lastAttendanceRecord['work_schedule_snapshot_end_time'            ],
+                    'start_time'           => $workScheduleStartDateTime->format('Y-m-d H:i:s')                   ,
+                    'end_time'             => $workScheduleEndDateTime  ->format('Y-m-d H:i:s')                   ,
                     'is_flextime'          => $lastAttendanceRecord['work_schedule_snapshot_is_flextime'         ],
                     'total_hours_per_week' => $lastAttendanceRecord['work_schedule_snapshot_total_hours_per_week'],
                     'total_work_hours'     => $lastAttendanceRecord['work_schedule_snapshot_total_work_hours'    ],
@@ -461,7 +467,7 @@ class AttendanceService
 
             if ($workScheduleEndDate > $workScheduleStartDate &&
                 $workScheduleEndDateTime->format('H:i:s') !== '00:00:00' &&
-                $currentDate === $workScheduleEndDate) {
+                $formattedCurrentDate === $workScheduleEndDate->format('Y-m-d')) {
 
                 $leaveRequestColumns = [
                     'is_half_day'  ,
@@ -479,10 +485,14 @@ class AttendanceService
                         'value'    => $employeeId
                     ],
                     [
-                        'column'      => $formattedPreviousDate    ,
-                        'operator'    => 'BETWEEN'                 ,
-                        'lower_bound' => 'leave_request.start_date',
-                        'upper_bound' => 'leave_request.end_date'
+                        'column'   => 'leave_request.start_date',
+                        'operator' => '<='                      ,
+                        'value'    => $formattedPreviousDate
+                    ],
+                    [
+                        'column'   => 'leave_request.end_date',
+                        'operator' => '>='                    ,
+                        'value'    => $formattedPreviousDate
                     ],
                     [
                         'column'     => 'leave_request.status'      ,
@@ -559,6 +569,13 @@ class AttendanceService
                     includeTotalRowCount: false
                 );
 
+                if ($breakSchedules === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
                 if ( ! empty($breakSchedules['result_set'])) {
                     $mapKeys = [
                         "break_schedule_snapshot_start_time"          => "start_time"                    ,
@@ -615,13 +632,13 @@ class AttendanceService
                     filterCriteria      : $breakScheduleFilterCriteria,
                     includeTotalRowCount: false
                 );
-            }
 
-            if ($breakSchedules === ActionResult::FAILURE) {
-                return [
-                    'status'  => 'error',
-                    'message' => 'An unexpected error occurred. Please try again later.'
-                ];
+                if ($breakSchedules === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
             }
 
             $breakSchedules =
@@ -630,31 +647,41 @@ class AttendanceService
                     : [];
 
             if ( ! empty($breakSchedules)) {
-                usort($breakSchedules, function($breakScheduleA, $breakScheduleB) {
-                    $startTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
-                    $startTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
+                usort($breakSchedules, function ($breakScheduleA, $breakScheduleB) use ($workScheduleDate, $workScheduleStartDateTime) {
+                    $breakScheduleStartTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
+                    $breakScheduleStartTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
 
-                    if ($startTimeA === null && $startTimeB === null) {
+                    if ($breakScheduleStartTimeA === null && $breakScheduleStartTimeB === null) {
                         return 0;
                     }
-
-                    if ($startTimeA === null) {
+                    if ($breakScheduleStartTimeA === null) {
                         return 1;
                     }
-                    if ($startTimeB === null) {
+                    if ($breakScheduleStartTimeB === null) {
                         return -1;
                     }
 
-                    return $startTimeA <=> $startTimeB;
+                    $breakScheduleStartDateTimeA = new DateTime($workScheduleDate . ' ' . $breakScheduleStartTimeA);
+                    $breakScheduleStartDateTimeB = new DateTime($workScheduleDate . ' ' . $breakScheduleStartTimeB);
+
+                    if ($breakScheduleStartDateTimeA < $workScheduleStartDateTime) {
+                        $breakScheduleStartDateTimeA->modify('+1 day');
+                    }
+
+                    if ($breakScheduleStartDateTimeB < $workScheduleStartDateTime) {
+                        $breakScheduleStartDateTimeB->modify('+1 day');
+                    }
+
+                    return $breakScheduleStartDateTimeA <=> $breakScheduleStartDateTimeB;
                 });
             }
 
-            if (( ! empty($isOnLeaveToday['is_half_day']) &&
-                          $isOnLeaveToday['is_half_day']) ||
-
-                (   isset($didLeaveOccurYesterday) &&
+            if ((   isset($didLeaveOccurYesterday) &&
                   ! empty($didLeaveOccurYesterday) &&
-                          $didLeaveOccurYesterday['is_half_day'])) {
+                          $didLeaveOccurYesterday['is_half_day']) ||
+
+                ( ! empty($isOnLeaveToday['is_half_day']) &&
+                          $isOnLeaveToday['is_half_day'])) {
 
                 $halfDayPart =
                     isset($didLeaveOccurYesterday)
@@ -1295,14 +1322,14 @@ class AttendanceService
                     'operator' => 'IS NULL'
                 ],
                 [
-                    'column'   => 'attendance.work_schedule_snapshot_id'            ,
-                    'operator' => '='                                               ,
-                    'value'    => $lastAttendanceRecord['work_schedule_snapshot_id']
-                ],
-                [
                     'column'   => 'attendance.date'            ,
                     'operator' => '='                          ,
                     'value'    => $lastAttendanceRecord['date']
+                ],
+                [
+                    'column'   => 'attendance.work_schedule_snapshot_id'            ,
+                    'operator' => '='                                               ,
+                    'value'    => $lastAttendanceRecord['work_schedule_snapshot_id']
                 ],
                 [
                     'column'   => 'attendance.id'            ,
@@ -1345,6 +1372,8 @@ class AttendanceService
                     $sumOfAllWorkedHours            += $attendanceRecord['total_hours_worked'             ];
                     $sumOfAllBreakDurationInMinutes += $attendanceRecord['total_break_duration_in_minutes'];
                 }
+
+                $sumOfAllWorkedHours = $currentAttendanceRecords[array_key_last($currentAttendanceRecords)]['total_hours_worked'] ?? 0;
             }
 
             $currentAttendanceStatus = $lastAttendanceRecord['attendance_status'];

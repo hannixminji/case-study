@@ -212,10 +212,6 @@ class EmployeeBreakService
                 [
                     'column'    => 'employee_break.created_at',
                     'direction' => 'DESC'
-                ],
-                [
-                    'column'    => 'employee_break.start_time',
-                    'direction' => 'DESC'
                 ]
             ];
 
@@ -343,22 +339,32 @@ class EmployeeBreakService
                     return $newItem;
                 }, $breakSchedules);
 
-                usort($breakSchedules, function($breakScheduleA, $breakScheduleB) {
-                    $startTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
-                    $startTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
+                usort($breakSchedules, function ($breakScheduleA, $breakScheduleB) use ($workScheduleDate, $workScheduleStartDateTime) {
+                    $breakScheduleStartTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
+                    $breakScheduleStartTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
 
-                    if ($startTimeA === null && $startTimeB === null) {
+                    if ($breakScheduleStartTimeA === null && $breakScheduleStartTimeB === null) {
                         return 0;
                     }
-
-                    if ($startTimeA === null) {
+                    if ($breakScheduleStartTimeA === null) {
                         return 1;
                     }
-                    if ($startTimeB === null) {
+                    if ($breakScheduleStartTimeB === null) {
                         return -1;
                     }
 
-                    return $startTimeA <=> $startTimeB;
+                    $breakScheduleStartDateTimeA = new DateTime($workScheduleDate . ' ' . $breakScheduleStartTimeA);
+                    $breakScheduleStartDateTimeB = new DateTime($workScheduleDate . ' ' . $breakScheduleStartTimeB);
+
+                    if ($breakScheduleStartDateTimeA < $workScheduleStartDateTime) {
+                        $breakScheduleStartDateTimeA->modify('+1 day');
+                    }
+
+                    if ($breakScheduleStartDateTimeB < $workScheduleStartDateTime) {
+                        $breakScheduleStartDateTimeB->modify('+1 day');
+                    }
+
+                    return $breakScheduleStartDateTimeA <=> $breakScheduleStartDateTimeB;
                 });
 
                 $currentBreakSchedule = $this->getCurrentBreakSchedule(
