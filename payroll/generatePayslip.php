@@ -7,26 +7,32 @@ require_once __DIR__ . '/PayrollGroup.php'          ;
 require_once __DIR__ . '/PayslipService.php'        ;
 require_once __DIR__ . '/PayrollGroupRepository.php';
 
-$payslipDao                = new PayslipDao               ($pdo                                 );
-$employeeDao               = new EmployeeDao              ($pdo                                 );
+$payslipDao                = new PayslipDao               ($pdo);
+$employeeDao               = new EmployeeDao              ($pdo);
+$workScheduleDao           = new WorkScheduleDao          ($pdo);
+$attendanceDao             = new AttendanceDao            ($pdo);
+$holidayDao                = new HolidayDao               ($pdo);
+$leaveRequestDao           = new LeaveRequestDao          ($pdo);
+$breakScheduleDao          = new BreakScheduleDao         ($pdo);
+$employeeBreakDao          = new EmployeeBreakDao         ($pdo);
+$settingDao                = new SettingDao               ($pdo);
+$employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo);
+$employeeDeductionDao      = new EmployeeDeductionDao     ($pdo);
 
-$settingDao                = new SettingDao               ($pdo                                 );
-$workScheduleDao           = new WorkScheduleDao          ($pdo, $settingDao                    );
+$overtimeRateDao           = new OvertimeRateDao          ($pdo);
+$departmentDao             = new DepartmentDao            ($pdo);
+$jobTitleDao               = new JobTitleDao              ($pdo);
+$overtimeRateAssignmentDao = new OvertimeRateAssignmentDao(
+    pdo            : $pdo            ,
+    overtimeRateDao: $overtimeRateDao,
+    departmentDao  : $departmentDao  ,
+    jobTitleDao    : $jobTitleDao    ,
+    employeeDao    : $employeeDao
+);
 
-$attendanceDao             = new AttendanceDao            ($pdo                                 );
-$holidayDao                = new HolidayDao               ($pdo                                 );
-$leaveRequestDao           = new LeaveRequestDao          ($pdo                                 );
+$leaveEntitlementDao       = new LeaveEntitlementDao      ($pdo);
 
-$breakTypeDao              = new BreakTypeDao             ($pdo                                 );
-$breakScheduleDao          = new BreakScheduleDao         ($pdo, $workScheduleDao, $breakTypeDao);
-
-$employeeBreakDao          = new EmployeeBreakDao         ($pdo                                 );
-$employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo                                 );
-$employeeDeductionDao      = new EmployeeDeductionDao     ($pdo                                 );
-$overtimeRateDao           = new OvertimeRateDao          ($pdo                                 );
-$overtimeRateAssignmentDao = new OvertimeRateAssignmentDao($pdo, $overtimeRateDao               );
-$leaveEntitlementDao       = new LeaveEntitlementDao      ($pdo                                 );
-$payrollGroupDao           = new PayrollGroupDao          ($pdo                                 );
+$payrollGroupDao           = new PayrollGroupDao          ($pdo);
 
 $payslipRepository                = new PayslipRepository               ($payslipDao               );
 $employeeRepository               = new EmployeeRepository              ($employeeDao              );
