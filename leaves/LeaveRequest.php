@@ -52,7 +52,7 @@ class LeaveRequest
 
     public function getHalfDayPart(): string
     {
-        return $this->getHalfDayPart();
+        return $this->halfDayPart;
     }
 
     public function getStatus(): string

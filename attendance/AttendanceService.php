@@ -1408,8 +1408,6 @@ class AttendanceService
             }
 
             try {
-                $this->pdo->beginTransaction();
-
                 $currentAttendanceRecord = new Attendance(
                     id                          : $lastAttendanceRecord['id'                               ],
                     workScheduleSnapshotId      : $lastAttendanceRecord['work_schedule_snapshot_id'        ],
@@ -1435,33 +1433,36 @@ class AttendanceService
                     ];
                 }
 
+                $this->pdo->beginTransaction();
+
                 if ( ! empty($currentAttendanceRecords)) {
-                    $lastRecordIndex = count($currentAttendanceRecords) - 1;
-                    $lastRecord = $currentAttendanceRecords[$lastRecordIndex];
+                    foreach ($currentAttendanceRecords as $attendanceRecord) {
+                        $currentAttendanceRecord = new Attendance(
+                            id                         : $attendanceRecord['id'                             ],
+                            workScheduleSnapshotId     : $attendanceRecord['work_schedule_snapshot_id'      ],
+                            date                       : $attendanceRecord['date'                           ],
+                            checkInTime                : $attendanceRecord['check_in_time'                  ],
+                            checkOutTime               : $attendanceRecord['check_out_time'                 ],
+                            totalBreakDurationInMinutes: $attendanceRecord['total_break_duration_in_minutes'],
+                            totalHoursWorked           : $attendanceRecord['total_hours_worked'             ],
+                            lateCheckIn                : $attendanceRecord['late_check_in'                  ],
+                            earlyCheckOut              : 0                                                   ,
+                            overtimeHours              : $attendanceRecord['overtime_hours'                 ],
+                            isOvertimeApproved         : $attendanceRecord['is_overtime_approved'           ],
+                            attendanceStatus           : $currentAttendanceStatus                            ,
+                            remarks                    : $attendanceRecord['remarks'                        ]
+                        );
 
-                    $currentAttendanceRecord = new Attendance(
-                        id                         : $lastRecord['id'                             ],
-                        workScheduleSnapshotId     : $lastRecord['work_schedule_snapshot_id'      ],
-                        date                       : $lastRecord['date'                           ],
-                        checkInTime                : $lastRecord['check_in_time'                  ],
-                        checkOutTime               : $lastRecord['check_out_time'                 ],
-                        totalBreakDurationInMinutes: $lastRecord['total_break_duration_in_minutes'],
-                        totalHoursWorked           : $lastRecord['total_hours_worked'             ],
-                        lateCheckIn                : $lastRecord['late_check_in'                  ],
-                        earlyCheckOut              : 0                                             ,
-                        overtimeHours              : $lastRecord['overtime_hours'                 ],
-                        isOvertimeApproved         : $lastRecord['is_overtime_approved'           ],
-                        attendanceStatus           : $currentAttendanceStatus                      ,
-                        remarks                    : $lastRecord['remarks'                        ]
-                    );
+                        $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($currentAttendanceRecord);
 
-                    $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($currentAttendanceRecord);
-
-                    if ($attendanceUpdateResult === ActionResult::FAILURE) {
-                        return [
-                            'status' => 'error',
-                            'message' => 'Failed to update the last attendance record.'
-                        ];
+                        if ($attendanceUpdateResult === ActionResult::FAILURE) {
+                            $this->pdo->rollback();
+                            
+                            return [
+                                'status' => 'error',
+                                'message' => 'Failed to update one or more attendance records.'
+                            ];
+                        }
                     }
                 }
 
