@@ -43,7 +43,6 @@ class HolidayRepository
     public function getHolidayDatesForPeriod(string $startDate, string $endDate): array|ActionResult
     {
         $columns = [
-            'name'                 ,
             'start_date'           ,
             'end_date'             ,
             'is_paid'              ,
@@ -97,18 +96,17 @@ class HolidayRepository
                         if ($date->format('m-d') === $holidayDate->format('m-d')) {
                             if (isset($datesMarkedAsHoliday[$date->format('Y-m-d')])) {
                                 $datesMarkedAsHoliday[$date->format('Y-m-d')][] = [
-                                    'name'    => $holiday['name'   ],
                                     'is_paid' => $holiday['is_paid']
                                 ];
                             }
                         }
                     }
                 }
+
             } else {
                 foreach ($holidayPeriod as $holidayDate) {
                     if (isset($datesMarkedAsHoliday[$holidayDate->format('Y-m-d')])) {
                         $datesMarkedAsHoliday[$holidayDate->format('Y-m-d')][] = [
-                            'name'    => $holiday['name'   ],
                             'is_paid' => $holiday['is_paid']
                         ];
                     }

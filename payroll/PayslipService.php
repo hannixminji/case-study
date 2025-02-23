@@ -2,18 +2,30 @@
 
 require_once __DIR__ . '/../employees/EmployeeRepository.php'   ;
 require_once __DIR__ . '/../attendance/AttendanceRepository.php';
+require_once __DIR__ . '/../holidays/HolidayRepository.php'     ;
+require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'  ;
+require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php' ;
 
 class PayslipService
 {
-    private readonly EmployeeRepository   $employeeRepository  ;
-    private readonly AttendanceRepository $attendanceRepository;
+    private readonly EmployeeRepository      $employeeRepository     ;
+    private readonly AttendanceRepository    $attendanceRepository   ;
+    private readonly HolidayRepository       $holidayRepository      ;
+    private readonly LeaveRequestRepository  $leaveRequestRepository ;
+    private readonly EmployeeBreakRepository $employeeBreakRepository;
 
     public function __construct(
-        EmployeeRepository   $employeeRepository  ,
-        AttendanceRepository $attendanceRepository
+        EmployeeRepository      $employeeRepository     ,
+        AttendanceRepository    $attendanceRepository   ,
+        HolidayRepository       $holidayRepository      ,
+        LeaveRequestRepository  $leaveRequestRepository ,
+        EmployeeBreakRepository $employeeBreakRepository
     ) {
-        $this->employeeRepository   = $employeeRepository  ;
-        $this->attendanceRepository = $attendanceRepository;
+        $this->employeeRepository      = $employeeRepository     ;
+        $this->attendanceRepository    = $attendanceRepository   ;
+        $this->holidayRepository       = $holidayRepository      ;
+        $this->leaveRequestRepository  = $leaveRequestRepository ;
+        $this->employeeBreakRepository = $employeeBreakRepository;
     }
 
     public function generatePayslip(
@@ -166,7 +178,7 @@ class PayslipService
                                 'is_flextime'                       => $attendanceRecord['work_schedule_snapshot_is_flextime'                      ],
                                 'total_work_hours'                  => $attendanceRecord['work_schedule_snapshot_total_work_hours'                 ],
                                 'grace_period'                      => $attendanceRecord['work_schedule_snapshot_grace_period'                     ],
-                                'minutes_can_check_in_before_shift' => $attendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'],
+                                'minutes_can_check_in_before_shift' => $attendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift']
                             ],
 
                             'attendance_records' => []
@@ -186,24 +198,196 @@ class PayslipService
                 $firstDate = array_key_first($attendanceRecords);
 
                 if ($firstDate === $adjustedCutoffPeriodStartDate) {
-                    $lastWorkSchedule     = end($attendanceRecords[$firstDate          ]);
-                    $lastAttendanceRecord = end($lastWorkSchedule ['attendance_records']);
+                    $lastWorkSchedule = end($attendanceRecords[$firstDate]);
 
-                    $attendanceRecords[$firstDate] = [$lastWorkSchedule];
+                    $attendanceRecords[$firstDate] = $lastWorkSchedule;
 
-                    if (   $lastAttendanceRecord['attendance_status'            ] === 'absent' ||
-                         ! $lastAttendanceRecord['is_processed_for_next_payroll']) {
+                    $workScheduleStartTime = $lastWorkSchedule['work_schedule']['start_time'];
+                    $workScheduleEndTime   = $lastWorkSchedule['work_schedule']['end_time'  ];
 
+                    $workScheduleStartDateTime = new DateTime($firstDate . ' ' . $workScheduleStartTime);
+                    $workScheduleEndDateTime   = new DateTime($firstDate . ' ' . $workScheduleEndTime  );
+
+                    if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
+                        $workScheduleEndDateTime->modify('+1 day');
+                    }
+
+                    if ($workScheduleEndDateTime > (new DateTime($cutoffPeriodEndDate))->modify('+1 day')) {
                         unset($attendanceRecords[$firstDate]);
                     }
                 }
 
                 if ( ! empty($attendanceRecords)) {
-                    $lastDate             = array_key_last($attendanceRecords           );
-                    $lastWorkSchedule     = end($attendanceRecords[$lastDate           ]);
-                    $lastAttendanceRecord = end($lastWorkSchedule ['attendance_records']);
+                    $lastDate = array_key_last($attendanceRecords);
 
-                    
+                    $lastWorkSchedule = end($attendanceRecords[$lastDate]);
+
+                    $workScheduleStartTime = $lastWorkSchedule['work_schedule']['start_time'];
+                    $workScheduleEndTime   = $lastWorkSchedule['work_schedule']['end_time'  ];
+
+                    $workScheduleStartDateTime = new DateTime($firstDate . ' ' . $workScheduleStartTime);
+                    $workScheduleEndDateTime   = new DateTime($firstDate . ' ' . $workScheduleEndTime  );
+
+                    if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
+                        $workScheduleEndDateTime->modify('+1 day');
+                    }
+
+                    if ($workScheduleEndDateTime > (new DateTime($cutoffPeriodEndDate))->modify('+1 day')) {
+                        array_pop($attendanceRecords[$lastDate]);
+                    }
+
+                    if (empty($attendanceRecords[$lastDate])) {
+                        unset($attendanceRecords[$lastDate]);
+                    }
+                }
+
+                $startDate = array_key_first($attendanceRecords);
+                $endDate   = array_key_last ($attendanceRecords);
+
+                $datesMarkedAsHolidays = $this->holidayRepository->getHolidayDatesForPeriod(
+                    startDate: $startDate,
+                    endDate  : $endDate
+                );
+
+                if ($datesMarkedAsHolidays === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $datesMarkedAsLeaves = $this->leaveRequestRepository->getLeaveDatesForPeriod(
+                    employeeId: $employeeId,
+                    startDate : $startDate ,
+                    endDate   : $endDate
+                );
+
+                if ($datesMarkedAsLeaves === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $workHours = [
+                    'regular_day' => [
+                        'non_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'special_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'regular_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'double_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ]
+                    ],
+
+                    'rest_day' => [
+                        'non_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'special_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'regular_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ],
+
+                        'double_holiday' => [
+                            'regular_hours'               => 0,
+                            'overtime_hours'              => 0,
+                            'night_differential'          => 0,
+                            'night_differential_overtime' => 0
+                        ]
+                    ],
+
+                    'non_worked_paid_hours' => [
+                        'leave'           => 0,
+                        'regular_holiday' => 0,
+                        'double_holiday'  => 0
+                    ]
+                ];
+
+                foreach ($attendanceRecords as $date => $workSchedules) {
+                    foreach ($workSchedules as $workSchedule) {
+                        $workScheduleStartTime = $workSchedule['work_schedule']['start_time'];
+                        $workScheduleEndTime   = $workSchedule['work_schedule']['end_time'  ];
+
+                        $workScheduleStartDateTime = new DateTime($date . ' ' . $workScheduleStartTime);
+                        $workScheduleEndDateTime   = new DateTime($date . ' ' . $workScheduleEndTime  );
+
+                        if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
+                            $workScheduleEndDateTime->modify('+1 day');
+                        }
+
+                        $earlyCheckInWindow = $workSchedule['work_schedule']['minutes_can_check_in_before_shift'];
+                        $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
+                            ->modify('-' . $earlyCheckInWindow . ' minutes');
+
+                        $formattedWorkScheduleStartDateTime         = $workScheduleStartDateTime        ->format('Y-m-d H:i:s');
+                        $formattedWorkScheduleEndDateTime           = $workScheduleEndDateTime          ->format('Y-m-d H:i:s');
+                        $formattedAdjustedWorkScheduleStartDateTime = $adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s');
+
+                        if ( ! empty($workSchedule['attendance_records']) &&
+                                     $workSchedule['attendance_records'][0]['attendance_status'] !== 'absent') {
+
+                            $employeeBreakColumns = [
+                            ];
+
+                            $employeeBreakFilterCriteria = [
+                            ];
+
+                            $employeeBreakRecords = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                                columns             : $employeeBreakColumns       ,
+                                filterCriteria      : $employeeBreakFilterCriteria,
+                                includeTotalRowCount: false
+                            );
+
+                            if ($employeeBreakRecords === ActionResult::FAILURE) {
+                                return [
+                                    'status'  => 'error',
+                                    'message' => 'An unexpected error occurred. Please try again later.'
+                                ];
+                            }
+
+                            $employeeBreakRecords =
+                                ! empty($employeeBreakRecords['result_set'])
+                                    ? $employeeBreakRecords['result_set']
+                                    : [];
+
+                            foreach ($workSchedule['attendance_records'] as $attendanceRecord) {
+                            }
+                        }
+                    }
                 }
 
                 //

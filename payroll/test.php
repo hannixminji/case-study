@@ -8,15 +8,24 @@ require_once __DIR__ . '/PayrollGroup.php'        ;
 
 require_once __DIR__ . '/PayslipService.php'      ;
 
-$employeeDao   = new EmployeeDao  ($pdo);
-$attendanceDao = new AttendanceDao($pdo);
+$employeeDao      = new EmployeeDao     ($pdo);
+$attendanceDao    = new AttendanceDao   ($pdo);
+$holidayDao       = new HolidayDao      ($pdo);
+$leaveRequestDao  = new LeaveRequestDao ($pdo);
+$employeeBreakDao = new EmployeeBreakDao($pdo);
 
-$employeeRepository   = new EmployeeRepository  ($employeeDao  );
-$attendanceRepository = new AttendanceRepository($attendanceDao);
+$employeeRepository      = new EmployeeRepository     ($employeeDao     );
+$attendanceRepository    = new AttendanceRepository   ($attendanceDao   );
+$holidayRepository       = new HolidayRepository      ($holidayDao      );
+$leaveRequestRepository  = new LeaveRequestRepository ($leaveRequestDao );
+$employeeBreakRepository = new EmployeeBreakRepository($employeeBreakDao);
 
 $payslipService = new PayslipService(
-    employeeRepository  : $employeeRepository  ,
-    attendanceRepository: $attendanceRepository
+    employeeRepository     : $employeeRepository     ,
+    attendanceRepository   : $attendanceRepository   ,
+    holidayRepository      : $holidayRepository      ,
+    leaveRequestRepository : $leaveRequestRepository ,
+    employeeBreakRepository: $employeeBreakRepository
 );
 
 $payrollGroup = new PayrollGroup(
@@ -35,7 +44,7 @@ $payrollGroup = new PayrollGroup(
 $generatePayslipResult = $payslipService->generatePayslip(
     payrollGroup         : $payrollGroup,
     cutoffPeriodStartDate: '2024-12-29' ,
-    cutoffPeriodEndDate  : '2025-01-04' ,
+    cutoffPeriodEndDate  : '2025-01-02' ,
     paydayDate           : '2025-01-04'
 );
 

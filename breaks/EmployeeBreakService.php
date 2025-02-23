@@ -301,6 +301,13 @@ class EmployeeBreakService
                     includeTotalRowCount: false
                 );
 
+                if ($breakSchedules === ActionResult::FAILURE) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
                 $breakSchedules =
                     ! empty($breakSchedules['result_set'])
                         ? $breakSchedules['result_set']
