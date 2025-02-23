@@ -256,10 +256,10 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveType->getId())) {
-            $query .= " SHA2(id, 256) = :leave_type_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveType->getId())) {
+            $query .= "id = :leave_type_id";
         } else {
-            $query .= " id = :leave_type_id";
+            $query .= "SHA2(id, 256) = :leave_type_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -315,10 +315,10 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveTypeId)) {
-            $query .= " SHA2(id, 256) = :leave_type_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveTypeId)) {
+            $query .= "id = :leave_type_id";
         } else {
-            $query .= " id = :leave_type_id";
+            $query .= "SHA2(id, 256) = :leave_type_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

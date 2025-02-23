@@ -303,6 +303,23 @@ class AttendanceService
                         'column'   => 'work_schedule.employee_id',
                         'operator' => '='                        ,
                         'value'    => $employeeId
+                    ],
+                    [
+                        'operator' => 'NOT EXISTS',
+                        'subquery' => "
+                            SELECT
+                                1
+                            FROM
+                                attendance
+                            JOIN
+                                work_schedule_snapshots AS work_schedule_snapshot
+                            ON
+                                attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
+                            WHERE
+                                work_schedule_snapshot.work_schedule_id = work_schedule.id
+                            AND
+                                attendance.date = '{$formattedCurrentDate}'
+                        "
                     ]
                 ];
 
@@ -1457,7 +1474,7 @@ class AttendanceService
 
                         if ($attendanceUpdateResult === ActionResult::FAILURE) {
                             $this->pdo->rollback();
-                            
+
                             return [
                                 'status' => 'error',
                                 'message' => 'Failed to update one or more attendance records.'

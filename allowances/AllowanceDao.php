@@ -242,10 +242,10 @@ class AllowanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $allowance->getId())) {
-            $query .= " SHA2(id, 256) = :allowance_id";
+        if (preg_match('/^[1-9]\d*$/', $allowance->getId())) {
+            $query .= "id = :allowance_id";
         } else {
-            $query .= " id = :allowance_id";
+            $query .= "SHA2(id, 256) = :allowance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -300,10 +300,10 @@ class AllowanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $allowanceId)) {
-            $query .= " SHA2(id, 256) = :allowance_id";
+        if (preg_match('/^[1-9]\d*$/', $allowanceId)) {
+            $query .= "id = :allowance_id";
         } else {
-            $query .= " id = :allowance_id";
+            $query .= "SHA2(id, 256) = :allowance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

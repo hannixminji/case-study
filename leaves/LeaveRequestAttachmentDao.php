@@ -230,10 +230,10 @@ class LeaveRequestAttachmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveRequestAttachmentId)) {
-            $query .= " SHA2(id, 256) = :leave_request_attachment_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveRequestAttachmentId)) {
+            $query .= "id = :leave_request_attachment_id";
         } else {
-            $query .= " id = :leave_request_attachment_id";
+            $query .= "SHA2(id, 256) = :leave_request_attachment_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

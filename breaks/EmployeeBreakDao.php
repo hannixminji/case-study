@@ -608,10 +608,10 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employeeBreak->getId())) {
-            $query .= " SHA2(id, 256) = :employee_break_id";
+        if (preg_match('/^[1-9]\d*$/', (string) $employeeBreak->getId())) {
+            $query .= "id = :employee_break_id";
         } else {
-            $query .= " id = :employee_break_id";
+            $query .= "SHA2(id, 256) = :employee_break_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -665,10 +665,10 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employeeBreakId)) {
-            $query .= " SHA2(id, 256) = :employee_break_id";
+        if (preg_match('/^[1-9]\d*$/', (string) $employeeBreakId)) {
+            $query .= "id = :employee_break_id";
         } else {
-            $query .= " id = :employee_break_id";
+            $query .= "SHA2(id, 256) = :employee_break_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

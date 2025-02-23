@@ -7,6 +7,7 @@ require_once __DIR__ . '/PayrollGroup.php'          ;
 require_once __DIR__ . '/PayslipService.php'        ;
 require_once __DIR__ . '/PayrollGroupRepository.php';
 
+/*
 $payslipDao                = new PayslipDao               ($pdo);
 $employeeDao               = new EmployeeDao              ($pdo);
 $workScheduleDao           = new WorkScheduleDao          ($pdo);
@@ -259,3 +260,4 @@ if ( ! empty($payrollGroups)) {
         }
     }
 }
+*/

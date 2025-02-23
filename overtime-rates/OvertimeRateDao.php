@@ -72,7 +72,7 @@ class OvertimeRateDao
         }
     }
 
-    public function fetchOvertimeRates(int $overtimeRateAssignmentId): array|ActionResult
+    public function fetchOvertimeRates(int|string $overtimeRateAssignmentId): array|ActionResult
     {
         $query = "
             SELECT
@@ -89,10 +89,10 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignmentId)) {
-            $query .= " SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
+        if (preg_match('/^[1-9]\d*$/', $overtimeRateAssignmentId)) {
+            $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id";
         } else {
-            $query .= " overtime_rate_assignment_id = :overtime_rate_assignment_id";
+            $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
         }
 
         try {
@@ -124,16 +124,16 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $overtimeRate->getOvertimeRateAssignmentId())) {
-            $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id ";
-        } else {
+        if (preg_match('/^[1-9]\d*$/', $overtimeRate->getOvertimeRateAssignmentId())) {
             $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id ";
+        } else {
+            $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRate->getId())) {
-            $query .= "AND SHA2(id, 256) = :overtime_rate_id";
-        } else {
+        if (preg_match('/^[1-9]\d*$/', $overtimeRate->getId())) {
             $query .= "AND id = :overtime_rate_id";
+        } else {
+            $query .= "AND SHA2(id, 256) = :overtime_rate_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

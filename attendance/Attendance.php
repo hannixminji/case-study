@@ -8,12 +8,12 @@ class Attendance
         private readonly   string          $date                       ,
         private readonly ? string          $checkInTime                ,
         private readonly ? string          $checkOutTime               ,
-        private readonly ? float           $totalBreakDurationInMinutes,
-        private readonly ? float           $totalHoursWorked           ,
-        private readonly ? int             $lateCheckIn                ,
-        private readonly ? int             $earlyCheckOut              ,
-        private readonly ? float           $overtimeHours              ,
-        private readonly ? bool            $isOvertimeApproved         ,
+        private readonly   float           $totalBreakDurationInMinutes,
+        private readonly   float           $totalHoursWorked           ,
+        private readonly   int             $lateCheckIn                ,
+        private readonly   int             $earlyCheckOut              ,
+        private readonly   float           $overtimeHours              ,
+        private readonly   bool            $isOvertimeApproved         ,
         private readonly   string          $attendanceStatus           ,
         private readonly ? string          $remarks
     ) {
@@ -39,7 +39,7 @@ class Attendance
         return $this->date;
     }
 
-    public function getCheckInTime(): string
+    public function getCheckInTime(): ?string
     {
         return $this->checkInTime;
     }
@@ -49,32 +49,32 @@ class Attendance
         return $this->checkOutTime;
     }
 
-    public function getTotalBreakDurationInMinutes(): ?float
+    public function getTotalBreakDurationInMinutes(): float
     {
         return $this->totalBreakDurationInMinutes;
     }
 
-    public function getTotalHoursWorked(): ?float
+    public function getTotalHoursWorked(): float
     {
         return $this->totalHoursWorked;
     }
 
-    public function getLateCheckIn(): ?int
+    public function getLateCheckIn(): int
     {
         return $this->lateCheckIn;
     }
 
-    public function getEarlyCheckOut(): ?int
+    public function getEarlyCheckOut(): int
     {
         return $this->earlyCheckOut;
     }
 
-    public function getOvertimeHours(): ?float
+    public function getOvertimeHours(): float
     {
         return $this->overtimeHours;
     }
 
-    public function isOvertimeApproved(): ?bool
+    public function isOvertimeApproved(): bool
     {
         return $this->isOvertimeApproved;
     }

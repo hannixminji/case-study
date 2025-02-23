@@ -34,7 +34,7 @@ class OvertimeRateAssignmentDao
         $jobTitleId   = $overtimeRateAssignment->getJobTitleId()  ;
         $employeeId   = $overtimeRateAssignment->getEmployeeId()  ;
 
-        if ( ! ctype_digit( (string) $departmentId)) {
+        if ($departmentId !== null && ! preg_match('/^[1-9]\d*$/', $departmentId)) {
             $departmentColumns = [
                 "id"
             ];
@@ -61,7 +61,7 @@ class OvertimeRateAssignmentDao
             $departmentId = $departmentId['result_set'][0]['id'];
         }
 
-        if ( ! ctype_digit( (string) $jobTitleId)) {
+        if ($jobTitleId !== null && ! preg_match('/^[1-9]\d*$/', $jobTitleId)) {
             $jobTitleColumns = [
                 "id"
             ];
@@ -88,7 +88,7 @@ class OvertimeRateAssignmentDao
             $jobTitleId = $jobTitleId['result_set'][0]['id'];
         }
 
-        if ( ! ctype_digit( (string) $employeeId)) {
+        if ($employeeId !== null && ! preg_match('/^[1-9]\d*$/', $employeeId)) {
             $employeeColumns = [
                 "id"
             ];
@@ -194,11 +194,20 @@ class OvertimeRateAssignmentDao
                 }
 
                 foreach ($overtimeRates as $overtimeRate) {
-                    $overtimeRate->setOvertimeRateAssignmentId($overtimeRateAssignmentId);
+                    $newOvertimeRate = new OvertimeRate(
+                        id                              : null                                                 ,
+                        overtimeRateAssignmentId        : $overtimeRateAssignmentId                            ,
+                        dayType                         : $overtimeRate['day_type'                            ],
+                        holidayType                     : $overtimeRate['holiday_type'                        ],
+                        regularTimeRate                 : $overtimeRate['regular_time_rate'                   ],
+                        overtimeRate                    : $overtimeRate['overtime_rate'                       ],
+                        nightDifferentialRate           : $overtimeRate['night_differential_rate'             ],
+                        nightDifferentialAndOvertimeRate: $overtimeRate['night_differential_and_overtime_rate']
+                    );
 
-                    $result = $this->overtimeRateDao->create($overtimeRate);
+                    $createOvertimeRateResult = $this->overtimeRateDao->create($newOvertimeRate);
 
-                    if ($result === ActionResult::FAILURE) {
+                    if ($createOvertimeRateResult === ActionResult::FAILURE) {
                         if ($isLocalTransaction) {
                             $this->pdo->rollBack();
                         }
@@ -215,9 +224,20 @@ class OvertimeRateAssignmentDao
             }
 
             foreach ($overtimeRates as $overtimeRate) {
-                $result = $this->overtimeRateDao->update($overtimeRate);
+                $newOvertimeRate = new OvertimeRate(
+                    id                              : $overtimeRate['id'                                  ],
+                    overtimeRateAssignmentId        : $overtimeRate['overtime_rate_assignment_id'         ],
+                    dayType                         : $overtimeRate['day_type'                            ],
+                    holidayType                     : $overtimeRate['holiday_type'                        ],
+                    regularTimeRate                 : $overtimeRate['regular_time_rate'                   ],
+                    overtimeRate                    : $overtimeRate['overtime_rate'                       ],
+                    nightDifferentialRate           : $overtimeRate['night_differential_rate'             ],
+                    nightDifferentialAndOvertimeRate: $overtimeRate['night_differential_and_overtime_rate']
+                );
 
-                if ($result === ActionResult::FAILURE) {
+                $updateOvertimeRateResult = $this->overtimeRateDao->update($newOvertimeRate);
+
+                if ($updateOvertimeRateResult === ActionResult::FAILURE) {
                     if ($isLocalTransaction) {
                         $this->pdo->rollBack();
                     }
@@ -246,6 +266,10 @@ class OvertimeRateAssignmentDao
 
     public function findId(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
     {
+        $employeeId   = $overtimeRateAssignment->getEmployeeId()  ;
+        $jobTitleId   = $overtimeRateAssignment->getJobTitleId()  ;
+        $departmentId = $overtimeRateAssignment->getDepartmentId();
+
         $query = "
             SELECT
                 id
@@ -254,101 +278,105 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
-            $query .= "(SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
-        } else {
+        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
             $query .= "(employee_id = :employee_id ";
+        } else {
+            $query .= "(SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
-            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
-        } else {
+        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
+        } else {
+            $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND department_id = :department_id)";
         } else {
-            $query .= "AND department_id = :department_id) ";
+            $query .= "AND SHA2(department_id, 256) = :department_id)";
         }
 
         $query .= "
-        OR
-            (employee_id IS NULL ";
+            OR
+                (employee_id IS NULL
+        ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
-            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
-        } else {
+        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
+        } else {
+            $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND department_id = :department_id)";
         } else {
-            $query .= "AND department_id = :department_id) ";
-        }
-
-        $query .= "
-        OR
-            (employee_id IS NULL AND job_title_id IS NULL ";
-
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256)) ";
-        } else {
-            $query .= "AND department_id = :department_id) ";
+            $query .= "AND SHA2(department_id, 256) = :department_id)";
         }
 
         $query .= "
-        OR
-            (employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL)
-        ORDER BY
-            CASE ";
+            OR
+                (employee_id IS NULL AND job_title_id IS NULL
+        ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
-            $query .= "WHEN SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND department_id = :department_id)";
         } else {
+            $query .= "AND SHA2(department_id, 256) = :department_id)";
+        }
+
+        $query .= "
+            OR
+                (employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL)
+            ORDER BY
+                CASE";
+
+        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
             $query .= "WHEN employee_id = :employee_id ";
+        } else {
+            $query .= "WHEN SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
-            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
-        } else {
+        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
+        } else {
+            $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 1 ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND department_id = :department_id THEN 1";
         } else {
-            $query .= "AND department_id = :department_id THEN 1 ";
+            $query .= "AND SHA2(department_id, 256) = :department_id THEN 1";
         }
 
         $query .= "
-            WHEN employee_id IS NULL ";
+            WHEN employee_id IS NULL
+        ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
-            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
-        } else {
+        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
+        } else {
+            $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 2 ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND department_id = :department_id THEN 2";
         } else {
-            $query .= "AND department_id = :department_id THEN 2 ";
+            $query .= "AND SHA2(department_id, 256) = :department_id THEN 2";
         }
 
         $query .= "
-            WHEN employee_id IS NULL AND job_title_id IS NULL ";
+            WHEN employee_id IS NULL AND job_title_id IS NULL
+        ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) THEN 3";
-        } else {
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
             $query .= "AND department_id = :department_id THEN 3";
+        } else {
+            $query .= "AND SHA2(department_id, 256) = :department_id THEN 3";
         }
 
         $query .= "
                     WHEN employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL THEN 4
-                    ELSE 5
+                                                                                                ELSE 5
                 END
             LIMIT 1
         ";
@@ -356,9 +384,9 @@ class OvertimeRateAssignmentDao
         try {
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"  , $overtimeRateAssignment->getEmployeeId()  , Helper::getPdoParameterType($overtimeRateAssignment->getEmployeeId()  ));
-            $statement->bindValue(":job_title_id" , $overtimeRateAssignment->getJobTitleId()  , Helper::getPdoParameterType($overtimeRateAssignment->getJobTitleId()  ));
-            $statement->bindValue(":department_id", $overtimeRateAssignment->getDepartmentId(), Helper::getPdoParameterType($overtimeRateAssignment->getDepartmentId()));
+            $statement->bindValue(":employee_id"  , $employeeId  , Helper::getPdoParameterType($employeeId  ));
+            $statement->bindValue(":job_title_id" , $jobTitleId  , Helper::getPdoParameterType($jobTitleId  ));
+            $statement->bindValue(":department_id", $departmentId, Helper::getPdoParameterType($departmentId));
 
             $statement->execute();
 
@@ -380,6 +408,10 @@ class OvertimeRateAssignmentDao
 
     public function fetchId(OvertimeRateAssignment $overtimeRateAssignment): int|ActionResult
     {
+        $employeeId   = $overtimeRateAssignment->getEmployeeId()  ;
+        $jobTitleId   = $overtimeRateAssignment->getJobTitleId()  ;
+        $departmentId = $overtimeRateAssignment->getDepartmentId();
+
         $query = "
             SELECT
                 id
@@ -388,25 +420,25 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getEmployeeId())) {
-            $query .= " SHA2(employee_id, 256) = SHA2(:employee_id, 256) ";
+        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
+            $query .= "(employee_id = :employee_id OR (:employee_id IS NULL AND employee_id IS NULL)) ";
         } else {
-            $query .= " employee_id = :employee_id ";
+            $query .= "SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getJobTitleId())) {
-            $query .= "AND SHA2(job_title_id, 256) = SHA2(:job_title_id, 256) ";
+        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+            $query .= "AND (job_title_id = :job_title_id OR (:job_title_id IS NULL AND job_title_id IS NULL)) ";
         } else {
-            $query .= "AND job_title_id = :job_title_id ";
+            $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ( ! ctype_digit( (string) $overtimeRateAssignment->getDepartmentId())) {
-            $query .= "AND SHA2(department_id, 256) = SHA2(:department_id, 256) ";
+        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "AND (department_id = :department_id OR (:department_id IS NULL AND department_id IS NULL))";
         } else {
-            $query .= "AND department_id = :department_id ";
+            $query .= "AND SHA2(department_id, 256) = :department_id";
         }
 
-        $query = "
+        $query .= "
             LIMIT 1
         ";
 

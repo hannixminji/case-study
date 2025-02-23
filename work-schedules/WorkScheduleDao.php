@@ -242,8 +242,8 @@ class WorkScheduleDao
 
         } else {
             foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
-                $operator = $filterCriterion["operator"];
+                $column   = $filterCriterion["column"  ] ?? null;
+                $operator = $filterCriterion["operator"] ?? null;
 
                 switch ($operator) {
                     case "="   :
@@ -269,6 +269,13 @@ class WorkScheduleDao
 
                         $filterParameters[] = $filterCriterion["lower_bound"];
                         $filterParameters[] = $filterCriterion["upper_bound"];
+
+                        break;
+
+                    case "NOT EXISTS":
+                        $subquery = $filterCriterion["subquery"];
+
+                        $whereClauses[] = "NOT EXISTS ({$subquery})";
 
                         break;
                 }
@@ -370,6 +377,58 @@ class WorkScheduleDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the work schedules. " .
+                      "Exception: {$exception->getMessage()}");
+
+            return ActionResult::FAILURE;
+        }
+    }
+
+    public function fetchEmployeeAvailableWorkSchedules(int $employeeId, string $currentDate)
+    {
+        $query = "
+            SELECT
+                work_schedule.id                   AS id                  ,
+                work_schedule.start_time           AS start_time          ,
+                work_schedule.end_time             AS end_time            ,
+                work_schedule.is_flextime          AS is_flextime         ,
+                work_schedule.total_hours_per_week AS total_hours_per_week,
+                work_schedule.total_work_hours     AS total_work_hours    ,
+                work_schedule.start_date           AS start_date          ,
+                work_schedule.recurrence_rule      AS recurrence_rule
+            FROM
+                work_schedules AS work_schedule
+            WHERE
+                work_schedule.deleted_at IS NULL
+            AND
+                work_schedule.employee_id = :employee_id
+            AND NOT EXISTS (
+                SELECT
+                    1
+                FROM
+                    attendance
+                JOIN
+                    work_schedule_snapshots AS work_schedule_snapshot
+                ON
+                    attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
+                WHERE
+                    work_schedule_snapshot.work_schedule_id = work_schedule.id
+                AND
+                    attendance.date = :current_date
+            )
+            ORDER BY
+                work_schedule.start_time
+        ";
+
+        try {
+            $statement = $this->pdo->prepare($query);
+
+            $statement->bindValue(":employee_id" , $employeeId , Helper::getPdoParameterType($employeeId ));
+            $statement->bindValue(":current_date", $currentDate, Helper::getPdoParameterType($currentDate));
+
+            $statement->execute();
+
+        } catch (PDOException $exception) {
+            error_log("Database Error: An error occurred while fetching the latest work schedule snapshot. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;
@@ -503,10 +562,10 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $workSchedule->getId())) {
-            $query .= " SHA2(id, 256) = :work_schedule_id";
+        if (preg_match('/^[1-9]\d*$/', $workSchedule->getId())) {
+            $query .= "id = :work_schedule_id";
         } else {
-            $query .= " id = :work_schedule_id";
+            $query .= "SHA2(id, 256) = :work_schedule_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -562,10 +621,10 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $workScheduleId)) {
-            $query .= " SHA2(id, 256) = :work_schedule_id";
+        if (preg_match('/^[1-9]\d*$/', $workScheduleId)) {
+            $query .= "id = :work_schedule_id";
         } else {
-            $query .= " id = :work_schedule_id";
+            $query .= "SHA2(id, 256) = :work_schedule_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -379,10 +379,10 @@ class PayslipDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $payslip->getId())) {
-            $query .= " SHA2(id, 256) = :payslip_id";
+        if (preg_match('/^[1-9]\d*$/', $payslip->getId())) {
+            $query .= "id = :payslip_id";
         } else {
-            $query .= " id = :payslip_id";
+            $query .= "SHA2(id, 256) = :payslip_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

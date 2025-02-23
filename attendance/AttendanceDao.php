@@ -565,10 +565,10 @@ class AttendanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $attendance->getId())) {
-            $query .= " SHA2(id, 256) = :attendance_id";
+        if (preg_match('/^[1-9]\d*$/', $attendance->getId())) {
+            $query .= "id = :attendance_id";
         } else {
-            $query .= " id = :attendance_id";
+            $query .= "SHA2(id, 256) = :attendance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -622,10 +622,10 @@ class AttendanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $attendanceId)) {
-            $query .= " SHA2(id, 256) = :attendance_id";
+        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
+            $query .= "id = :attendance_id";
         } else {
-            $query .= " id = :attendance_id";
+            $query .= "SHA2(id, 256) = :attendance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -714,10 +714,10 @@ class AttendanceDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $attendanceId)) {
-            $query .= " SHA2(id, 256) = :attendance_id";
+        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
+            $query .= "id = :attendance_id";
         } else {
-            $query .= " id = :attendance_id";
+            $query .= "SHA2(id, 256) = :attendance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -354,10 +354,10 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveRequest->getId())) {
-            $query .= " SHA2(id, 256) = :leave_request_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveRequest->getId())) {
+            $query .= "id = :leave_request_id";
         } else {
-            $query .= " id = :leave_request_id";
+            $query .= "SHA2(id, 256) = :leave_request_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -408,10 +408,10 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveRequestId)) {
-            $query .= " SHA2(id, 256) = :leave_request_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveRequestId)) {
+            $query .= "id = :leave_request_id";
         } else {
-            $query .= " id = :leave_request_id";
+            $query .= "SHA2(id, 256) = :leave_request_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -503,10 +503,10 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employeeId)) {
-            $query .= " SHA2(employee_id, 256) = :employee_id";
+        if (preg_match('/^[1-9]\d*$/', $employeeId)) {
+            $query .= "employee_id = :employee_id";
         } else {
-            $query .= " employee_id = :employee_id";
+            $query .= "SHA2(employee_id, 256) = :employee_id";
         }
 
         $query .= "
@@ -550,10 +550,10 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $leaveRequestId)) {
-            $query .= " SHA2(id, 256) = :leave_request_id";
+        if (preg_match('/^[1-9]\d*$/', $leaveRequestId)) {
+            $query .= "id = :leave_request_id";
         } else {
-            $query .= " id = :leave_request_id";
+            $query .= "SHA2(id, 256) = :leave_request_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

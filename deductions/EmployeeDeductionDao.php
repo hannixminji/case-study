@@ -244,10 +244,10 @@ class EmployeeDeductionDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employeeDeductionId)) {
-            $query .= " SHA2(id, 256) = :employee_deduction_id";
+        if (preg_match('/^[1-9]\d*$/', $employeeDeductionId)) {
+            $query .= "id = :employee_deduction_id";
         } else {
-            $query .= " id = :employee_deduction_id";
+            $query .= "SHA2(id, 256) = :employee_deduction_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

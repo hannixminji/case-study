@@ -254,10 +254,10 @@ class HolidayDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $holiday->getId())) {
-            $query .= " SHA2(id, 256) = :holiday_id";
+        if (preg_match('/^[1-9]\d*$/', $holiday->getId())) {
+            $query .= "id = :holiday_id";
         } else {
-            $query .= " id = :holiday_id";
+            $query .= "SHA2(id, 256) = :holiday_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -314,10 +314,10 @@ class HolidayDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $holidayId)) {
-            $query .= " SHA2(id, 256) = :holiday_id";
+        if (preg_match('/^[1-9]\d*$/', $holidayId)) {
+            $query .= "id = :holiday_id";
         } else {
-            $query .= " id = :holiday_id";
+            $query .= "SHA2(id, 256) = :holiday_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

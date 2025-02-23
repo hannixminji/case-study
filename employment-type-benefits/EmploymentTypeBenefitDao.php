@@ -353,10 +353,10 @@ class EmploymentTypeBenefitDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employmentTypeBenefitId)) {
-            $query .= " SHA2(id, 256) = :employment_benefit_id";
+        if (preg_match('/^[1-9]\d*$/', $employmentTypeBenefitId)) {
+            $query .= "id = :employment_benefit_id";
         } else {
-            $query .= " id = :employment_benefit_id";
+            $query .= "SHA2(id, 256) = :employment_benefit_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -299,10 +299,10 @@ class DepartmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $department->getId())) {
-            $query .= " SHA2(id, 256) = :department_id";
+        if (preg_match('/^[1-9]\d*$/', $department->getId())) {
+            $query .= "id = :department_id";
         } else {
-            $query .= " id = :department_id";
+            $query .= "SHA2(id, 256) = :department_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -351,10 +351,10 @@ class DepartmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $employeeId)) {
-            $query .= " SHA2(department_head_id, 256) = :employee_id";
+        if (preg_match('/^[1-9]\d*$/', $employeeId)) {
+            $query .= "department_head_id = :employee_id";
         } else {
-            $query .= " department_head_id = :employee_id";
+            $query .= "SHA2(department_head_id, 256) = :employee_id";
         }
 
         $query .= "
@@ -396,10 +396,10 @@ class DepartmentDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $departmentId)) {
-            $query .= " SHA2(id, 256) = :department_id";
+        if (preg_match('/^[1-9]\d*$/', $departmentId)) {
+            $query .= "id = :department_id";
         } else {
-            $query .= " id = :department_id";
+            $query .= "SHA2(id, 256) = :department_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -6,10 +6,10 @@ class PayrollGroup
         private readonly   int|string|null $id                     ,
         private readonly   string          $name                   ,
         private readonly   string          $payrollFrequency       ,
-        private readonly ? string          $dayOfWeeklyCutoff      ,
-        private readonly ? string          $dayOfBiweeklyCutoff    ,
-        private readonly ? string          $semiMonthlyFirstCutoff ,
-        private readonly ? string          $semiMonthlySecondCutoff,
+        private readonly ? int             $dayOfWeeklyCutoff      ,
+        private readonly ? int             $dayOfBiweeklyCutoff    ,
+        private readonly ? int             $semiMonthlyFirstCutoff ,
+        private readonly ? int             $semiMonthlySecondCutoff,
         private readonly   int             $paydayOffset           ,
         private readonly   string          $paydayAdjustment       ,
         private readonly   string          $status
@@ -31,22 +31,22 @@ class PayrollGroup
         return $this->payrollFrequency;
     }
 
-    public function getDayOfWeeklyCutoff(): ?string
+    public function getDayOfWeeklyCutoff(): ?int
     {
         return $this->dayOfWeeklyCutoff;
     }
 
-    public function getDayOfBiweeklyCutoff(): ?string
+    public function getDayOfBiweeklyCutoff(): ?int
     {
         return $this->dayOfBiweeklyCutoff;
     }
 
-    public function getSemiMonthlyFirstCutoff(): ?string
+    public function getSemiMonthlyFirstCutoff(): ?int
     {
         return $this->semiMonthlyFirstCutoff;
     }
 
-    public function getSemiMonthlySecondCutoff(): ?string
+    public function getSemiMonthlySecondCutoff(): ?int
     {
         return $this->semiMonthlySecondCutoff;
     }

@@ -247,10 +247,10 @@ class DeductionDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $deduction->getId())) {
-            $query .= " SHA2(id, 256) = :deduction_id";
+        if (preg_match('/^[1-9]\d*$/', $deduction->getId())) {
+            $query .= "id = :deduction_id";
         } else {
-            $query .= " id = :deduction_id";
+            $query .= "SHA2(id, 256) = :deduction_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -305,10 +305,10 @@ class DeductionDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $deductionId)) {
-            $query .= " SHA2(id, 256) = :deduction_id";
+        if (preg_match('/^[1-9]\d*$/', $deductionId)) {
+            $query .= "id = :deduction_id";
         } else {
-            $query .= " id = :deduction_id";
+            $query .= "SHA2(id, 256) = :deduction_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

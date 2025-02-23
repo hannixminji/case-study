@@ -278,10 +278,10 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $payrollGroup->getId())) {
-            $query .= " SHA2(id, 256) = :payroll_group_id";
+        if (preg_match('/^[1-9]\d*$/', $payrollGroup->getId())) {
+            $query .= "id = :payroll_group_id";
         } else {
-            $query .= " id = :payroll_group_id";
+            $query .= "SHA2(id, 256) = :payroll_group_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -340,10 +340,10 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $payrollGroupId)) {
-            $query .= " SHA2(id, 256) = :payroll_group_id";
+        if (preg_match('/^[1-9]\d*$/', $payrollGroupId)) {
+            $query .= "id = :payroll_group_id";
         } else {
-            $query .= " id = :payroll_group_id";
+            $query .= "SHA2(id, 256) = :payroll_group_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

@@ -252,10 +252,10 @@ class JobTitleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $jobTitle->getId())) {
-            $query .= " SHA2(id, 256) = :job_title_id";
+        if (preg_match('/^[1-9]\d*$/', $jobTitle->getId())) {
+            $query .= "id = :job_title_id";
         } else {
-            $query .= " id = :job_title_id";
+            $query .= "SHA2(id, 256) = :job_title_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -309,10 +309,10 @@ class JobTitleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $jobTitleId)) {
-            $query .= " SHA2(id, 256) = :job_title_id";
+        if (preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+            $query .= "id = :job_title_id";
         } else {
-            $query .= " id = :job_title_id";
+            $query .= "SHA2(id, 256) = :job_title_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

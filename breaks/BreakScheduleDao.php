@@ -375,10 +375,10 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $breakSchedule->getId())) {
-            $query .= " SHA2(id, 256) = :break_schedule_id";
+        if (preg_match('/^[1-9]\d*$/', $breakSchedule->getId())) {
+            $query .= "id = :break_schedule_id";
         } else {
-            $query .= " id = :break_schedule_id";
+            $query .= "SHA2(id, 256) = :break_schedule_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -432,10 +432,10 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if ( ! ctype_digit( (string) $breakScheduleId)) {
-            $query .= " SHA2(id, 256) = :break_schedule_id";
+        if (preg_match('/^[1-9]\d*$/', $breakScheduleId)) {
+            $query .= "id = :break_schedule_id";
         } else {
-            $query .= " id = :break_schedule_id";
+            $query .= "SHA2(id, 256) = :break_schedule_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
