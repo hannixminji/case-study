@@ -629,7 +629,28 @@ class AttendanceService
                     'break_type_name'                  ,
                     'break_type_duration_in_minutes'   ,
                     'break_type_is_paid'               ,
-                    'is_require_break_in_and_break_out'
+                    'is_require_break_in_and_break_out',
+
+                    'is_recorded' => "
+                        CASE
+                            WHEN EXISTS (
+                                SELECT
+                                    1
+                                FROM
+                                    employee_breaks AS employee_break
+                                JOIN
+                                    break_schedule_snapshots AS break_schedule_snapshot
+                                ON
+                                    employee_break.break_schedule_snapshot_id = break_schedule_snapshot.id
+                                WHERE
+                                    break_schedule_snapshot.break_schedule_id = break_schedule.id
+                                AND
+                                    employee_break.created_at BETWEEN '{$adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s')}' AND '{$workScheduleEndDateTime->format('Y-m-d H:i:s')}'
+                            )
+                            THEN 1
+                            ELSE 0
+                        END AS is_recorded
+                    "
                 ];
 
                 $breakScheduleFilterCriteria = [
@@ -966,110 +987,112 @@ class AttendanceService
 
                 if ( ! empty($breakSchedules)) {
                     foreach ($breakSchedules as $breakSchedule) {
-                        $latestBreakTypeSnapshot = $this->breakTypeRepository
-                            ->fetchLatestBreakTypeSnapshotById($breakSchedule['break_type_id']);
+                        if ( ! $breakSchedule['is_recorded']) {
+                            $latestBreakTypeSnapshot = $this->breakTypeRepository
+                                ->fetchLatestBreakTypeSnapshotById($breakSchedule['break_type_id']);
 
-                        if ($latestBreakTypeSnapshot === ActionResult::FAILURE) {
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred. Please try again later.'
-                            ];
-                        }
-
-                        if ( ! empty($latestBreakTypeSnapshot)) {
-                            $breakTypeSnapshotId = $latestBreakTypeSnapshot['id'];
-                        }
-
-                        if (empty($latestBreakTypeSnapshot) ||
-
-                            $breakSchedule['break_type_name'                  ] !== $latestBreakTypeSnapshot['name'                             ] ||
-                            $breakSchedule['break_type_duration_in_minutes'   ] !== $latestBreakTypeSnapshot['duration_in_minutes'              ] ||
-                            $breakSchedule['break_type_is_paid'               ] !== $latestBreakTypeSnapshot['is_paid'                          ] ||
-                            $breakSchedule['is_require_break_in_and_break_out'] !== $latestBreakTypeSnapshot['is_require_break_in_and_break_out']) {
-
-                            $newBreakTypeSnapshot = new BreakTypeSnapshot(
-                                breakTypeId              : $breakSchedule['break_type_id'                    ],
-                                name                     : $breakSchedule['break_type_name'                  ],
-                                durationInMinutes        : $breakSchedule['break_type_duration_in_minutes'   ],
-                                isPaid                   : $breakSchedule['break_type_is_paid'               ],
-                                requireBreakInAndBreakOut: $breakSchedule['is_require_break_in_and_break_out']
-                            );
-
-                            $breakTypeSnapshotId = $this->breakTypeRepository
-                                ->createBreakTypeSnapshot($newBreakTypeSnapshot);
-
-                            if ($breakTypeSnapshotId === ActionResult::FAILURE) {
+                            if ($latestBreakTypeSnapshot === ActionResult::FAILURE) {
                                 return [
                                     'status'  => 'error',
                                     'message' => 'An unexpected error occurred. Please try again later.'
                                 ];
                             }
-                        }
 
-                        $latestBreakScheduleSnapshot = $this->breakScheduleRepository
-                            ->fetchLatestBreakScheduleSnapshotById($breakSchedule['id']);
+                            if ( ! empty($latestBreakTypeSnapshot)) {
+                                $breakTypeSnapshotId = $latestBreakTypeSnapshot['id'];
+                            }
 
-                        if ($latestBreakScheduleSnapshot === ActionResult::FAILURE) {
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred. Please try again later.'
-                            ];
-                        }
+                            if (empty($latestBreakTypeSnapshot) ||
 
-                        if ( ! empty($latestBreakScheduleSnapshot)) {
-                            $breakScheduleSnapshotId = $latestBreakScheduleSnapshot['id'];
-                        }
+                                $breakSchedule['break_type_name'                  ] !== $latestBreakTypeSnapshot['name'                             ] ||
+                                $breakSchedule['break_type_duration_in_minutes'   ] !== $latestBreakTypeSnapshot['duration_in_minutes'              ] ||
+                                $breakSchedule['break_type_is_paid'               ] !== $latestBreakTypeSnapshot['is_paid'                          ] ||
+                                $breakSchedule['is_require_break_in_and_break_out'] !== $latestBreakTypeSnapshot['is_require_break_in_and_break_out']) {
 
-                        if (empty($latestBreakScheduleSnapshot) ||
+                                $newBreakTypeSnapshot = new BreakTypeSnapshot(
+                                    breakTypeId              : $breakSchedule['break_type_id'                    ],
+                                    name                     : $breakSchedule['break_type_name'                  ],
+                                    durationInMinutes        : $breakSchedule['break_type_duration_in_minutes'   ],
+                                    isPaid                   : $breakSchedule['break_type_is_paid'               ],
+                                    requireBreakInAndBreakOut: $breakSchedule['is_require_break_in_and_break_out']
+                                );
 
-                            $workScheduleSnapshotId               !== $latestBreakScheduleSnapshot['work_schedule_snapshot_id'] ||
-                            $breakTypeSnapshotId                  !== $latestBreakScheduleSnapshot['break_type_snapshot_id'   ] ||
-                            $breakSchedule['start_time'         ] !== $latestBreakScheduleSnapshot['start_time'               ] ||
-                            $breakSchedule['end_time'           ] !== $latestBreakScheduleSnapshot['end_time'                 ] ||
-                            $breakSchedule['is_flexible'        ] !== $latestBreakScheduleSnapshot['is_flexible'              ] ||
-                            $breakSchedule['earliest_start_time'] !== $latestBreakScheduleSnapshot['earliest_start_time'      ] ||
-                            $breakSchedule['latest_end_time'    ] !== $latestBreakScheduleSnapshot['latest_end_time'          ]) {
+                                $breakTypeSnapshotId = $this->breakTypeRepository
+                                    ->createBreakTypeSnapshot($newBreakTypeSnapshot);
 
-                            $newBreakScheduleSnapshot = new BreakScheduleSnapshot(
-                                breakScheduleId       : $breakSchedule['id'                 ],
-                                workScheduleSnapshotId: $workScheduleSnapshotId              ,
-                                breakTypeSnapshotId   : $breakTypeSnapshotId                 ,
-                                startTime             : $breakSchedule['start_time'         ],
-                                endTime               : $breakSchedule['end_time'           ],
-                                isFlexible            : $breakSchedule['is_flexible'        ],
-                                earliestStartTime     : $breakSchedule['earliest_start_time'],
-                                latestEndTime         : $breakSchedule['latest_end_time'    ]
-                            );
+                                if ($breakTypeSnapshotId === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+                            }
 
-                            $breakScheduleSnapshotId = $this->breakScheduleRepository
-                                ->createBreakScheduleSnapshot($newBreakScheduleSnapshot);
+                            $latestBreakScheduleSnapshot = $this->breakScheduleRepository
+                                ->fetchLatestBreakScheduleSnapshotById($breakSchedule['id']);
 
-                            if ($breakScheduleSnapshotId === ActionResult::FAILURE) {
+                            if ($latestBreakScheduleSnapshot === ActionResult::FAILURE) {
                                 return [
                                     'status'  => 'error',
                                     'message' => 'An unexpected error occurred. Please try again later.'
                                 ];
                             }
-                        }
 
-                        $employeeBreakRecord = new EmployeeBreak(
-                            id                     : null                     ,
-                            breakScheduleSnapshotId: $breakScheduleSnapshotId ,
-                            startTime              : null                     ,
-                            endTime                : null                     ,
-                            breakDurationInMinutes : 0                        ,
-                            createdAt              : $formattedCurrentDateTime
-                        );
+                            if ( ! empty($latestBreakScheduleSnapshot)) {
+                                $breakScheduleSnapshotId = $latestBreakScheduleSnapshot['id'];
+                            }
 
-                        $employeeBreakCreateResult = $this->employeeBreakRepository->createEmployeeBreak($employeeBreakRecord);
+                            if (empty($latestBreakScheduleSnapshot) ||
 
-                        if ($employeeBreakCreateResult === ActionResult::FAILURE) {
-                            $this->pdo->rollback();
+                                $workScheduleSnapshotId               !== $latestBreakScheduleSnapshot['work_schedule_snapshot_id'] ||
+                                $breakTypeSnapshotId                  !== $latestBreakScheduleSnapshot['break_type_snapshot_id'   ] ||
+                                $breakSchedule['start_time'         ] !== $latestBreakScheduleSnapshot['start_time'               ] ||
+                                $breakSchedule['end_time'           ] !== $latestBreakScheduleSnapshot['end_time'                 ] ||
+                                $breakSchedule['is_flexible'        ] !== $latestBreakScheduleSnapshot['is_flexible'              ] ||
+                                $breakSchedule['earliest_start_time'] !== $latestBreakScheduleSnapshot['earliest_start_time'      ] ||
+                                $breakSchedule['latest_end_time'    ] !== $latestBreakScheduleSnapshot['latest_end_time'          ]) {
 
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred while checking in. Please try again later.'
-                            ];
+                                $newBreakScheduleSnapshot = new BreakScheduleSnapshot(
+                                    breakScheduleId       : $breakSchedule['id'                 ],
+                                    workScheduleSnapshotId: $workScheduleSnapshotId              ,
+                                    breakTypeSnapshotId   : $breakTypeSnapshotId                 ,
+                                    startTime             : $breakSchedule['start_time'         ],
+                                    endTime               : $breakSchedule['end_time'           ],
+                                    isFlexible            : $breakSchedule['is_flexible'        ],
+                                    earliestStartTime     : $breakSchedule['earliest_start_time'],
+                                    latestEndTime         : $breakSchedule['latest_end_time'    ]
+                                );
+
+                                $breakScheduleSnapshotId = $this->breakScheduleRepository
+                                    ->createBreakScheduleSnapshot($newBreakScheduleSnapshot);
+
+                                if ($breakScheduleSnapshotId === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+                            }
+
+                            $employeeBreakRecord = new EmployeeBreak(
+                                id                     : null                     ,
+                                breakScheduleSnapshotId: $breakScheduleSnapshotId ,
+                                startTime              : null                     ,
+                                endTime                : null                     ,
+                                breakDurationInMinutes : 0                        ,
+                                createdAt              : $formattedCurrentDateTime
+                            );
+
+                            $employeeBreakCreateResult = $this->employeeBreakRepository->createEmployeeBreak($employeeBreakRecord);
+
+                            if ($employeeBreakCreateResult === ActionResult::FAILURE) {
+                                $this->pdo->rollback();
+
+                                return [
+                                    'status'  => 'error',
+                                    'message' => 'An unexpected error occurred while checking in. Please try again later.'
+                                ];
+                            }
                         }
                     }
                 }
@@ -1150,21 +1173,9 @@ class AttendanceService
                 ]
             ];
 
-            $employeeBreakSortCriteria = [
-                [
-                    'column'    => 'employee_break.created_at',
-                    'direction' => 'ASC'
-                ],
-                [
-                    'column'    => 'employee_break.start_time',
-                    'direction' => 'ASC'
-                ]
-            ];
-
             $employeeBreakFetchResult = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
                 columns             : $employeeBreakColumns       ,
                 filterCriteria      : $employeeBreakFilterCriteria,
-                sortCriteria        : $employeeBreakSortCriteria  ,
                 includeTotalRowCount: false
             );
 
@@ -1230,25 +1241,21 @@ class AttendanceService
                 }
 
                 foreach ($mergedBreakRecords as $breakRecord) {
-                    $breakRecordStartTime =
-                        $breakRecord['start_time']
-                            ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
-                            : null;
-
                     $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
 
                     if ($breakRecord['break_schedule_snapshot_is_flexible']) {
                         $breakScheduleStartTime =
-                            $breakRecordStartTime
-                                ?? $breakRecord['break_schedule_snapshot_earliest_start_time'];
+                            $breakRecord['start_time'] !== null
+                                ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
+                                : $breakRecord['break_schedule_snapshot_earliest_start_time'];
                     }
 
                     $breakScheduleEndTime = (new DateTime($breakScheduleStartTime))
                         ->modify('+' . $breakRecord['break_type_snapshot_duration_in_minutes'] . ' minutes')
                         ->format('H:i:s');
 
-                    $breakScheduleStartDateTime = new DateTime($lastAttendanceRecord['date'] . ' ' . $breakScheduleStartTime);
-                    $breakScheduleEndDateTime   = new DateTime($lastAttendanceRecord['date'] . ' ' . $breakScheduleEndTime  );
+                    $breakScheduleStartDateTime = new DateTime($workScheduleDate . ' ' . $breakScheduleStartTime);
+                    $breakScheduleEndDateTime   = new DateTime($workScheduleDate . ' ' . $breakScheduleEndTime  );
 
                     if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
                         $breakScheduleStartDateTime->modify('+1 day');
@@ -1268,7 +1275,7 @@ class AttendanceService
 
                     if ($checkOutDateTime >= $breakScheduleStartDateTime) {
                         $breakRecordEndDateTime =
-                            $breakRecord['end_time']
+                            $breakRecord['end_time'] !== null
                                 ? new DateTime($breakRecord['end_time'])
                                 : null;
 

@@ -174,6 +174,10 @@ class BreakScheduleDao
                     array_flip($columns)
                 );
 
+        if (array_key_exists("is_recorded", $columns)) {
+            $selectedColumns["is_recorded"] = $columns["is_recorded"];
+        }
+
         $joinClauses = "";
 
         if (array_key_exists("break_type_name"                  , $selectedColumns) ||

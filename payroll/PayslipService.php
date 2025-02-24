@@ -96,6 +96,7 @@ class PayslipService
                     ->format('Y-m-d' );
 
             $attendanceRecordColumns = [
+                'work_schedule_snapshot_id'                               ,
                 'date'                                                    ,
                 'check_in_time'                                           ,
                 'check_out_time'                                          ,
@@ -103,7 +104,6 @@ class PayslipService
                 'attendance_status'                                       ,
                 'is_processed_for_next_payroll'                           ,
 
-                'work_schedule_snapshot_work_schedule_id'                 ,
                 'work_schedule_snapshot_start_time'                       ,
                 'work_schedule_snapshot_end_time'                         ,
                 'work_schedule_snapshot_is_flextime'                      ,
@@ -165,14 +165,16 @@ class PayslipService
                     : [];
 
             if ( ! empty($employeeAttendanceRecords)) {
-                foreach ($employeeAttendanceRecords as $attendanceRecord) {
-                    $date           = $attendanceRecord['date'                                   ];
-                    $workScheduleId = $attendanceRecord['work_schedule_snapshot_work_schedule_id'];
+                $attendanceRecords = [];
 
-                    if ( ! isset($attendanceRecords[$date][$workScheduleId])) {
-                        $attendanceRecords[$date][$workScheduleId] = [
+                foreach ($employeeAttendanceRecords as $attendanceRecord) {
+                    $date                   = $attendanceRecord['date'                     ];
+                    $workScheduleSnapshotId = $attendanceRecord['work_schedule_snapshot_id'];
+
+                    if ( ! isset($attendanceRecords[$date][$workScheduleSnapshotId])) {
+                        $attendanceRecords[$date][$workScheduleSnapshotId] = [
                             'work_schedule' => [
-                                'id'                                => $attendanceRecord['work_schedule_snapshot_work_schedule_id'                 ],
+                                'snapshot_id'                       => $attendanceRecord['work_schedule_snapshot_id'                               ],
                                 'start_time'                        => $attendanceRecord['work_schedule_snapshot_start_time'                       ],
                                 'end_time'                          => $attendanceRecord['work_schedule_snapshot_end_time'                         ],
                                 'is_flextime'                       => $attendanceRecord['work_schedule_snapshot_is_flextime'                      ],
@@ -185,7 +187,7 @@ class PayslipService
                         ];
                     }
 
-                    $attendanceRecords[$date][$workScheduleId]['attendance_records'][] = [
+                    $attendanceRecords[$date][$workScheduleSnapshotId]['attendance_records'][] = [
                         'date'                          => $attendanceRecord['date'                         ] ,
                         'check_in_time'                 => $attendanceRecord['check_in_time'                ] ,
                         'check_out_time'                => $attendanceRecord['check_out_time'               ] ,
@@ -212,7 +214,7 @@ class PayslipService
                         $workScheduleEndDateTime->modify('+1 day');
                     }
 
-                    if ($workScheduleEndDateTime > (new DateTime($cutoffPeriodEndDate))->modify('+1 day')) {
+                    if ($workScheduleEndDateTime <= (new DateTime($cutoffPeriodEndDate))->modify('+1 day')) {
                         unset($attendanceRecords[$firstDate]);
                     }
                 }
@@ -272,73 +274,76 @@ class PayslipService
                 $workHours = [
                     'regular_day' => [
                         'non_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'special_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'regular_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'double_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ]
                     ],
 
                     'rest_day' => [
                         'non_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'special_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'regular_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ],
 
                         'double_holiday' => [
-                            'regular_hours'               => 0,
-                            'overtime_hours'              => 0,
-                            'night_differential'          => 0,
-                            'night_differential_overtime' => 0
+                            'regular_hours'               => 0.0,
+                            'overtime_hours'              => 0.0,
+                            'night_differential'          => 0.0,
+                            'night_differential_overtime' => 0.0
                         ]
                     ],
 
                     'non_worked_paid_hours' => [
-                        'leave'           => 0,
-                        'regular_holiday' => 0,
-                        'double_holiday'  => 0
+                        'leave'           => 0.0,
+                        'regular_holiday' => 0.0,
+                        'double_holiday'  => 0.0
                     ]
                 ];
 
                 foreach ($attendanceRecords as $date => $workSchedules) {
                     foreach ($workSchedules as $workSchedule) {
+                        $workScheduleSnapshotId = $workSchedule['work_schedule']['snapshot_id'];
+                        $isFlextime             = $workSchedule['work_schedule']['is_flextime'];
+
                         $workScheduleStartTime = $workSchedule['work_schedule']['start_time'];
                         $workScheduleEndTime   = $workSchedule['work_schedule']['end_time'  ];
 
@@ -358,33 +363,208 @@ class PayslipService
                         $formattedAdjustedWorkScheduleStartDateTime = $adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s');
 
                         if ( ! empty($workSchedule['attendance_records']) &&
-                                     $workSchedule['attendance_records'][0]['attendance_status'] !== 'absent') {
+                                     $workSchedule['attendance_records'][0]['check_in_time'] !== null) {
 
-                            $employeeBreakColumns = [
-                            ];
+                            if ( ! $isFlextime) {
+                                $employeeBreakColumns = [
+                                    'break_schedule_snapshot_id'                 ,
+                                    'start_time'                                 ,
+                                    'end_time'                                   ,
 
-                            $employeeBreakFilterCriteria = [
-                            ];
+                                    'break_schedule_snapshot_start_time'         ,
+                                    'break_schedule_snapshot_end_time'           ,
+                                    'break_schedule_snapshot_is_flexible'        ,
+                                    'break_schedule_snapshot_earliest_start_time',
 
-                            $employeeBreakRecords = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
-                                columns             : $employeeBreakColumns       ,
-                                filterCriteria      : $employeeBreakFilterCriteria,
-                                includeTotalRowCount: false
-                            );
-
-                            if ($employeeBreakRecords === ActionResult::FAILURE) {
-                                return [
-                                    'status'  => 'error',
-                                    'message' => 'An unexpected error occurred. Please try again later.'
+                                    'break_type_snapshot_duration_in_minutes'    ,
+                                    'break_type_snapshot_is_paid'
                                 ];
+
+                                $employeeBreakFilterCriteria = [
+                                    [
+                                        'column'   => 'employee_break.deleted_at',
+                                        'operator' => 'IS NULL'
+                                    ],
+                                    [
+                                        'column'   => 'break_schedule_snapshot.work_schedule_snapshot_id',
+                                        'operator' => '='                                                ,
+                                        'value'    => $workScheduleSnapshotId
+                                    ],
+                                    [
+                                        'column'      => 'employee_break.created_at'                ,
+                                        'operator'    => 'BETWEEN'                                  ,
+                                        'lower_bound' => $formattedAdjustedWorkScheduleStartDateTime,
+                                        'upper_bound' => $formattedWorkScheduleEndDateTime
+                                    ]
+                                ];
+
+                                $employeeBreakRecords = $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+                                    columns             : $employeeBreakColumns       ,
+                                    filterCriteria      : $employeeBreakFilterCriteria,
+                                    includeTotalRowCount: false
+                                );
+
+                                if ($employeeBreakRecords === ActionResult::FAILURE) {
+                                    return [
+                                        'status'  => 'error',
+                                        'message' => 'An unexpected error occurred. Please try again later.'
+                                    ];
+                                }
+
+                                $employeeBreakRecords =
+                                    ! empty($employeeBreakRecords['result_set'])
+                                        ? $employeeBreakRecords['result_set']
+                                        : [];
+
+                                if ( ! empty($employeeBreakRecords)) {
+                                    $groupedBreakRecords = [];
+                                    foreach ($employeeBreakRecords as $breakRecord) {
+                                        $groupedBreakRecords[$breakRecord['break_schedule_snapshot_id']][] = $breakRecord;
+                                    }
+
+                                    $mergedBreakRecords = [];
+                                    foreach ($groupedBreakRecords as $breakRecords) {
+                                        $firstBreakRecord = $breakRecords[0];
+
+                                        if ($firstBreakRecord['start_time'] !== null) {
+                                            $earliestStartDateTime = new DateTime($firstBreakRecord['start_time']);
+                                            $latestEndDateTime     = null;
+
+                                            foreach ($breakRecords as $breakRecord) {
+                                                $currentStartDateTime = new DateTime($breakRecord['start_time']);
+
+                                                if ($currentStartDateTime < $earliestStartDateTime) {
+                                                    $earliestStartDateTime = $currentStartDateTime;
+                                                }
+
+                                                if ($breakRecord['end_time'] !== null) {
+                                                    $currentEndDateTime = new DateTime($breakRecord['end_time']);
+
+                                                    if ($latestEndDateTime === null || $currentEndDateTime > $latestEndDateTime) {
+                                                        $latestEndDateTime = $currentEndDateTime;
+                                                    }
+                                                }
+                                            }
+
+                                            $mergedBreakRecords[] = array_merge(
+                                                $firstBreakRecord,
+                                                [
+                                                    'start_time' => $earliestStartDateTime->format('Y-m-d H:i:s'),
+                                                    'end_time' =>
+                                                        $latestEndDateTime
+                                                            ? $latestEndDateTime->format('Y-m-d H:i:s')
+                                                            : null
+                                                ]
+                                            );
+
+                                        } else {
+                                            $mergedBreakRecords[] = $firstBreakRecord;
+                                        }
+                                    }
+
+                                    $employeeBreakRecords = $mergedBreakRecords;
+                                }
                             }
 
-                            $employeeBreakRecords =
-                                ! empty($employeeBreakRecords['result_set'])
-                                    ? $employeeBreakRecords['result_set']
-                                    : [];
+                            $isFirstAttendanceRecord = true;
 
                             foreach ($workSchedule['attendance_records'] as $attendanceRecord) {
+                                $checkInDateTime = new DateTime($attendanceRecord['check_in_time']);
+
+                                $checkOutDateTime =
+                                    $attendanceRecord['check_out_time'] !== null
+                                        ? new DateTime($attendanceRecord['check_out_time'])
+                                        : $workScheduleEndDateTime;
+
+                                if ( ! $isFlextime && $isFirstAttendanceRecord) {
+                                    if ($checkInDateTime < $workScheduleStartDateTime) {
+                                        $checkInDateTime = $workScheduleStartDateTime;
+                                    }
+
+                                    $gracePeriod = $workSchedule['work_schedule']['grace_period'];
+
+                                    $gracePeriodStartDateTime = (clone $workScheduleStartDateTime)->modify('+' . $gracePeriod . ' minutes');
+
+                                    if ($checkInDateTime <= $gracePeriodStartDateTime) {
+                                        $checkInDateTime = clone $workScheduleStartDateTime;
+                                    }
+
+                                    $isFirstAttendanceRecord = false;
+                                }
+
+                                if ( ! $isFlextime && ! empty($mergedBreakRecords)) {
+                                    $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
+                                    
+                                    $breakRecords = [];
+
+                                    foreach ($employeeBreakRecords as $breakRecord) {
+                                        $breakRecordStartTime =
+                                            $breakRecord['start_time'] !== null
+                                                ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
+                                                : null;
+
+                                        $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
+
+                                        if ($breakRecord['break_schedule_snapshot_is_flexible']) {
+                                            $breakScheduleStartTime =
+                                                $breakRecordStartTime
+                                                    ?? $breakRecord['break_schedule_snapshot_earliest_start_time'];
+                                        }
+
+                                        $breakScheduleEndTime = (new DateTime($breakScheduleStartTime))
+                                            ->modify('+' . $breakRecord['break_type_snapshot_duration_in_minutes'] . ' minutes')
+                                            ->format('H:i:s');
+
+                                        $breakScheduleStartDateTime = new DateTime($date . ' ' . $breakScheduleStartTime);
+                                        $breakScheduleEndDateTime   = new DateTime($date . ' ' . $breakScheduleEndTime  );
+
+                                        if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
+                                            $breakScheduleStartDateTime->modify('+1 day');
+                                        }
+
+                                        if ($breakScheduleEndDateTime < $workScheduleStartDateTime) {
+                                            $breakScheduleEndDateTime->modify('+1 day');
+                                        }
+
+                                        if ($breakScheduleEndDateTime < $breakScheduleStartDateTime) {
+                                            $breakScheduleEndDateTime->modify('+1 day');
+                                        }
+
+                                        if ($checkInDateTime > $breakScheduleStartDateTime) {
+                                            $breakScheduleStartDateTime = clone $checkInDateTime;
+                                        }
+
+                                        $breakRecord['start_time'] = $breakScheduleStartDateTime->format('Y-m-d H:i:s');
+
+                                        $breakRecordEndDateTime =
+                                            $breakRecord['end_time'] !== null
+                                                ? new DateTime($breakRecord['end_time'])
+                                                : clone $breakScheduleEndDateTime;
+
+                                        if ($breakRecordEndDateTime <= $breakScheduleEndDateTime &&
+                                            $checkOutDateTime       >  $breakScheduleEndDateTime) {
+
+                                            $breakRecord['end_time'] = $breakScheduleEndDateTime->format('Y-m-d H:i:s');
+
+                                        } elseif (($breakRecordEndDateTime <= $breakScheduleEndDateTime  &&
+                                                $checkOutDateTime       <  $breakScheduleEndDateTime) ||
+
+                                                $breakRecordEndDateTime >  $checkOutDateTime) {
+
+                                            $breakRecord['end_time'] = $checkOutDateTime->format('Y-m-d H:i:s');
+                                        }
+
+                                        if ($formattedCheckOutDateTime >= $breakRecord['start_time']) {
+                                            $breakRecords[] = [
+                                                'start_time' => $breakRecord['start_time'                 ],
+                                                'end_time'   => $breakRecord['end_time'                   ],
+                                                'is_paid'    => $breakRecord['break_type_snapshot_is_paid']
+                                            ];
+                                        }
+                                    }
+                                }
+
+                                // inside looping of attendance records
                             }
                         }
                     }
@@ -395,3 +575,60 @@ class PayslipService
         }
     }
 }
+
+/*
+<?php
+
+$breakRecordStartTime =
+    $breakRecord['start_time'] !== null
+        ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
+        : null;
+
+$breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
+
+if ($breakRecord['break_schedule_snapshot_is_flexible']) {
+    $breakScheduleStartTime =
+        $breakRecordStartTime
+            ?? $breakRecord['break_schedule_snapshot_earliest_start_time'];
+}
+
+$breakScheduleEndTime = (new DateTime($breakScheduleStartTime))
+    ->modify('+' . $breakRecord['break_type_snapshot_duration_in_minutes'] . ' minutes')
+    ->format('H:i:s');
+
+$breakScheduleStartDateTime = new DateTime($date . ' ' . $breakScheduleStartTime);
+$breakScheduleEndDateTime   = new DateTime($date . ' ' . $breakScheduleEndTime  );
+
+if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
+    $breakScheduleStartDateTime->modify('+1 day');
+}
+
+if ($breakScheduleEndDateTime < $workScheduleStartDateTime) {
+    $breakScheduleEndDateTime->modify('+1 day');
+}
+
+if ($breakScheduleEndDateTime < $breakScheduleStartDateTime) {
+    $breakScheduleEndDateTime->modify('+1 day');
+}
+
+if ($checkInDateTime > $breakScheduleStartDateTime) {
+    $breakScheduleStartDateTime = clone $checkInDateTime;
+}
+
+$breakRecord['start_time'] = $breakScheduleStartDateTime->format('Y-m-d H:i:s');
+
+$breakRecordEndDateTime =
+    $breakRecord['end_time']
+        ?? clone $breakScheduleEndDateTime;
+
+if ($breakRecordEndDateTime <= $breakScheduleEndDateTime &&
+    $checkOutDateTime       >  $breakScheduleEndDateTime) {
+
+    $breakRecord['end_time'] = $breakScheduleEndDateTime->format('Y-m-d H:i:s');
+
+} elseif ($breakRecordEndDateTime <= $breakScheduleEndDateTime &&
+          $checkOutDateTime       <  $breakScheduleEndDateTime) {
+
+    $breakRecord['end_time'] = $checkOutDateTime->format('Y-m-d H:i:s');
+}
+*/
