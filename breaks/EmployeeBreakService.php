@@ -519,11 +519,8 @@ class EmployeeBreakService
                 $breakEndDateTime->modify('+1 day');
             }
 
-            $formattedBreakStartDateTime = $breakStartDateTime->format('Y-m-d H:i:s');
-            $formattedBreakEndDateTime   = $breakEndDateTime  ->format('Y-m-d H:i:s');
-
-            $breakSchedule['start_time'] = $formattedBreakStartDateTime;
-            $breakSchedule['end_time'  ] = $formattedBreakEndDateTime  ;
+            $breakSchedule['start_time'] = $breakStartDateTime->format('Y-m-d H:i:s');
+            $breakSchedule['end_time'  ] = $breakEndDateTime  ->format('Y-m-d H:i:s');
 
             if ($currentDateTime >= $breakStartDateTime && $currentDateTime < $breakEndDateTime) {
                 return $breakSchedule;

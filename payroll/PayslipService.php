@@ -496,63 +496,6 @@ class PayslipService
                                     $breakRecords = [];
 
                                     foreach ($employeeBreakRecords as $breakRecord) {
-                                        $breakRecordStartTime =
-                                            $breakRecord['start_time'] !== null
-                                                ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
-                                                : null;
-
-                                        $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
-
-                                        $breakScheduleEndTime = (new DateTime($breakScheduleStartTime))
-                                            ->modify('+' . $breakRecord['break_type_snapshot_duration_in_minutes'] . ' minutes')
-                                            ->format('H:i:s');
-
-                                        $breakScheduleStartDateTime = new DateTime($date . ' ' . $breakScheduleStartTime);
-                                        $breakScheduleEndDateTime   = new DateTime($date . ' ' . $breakScheduleEndTime  );
-
-                                        if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
-                                            $breakScheduleStartDateTime->modify('+1 day');
-                                        }
-
-                                        if ($breakScheduleEndDateTime < $workScheduleStartDateTime) {
-                                            $breakScheduleEndDateTime->modify('+1 day');
-                                        }
-
-                                        if ($breakScheduleEndDateTime < $breakScheduleStartDateTime) {
-                                            $breakScheduleEndDateTime->modify('+1 day');
-                                        }
-
-                                        if ($checkInDateTime > $breakScheduleStartDateTime) {
-                                            $breakScheduleStartDateTime = clone $checkInDateTime;
-                                        }
-
-                                        $breakRecord['start_time'] = $breakScheduleStartDateTime->format('Y-m-d H:i:s');
-
-                                        $breakRecordEndDateTime =
-                                            $breakRecord['end_time'] !== null
-                                                ? new DateTime($breakRecord['end_time'])
-                                                : clone $breakScheduleEndDateTime;
-
-                                        if ($breakRecordEndDateTime <= $breakScheduleEndDateTime &&
-                                            $checkOutDateTime       >  $breakScheduleEndDateTime) {
-
-                                            $breakRecord['end_time'] = $breakScheduleEndDateTime->format('Y-m-d H:i:s');
-
-                                        } elseif (($breakRecordEndDateTime <= $breakScheduleEndDateTime  &&
-                                                $checkOutDateTime       <  $breakScheduleEndDateTime) ||
-
-                                                $breakRecordEndDateTime >  $checkOutDateTime) {
-
-                                            $breakRecord['end_time'] = $checkOutDateTime->format('Y-m-d H:i:s');
-                                        }
-
-                                        if ($formattedCheckOutDateTime >= $breakRecord['start_time']) {
-                                            $breakRecords[] = [
-                                                'start_time' => $breakRecord['start_time'                 ],
-                                                'end_time'   => $breakRecord['end_time'                   ],
-                                                'is_paid'    => $breakRecord['break_type_snapshot_is_paid']
-                                            ];
-                                        }
                                     }
                                 }
 
