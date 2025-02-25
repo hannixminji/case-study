@@ -354,7 +354,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $leaveRequest->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $leaveRequest->getId())) {
             $query .= "id = :leave_request_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_request_id";
@@ -408,7 +408,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $leaveRequestId)) {
+        if (preg_match("/^[1-9]\d*$/", $leaveRequestId)) {
             $query .= "id = :leave_request_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_request_id";
@@ -503,7 +503,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if (preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "employee_id = :employee_id";
         } else {
             $query .= "SHA2(employee_id, 256) = :employee_id";
@@ -550,7 +550,7 @@ class LeaveRequestDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $leaveRequestId)) {
+        if (preg_match("/^[1-9]\d*$/", $leaveRequestId)) {
             $query .= "id = :leave_request_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_request_id";

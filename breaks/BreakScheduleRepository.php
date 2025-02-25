@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/BreakScheduleDao.php";
+require_once __DIR__ . '/BreakScheduleDao.php';
 
 class BreakScheduleRepository
 {

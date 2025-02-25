@@ -299,7 +299,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $department->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $department->getId())) {
             $query .= "id = :department_id";
         } else {
             $query .= "SHA2(id, 256) = :department_id";
@@ -351,7 +351,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if (preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "department_head_id = :employee_id";
         } else {
             $query .= "SHA2(department_head_id, 256) = :employee_id";
@@ -396,7 +396,7 @@ class DepartmentDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if (preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "id = :department_id";
         } else {
             $query .= "SHA2(id, 256) = :department_id";

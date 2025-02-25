@@ -184,9 +184,6 @@ class EmployeeBreakDao
             "break_schedule_snapshot_break_type_snapshot_id"           => "break_schedule_snapshot.break_type_snapshot_id           AS break_schedule_snapshot_break_type_snapshot_id"          ,
             "break_schedule_snapshot_start_time"                       => "break_schedule_snapshot.start_time                       AS break_schedule_snapshot_start_time"                      ,
             "break_schedule_snapshot_end_time"                         => "break_schedule_snapshot.end_time                         AS break_schedule_snapshot_end_time"                        ,
-            "break_schedule_snapshot_is_flexible"                      => "break_schedule_snapshot.is_flexible                      AS break_schedule_snapshot_is_flexible"                     ,
-            "break_schedule_snapshot_earliest_start_time"              => "break_schedule_snapshot.earliest_start_time              AS break_schedule_snapshot_earliest_start_time"             ,
-            "break_schedule_snapshot_latest_end_time"                  => "break_schedule_snapshot.latest_end_time                  AS break_schedule_snapshot_latest_end_time"                 ,
             "break_schedule_snapshot_active_at"                        => "break_schedule_snapshot.active_at                        AS break_schedule_snapshot_active_at"                       ,
 
             "break_schedule_id"                                        => "break_schedule.id                                        AS break_schedule_id"                                       ,
@@ -194,9 +191,6 @@ class EmployeeBreakDao
             "break_schedule_break_type_id"                             => "break_schedule.break_type_id                             AS break_schedule_break_type_id"                            ,
             "break_schedule_start_time"                                => "break_schedule.start_time                                AS break_schedule_start_time"                               ,
             "break_schedule_end_time"                                  => "break_schedule.end_time                                  AS break_schedule_end_time"                                 ,
-            "break_schedule_is_flexible"                               => "break_schedule.is_flexible                               AS break_schedule_is_flexible"                              ,
-            "break_schedule_earliest_start_time"                       => "break_schedule.earliest_start_time                       AS break_schedule_earliest_start_time"                      ,
-            "break_schedule_latest_end_time"                           => "break_schedule.latest_end_time                           AS break_schedule_latest_end_time"                          ,
             "break_schedule_created_at"                                => "break_schedule.created_at                                AS break_schedule_created_at"                               ,
             "break_schedule_updated_at"                                => "break_schedule.updated_at                                AS break_schedule_updated_at"                               ,
             "break_schedule_deleted_at"                                => "break_schedule.deleted_at                                AS break_schedule_deleted_at"                               ,
@@ -261,9 +255,6 @@ class EmployeeBreakDao
             array_key_exists("break_schedule_snapshot_break_type_snapshot_id"          , $selectedColumns) ||
             array_key_exists("break_schedule_snapshot_start_time"                      , $selectedColumns) ||
             array_key_exists("break_schedule_snapshot_end_time"                        , $selectedColumns) ||
-            array_key_exists("break_schedule_snapshot_is_flexible"                     , $selectedColumns) ||
-            array_key_exists("break_schedule_snapshot_earliest_start_time"             , $selectedColumns) ||
-            array_key_exists("break_schedule_snapshot_latest_end_time"                 , $selectedColumns) ||
             array_key_exists("break_schedule_snapshot_active_at"                       , $selectedColumns) ||
 
             array_key_exists("break_schedule_id"                                       , $selectedColumns) ||
@@ -271,9 +262,6 @@ class EmployeeBreakDao
             array_key_exists("break_schedule_break_type_id"                            , $selectedColumns) ||
             array_key_exists("break_schedule_start_time"                               , $selectedColumns) ||
             array_key_exists("break_schedule_end_time"                                 , $selectedColumns) ||
-            array_key_exists("break_schedule_is_flexible"                              , $selectedColumns) ||
-            array_key_exists("break_schedule_earliest_start_time"                      , $selectedColumns) ||
-            array_key_exists("break_schedule_latest_end_time"                          , $selectedColumns) ||
             array_key_exists("break_schedule_created_at"                               , $selectedColumns) ||
             array_key_exists("break_schedule_updated_at"                               , $selectedColumns) ||
             array_key_exists("break_schedule_deleted_at"                               , $selectedColumns) ||
@@ -335,9 +323,6 @@ class EmployeeBreakDao
             array_key_exists("break_schedule_break_type_id"      , $selectedColumns) ||
             array_key_exists("break_schedule_start_time"         , $selectedColumns) ||
             array_key_exists("break_schedule_end_time"           , $selectedColumns) ||
-            array_key_exists("break_schedule_is_flexible"        , $selectedColumns) ||
-            array_key_exists("break_schedule_earliest_start_time", $selectedColumns) ||
-            array_key_exists("break_schedule_latest_end_time"    , $selectedColumns) ||
             array_key_exists("break_schedule_created_at"         , $selectedColumns) ||
             array_key_exists("break_schedule_updated_at"         , $selectedColumns) ||
             array_key_exists("break_schedule_deleted_at"         , $selectedColumns)) {
@@ -608,7 +593,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', (string) $employeeBreak->getId())) {
+        if (preg_match("/^[1-9]\d*$/", (string) $employeeBreak->getId())) {
             $query .= "id = :employee_break_id";
         } else {
             $query .= "SHA2(id, 256) = :employee_break_id";
@@ -665,7 +650,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', (string) $employeeBreakId)) {
+        if (preg_match("/^[1-9]\d*$/", (string) $employeeBreakId)) {
             $query .= "id = :employee_break_id";
         } else {
             $query .= "SHA2(id, 256) = :employee_break_id";

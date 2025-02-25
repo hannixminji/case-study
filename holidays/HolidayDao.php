@@ -254,7 +254,7 @@ class HolidayDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $holiday->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $holiday->getId())) {
             $query .= "id = :holiday_id";
         } else {
             $query .= "SHA2(id, 256) = :holiday_id";
@@ -314,7 +314,7 @@ class HolidayDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $holidayId)) {
+        if (preg_match("/^[1-9]\d*$/", $holidayId)) {
             $query .= "id = :holiday_id";
         } else {
             $query .= "SHA2(id, 256) = :holiday_id";

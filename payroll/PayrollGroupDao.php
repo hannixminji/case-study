@@ -278,7 +278,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $payrollGroup->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $payrollGroup->getId())) {
             $query .= "id = :payroll_group_id";
         } else {
             $query .= "SHA2(id, 256) = :payroll_group_id";
@@ -340,7 +340,7 @@ class PayrollGroupDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $payrollGroupId)) {
+        if (preg_match("/^[1-9]\d*$/", $payrollGroupId)) {
             $query .= "id = :payroll_group_id";
         } else {
             $query .= "SHA2(id, 256) = :payroll_group_id";

@@ -411,7 +411,7 @@ class AttendanceService
                 $workScheduleStartDateTime = new DateTime($currentWorkSchedule['start_time']);
                 $workScheduleEndDateTime   = new DateTime($currentWorkSchedule['end_time'  ]);
 
-                $workScheduleDate = (new DateTime($workScheduleStartDateTime->format('Y-m-d')))->format('Y-m-d');
+                $workScheduleDate = $workScheduleStartDateTime->format('Y-m-d');
 
                 $workScheduleId = $currentWorkSchedule['id'];
 
@@ -547,13 +547,10 @@ class AttendanceService
 
             if ($isUsingLastAttendanceWorkSchedule) {
                 $employeeBreakColumns = [
-                    'break_schedule_snapshot_start_time'         ,
-                    'break_schedule_snapshot_end_time'           ,
-                    'break_schedule_snapshot_is_flexible'        ,
-                    'break_schedule_snapshot_earliest_start_time',
-                    'break_schedule_snapshot_latest_end_time'    ,
+                    'break_schedule_snapshot_start_time'     ,
+                    'break_schedule_snapshot_end_time'       ,
 
-                    'break_type_snapshot_duration_in_minutes'    ,
+                    'break_type_snapshot_duration_in_minutes',
                     'break_type_snapshot_is_paid'
                 ];
 
@@ -595,14 +592,11 @@ class AttendanceService
 
                 if ( ! empty($breakSchedules['result_set'])) {
                     $mapKeys = [
-                        "break_schedule_snapshot_start_time"          => "start_time"                    ,
-                        "break_schedule_snapshot_end_time"            => "end_time"                      ,
-                        "break_schedule_snapshot_is_flexible"         => "is_flexible"                   ,
-                        "break_schedule_snapshot_earliest_start_time" => "earliest_start_time"           ,
-                        "break_schedule_snapshot_latest_end_time"     => "latest_end_time"               ,
+                        "break_schedule_snapshot_start_time"      => "start_time"                    ,
+                        "break_schedule_snapshot_end_time"        => "end_time"                      ,
 
-                        "break_type_snapshot_duration_in_minutes"     => "break_type_duration_in_minutes",
-                        "break_type_snapshot_is_paid"                 => "break_type_is_paid"
+                        "break_type_snapshot_duration_in_minutes" => "break_type_duration_in_minutes",
+                        "break_type_snapshot_is_paid"             => "break_type_is_paid"
                     ];
 
                     $breakSchedules['result_set'] = array_map(function ($item) use ($mapKeys) {
@@ -622,9 +616,6 @@ class AttendanceService
                     'break_type_id'                    ,
                     'start_time'                       ,
                     'end_time'                         ,
-                    'is_flexible'                      ,
-                    'earliest_start_time'              ,
-                    'latest_end_time'                  ,
 
                     'break_type_name'                  ,
                     'break_type_duration_in_minutes'   ,
@@ -686,8 +677,8 @@ class AttendanceService
 
             if ( ! empty($breakSchedules)) {
                 usort($breakSchedules, function ($breakScheduleA, $breakScheduleB) use ($workScheduleDate, $workScheduleStartDateTime) {
-                    $breakScheduleStartTimeA = $breakScheduleA['start_time'] ?? $breakScheduleA['earliest_start_time'];
-                    $breakScheduleStartTimeB = $breakScheduleB['start_time'] ?? $breakScheduleB['earliest_start_time'];
+                    $breakScheduleStartTimeA = $breakScheduleA['start_time'];
+                    $breakScheduleStartTimeB = $breakScheduleB['start_time'];
 
                     if ($breakScheduleStartTimeA === null && $breakScheduleStartTimeB === null) {
                         return 0;
@@ -756,28 +747,11 @@ class AttendanceService
 
                         foreach ($assignedBreakSchedules as $breakSchedule) {
                             if ( ! $breakSchedule['break_type_is_paid']) {
-                                $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
+                                $breakStartTime = $breakSchedule['start_time'];
+                                $breakEndTime   = $breakSchedule['end_time'  ];
 
-                                if ($breakSchedule['is_flexible']) {
-                                    $breakStartTime = $breakSchedule['latest_end_time'];
-                                    $breakEndTime   = $breakSchedule['latest_end_time'];
-
-                                    $breakStartTime = (new DateTime($breakStartTime))
-                                        ->modify('-' . $breakDurationInMinutes . ' minutes')
-                                        ->format('H:i:s');
-
-                                } else {
-                                    $breakStartTime = $breakSchedule['start_time'];
-                                    $breakEndTime   = $breakSchedule['end_time'  ];
-                                }
-
-                                $breakStartDateTime = new DateTime(
-                                    $workScheduleStartDate->format('Y-m-d') . ' ' . $breakStartTime
-                                );
-
-                                $breakEndDateTime = new DateTime(
-                                    $workScheduleStartDate->format('Y-m-d') . ' ' . $breakEndTime
-                                );
+                                $breakStartDateTime = new DateTime($workScheduleDate . ' ' . $breakStartTime);
+                                $breakEndDateTime   = new DateTime($workScheduleDate . ' ' . $breakEndTime  );
 
                                 if ($breakStartDateTime < $workScheduleStartDateTime) {
                                     $breakStartDateTime->modify('+1 day');
@@ -790,6 +764,8 @@ class AttendanceService
                                 if ($breakEndDateTime < $breakStartDateTime) {
                                     $breakEndDateTime->modify('+1 day');
                                 }
+
+                                $breakDurationInMinutes = $breakSchedule['break_type_duration_in_minutes'];
 
                                 if ($halfDayPart === 'first_half') {
                                     if ($halfDayEndDateTime > $breakStartDateTime &&
@@ -1047,20 +1023,14 @@ class AttendanceService
                                 $workScheduleSnapshotId               !== $latestBreakScheduleSnapshot['work_schedule_snapshot_id'] ||
                                 $breakTypeSnapshotId                  !== $latestBreakScheduleSnapshot['break_type_snapshot_id'   ] ||
                                 $breakSchedule['start_time'         ] !== $latestBreakScheduleSnapshot['start_time'               ] ||
-                                $breakSchedule['end_time'           ] !== $latestBreakScheduleSnapshot['end_time'                 ] ||
-                                $breakSchedule['is_flexible'        ] !== $latestBreakScheduleSnapshot['is_flexible'              ] ||
-                                $breakSchedule['earliest_start_time'] !== $latestBreakScheduleSnapshot['earliest_start_time'      ] ||
-                                $breakSchedule['latest_end_time'    ] !== $latestBreakScheduleSnapshot['latest_end_time'          ]) {
+                                $breakSchedule['end_time'           ] !== $latestBreakScheduleSnapshot['end_time'                 ]) {
 
                                 $newBreakScheduleSnapshot = new BreakScheduleSnapshot(
-                                    breakScheduleId       : $breakSchedule['id'                 ],
-                                    workScheduleSnapshotId: $workScheduleSnapshotId              ,
-                                    breakTypeSnapshotId   : $breakTypeSnapshotId                 ,
-                                    startTime             : $breakSchedule['start_time'         ],
-                                    endTime               : $breakSchedule['end_time'           ],
-                                    isFlexible            : $breakSchedule['is_flexible'        ],
-                                    earliestStartTime     : $breakSchedule['earliest_start_time'],
-                                    latestEndTime         : $breakSchedule['latest_end_time'    ]
+                                    breakScheduleId       : $breakSchedule['id'        ],
+                                    workScheduleSnapshotId: $workScheduleSnapshotId     ,
+                                    breakTypeSnapshotId   : $breakTypeSnapshotId        ,
+                                    startTime             : $breakSchedule['start_time'],
+                                    endTime               : $breakSchedule['end_time'  ]
                                 );
 
                                 $breakScheduleSnapshotId = $this->breakScheduleRepository
@@ -1141,17 +1111,14 @@ class AttendanceService
             $checkOutDateTime = clone $currentDateTime;
 
             $employeeBreakColumns = [
-                'break_schedule_snapshot_id'                 ,
-                'start_time'                                 ,
-                'end_time'                                   ,
+                'break_schedule_snapshot_id'             ,
+                'start_time'                             ,
+                'end_time'                               ,
 
-                'break_schedule_snapshot_start_time'         ,
-                'break_schedule_snapshot_end_time'           ,
-                'break_schedule_snapshot_is_flexible'        ,
-                'break_schedule_snapshot_earliest_start_time',
-                'break_schedule_snapshot_latest_end_time'    ,
+                'break_schedule_snapshot_start_time'     ,
+                'break_schedule_snapshot_end_time'       ,
 
-                'break_type_snapshot_duration_in_minutes'    ,
+                'break_type_snapshot_duration_in_minutes',
                 'break_type_snapshot_is_paid'
             ];
 
@@ -1242,13 +1209,6 @@ class AttendanceService
 
                 foreach ($mergedBreakRecords as $breakRecord) {
                     $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
-
-                    if ($breakRecord['break_schedule_snapshot_is_flexible']) {
-                        $breakScheduleStartTime =
-                            $breakRecord['start_time'] !== null
-                                ? (new DateTime($breakRecord['start_time']))->format('H:i:s')
-                                : $breakRecord['break_schedule_snapshot_earliest_start_time'];
-                    }
 
                     $breakScheduleEndTime = (new DateTime($breakScheduleStartTime))
                         ->modify('+' . $breakRecord['break_type_snapshot_duration_in_minutes'] . ' minutes')

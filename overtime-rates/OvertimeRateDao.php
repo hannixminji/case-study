@@ -89,7 +89,7 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $overtimeRateAssignmentId)) {
+        if (preg_match("/^[1-9]\d*$/", $overtimeRateAssignmentId)) {
             $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id";
         } else {
             $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
@@ -124,13 +124,13 @@ class OvertimeRateDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $overtimeRate->getOvertimeRateAssignmentId())) {
+        if (preg_match("/^[1-9]\d*$/", $overtimeRate->getOvertimeRateAssignmentId())) {
             $query .= "overtime_rate_assignment_id = :overtime_rate_assignment_id ";
         } else {
             $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id ";
         }
 
-        if (preg_match('/^[1-9]\d*$/', $overtimeRate->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $overtimeRate->getId())) {
             $query .= "AND id = :overtime_rate_id";
         } else {
             $query .= "AND SHA2(id, 256) = :overtime_rate_id";

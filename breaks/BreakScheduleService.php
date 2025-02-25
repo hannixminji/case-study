@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . "/BreakScheduleRepository.php";
+require_once __DIR__ . '/BreakScheduleRepository.php';
 
 class BreakScheduleService
 {

@@ -256,7 +256,7 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $leaveType->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $leaveType->getId())) {
             $query .= "id = :leave_type_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_type_id";
@@ -315,7 +315,7 @@ class LeaveTypeDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $leaveTypeId)) {
+        if (preg_match("/^[1-9]\d*$/", $leaveTypeId)) {
             $query .= "id = :leave_type_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_type_id";

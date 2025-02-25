@@ -252,7 +252,7 @@ class JobTitleDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $jobTitle->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $jobTitle->getId())) {
             $query .= "id = :job_title_id";
         } else {
             $query .= "SHA2(id, 256) = :job_title_id";
@@ -309,7 +309,7 @@ class JobTitleDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if (preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "id = :job_title_id";
         } else {
             $query .= "SHA2(id, 256) = :job_title_id";

@@ -565,7 +565,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $attendance->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $attendance->getId())) {
             $query .= "id = :attendance_id";
         } else {
             $query .= "SHA2(id, 256) = :attendance_id";
@@ -622,7 +622,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
+        if (preg_match("/^[1-9]\d*$/", $attendanceId)) {
             $query .= "id = :attendance_id";
         } else {
             $query .= "SHA2(id, 256) = :attendance_id";
@@ -714,7 +714,7 @@ class AttendanceDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
+        if (preg_match("/^[1-9]\d*$/", $attendanceId)) {
             $query .= "id = :attendance_id";
         } else {
             $query .= "SHA2(id, 256) = :attendance_id";

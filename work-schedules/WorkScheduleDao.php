@@ -383,63 +383,19 @@ class WorkScheduleDao
         }
     }
 
-    public function fetchEmployeeAvailableWorkSchedules(int $employeeId, string $currentDate)
-    {
-        $query = "
-            SELECT
-                work_schedule.id                   AS id                  ,
-                work_schedule.start_time           AS start_time          ,
-                work_schedule.end_time             AS end_time            ,
-                work_schedule.is_flextime          AS is_flextime         ,
-                work_schedule.total_hours_per_week AS total_hours_per_week,
-                work_schedule.total_work_hours     AS total_work_hours    ,
-                work_schedule.start_date           AS start_date          ,
-                work_schedule.recurrence_rule      AS recurrence_rule
-            FROM
-                work_schedules AS work_schedule
-            WHERE
-                work_schedule.deleted_at IS NULL
-            AND
-                work_schedule.employee_id = :employee_id
-            AND NOT EXISTS (
-                SELECT
-                    1
-                FROM
-                    attendance
-                JOIN
-                    work_schedule_snapshots AS work_schedule_snapshot
-                ON
-                    attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
-                WHERE
-                    work_schedule_snapshot.work_schedule_id = work_schedule.id
-                AND
-                    attendance.date = :current_date
-            )
-            ORDER BY
-                work_schedule.start_time
-        ";
-
-        try {
-            $statement = $this->pdo->prepare($query);
-
-            $statement->bindValue(":employee_id" , $employeeId , Helper::getPdoParameterType($employeeId ));
-            $statement->bindValue(":current_date", $currentDate, Helper::getPdoParameterType($currentDate));
-
-            $statement->execute();
-
-        } catch (PDOException $exception) {
-            error_log("Database Error: An error occurred while fetching the latest work schedule snapshot. " .
-                      "Exception: {$exception->getMessage()}");
-
-            return ActionResult::FAILURE;
-        }
-    }
-
     public function fetchLatestSnapshotById(int $workScheduleId): array|ActionResult
     {
         $query = "
             SELECT
-                *
+                start_time                       ,
+                end_time                         ,
+                is_flextime                      ,
+                total_hours_per_week             ,
+                total_work_hours                 ,
+                start_date                       ,
+                recurrence_rule                  ,
+                grace_period                     ,
+                minutes_can_check_in_before_shift
             FROM
                 work_schedule_snapshots
             WHERE
@@ -562,7 +518,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $workSchedule->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $workSchedule->getId())) {
             $query .= "id = :work_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :work_schedule_id";
@@ -621,7 +577,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $workScheduleId)) {
+        if (preg_match("/^[1-9]\d*$/", $workScheduleId)) {
             $query .= "id = :work_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :work_schedule_id";

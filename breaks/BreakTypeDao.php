@@ -285,7 +285,10 @@ class BreakTypeDao
     {
         $query = "
             SELECT
-                *
+                name                             ,
+                duration_in_minutes              ,
+                is_paid                          ,
+                is_require_break_in_and_break_out
             FROM
                 break_type_snapshots
             WHERE
@@ -324,7 +327,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $breakType->getId())) {
+        if (preg_match("/^[1-9]\d*$/", $breakType->getId())) {
             $query .= "id = :break_type_id";
         } else {
             $query .= "SHA2(id, 256) = :break_type_id";
@@ -380,7 +383,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if (preg_match('/^[1-9]\d*$/', $breakTypeId)) {
+        if (preg_match("/^[1-9]\d*$/", $breakTypeId)) {
             $query .= "id = :break_type_id";
         } else {
             $query .= "SHA2(id, 256) = :break_type_id";

@@ -34,7 +34,7 @@ class OvertimeRateAssignmentDao
         $jobTitleId   = $overtimeRateAssignment->getJobTitleId()  ;
         $employeeId   = $overtimeRateAssignment->getEmployeeId()  ;
 
-        if ($departmentId !== null && ! preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId !== null && ! preg_match("/^[1-9]\d*$/", $departmentId)) {
             $departmentColumns = [
                 "id"
             ];
@@ -61,7 +61,7 @@ class OvertimeRateAssignmentDao
             $departmentId = $departmentId['result_set'][0]['id'];
         }
 
-        if ($jobTitleId !== null && ! preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId !== null && ! preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $jobTitleColumns = [
                 "id"
             ];
@@ -88,7 +88,7 @@ class OvertimeRateAssignmentDao
             $jobTitleId = $jobTitleId['result_set'][0]['id'];
         }
 
-        if ($employeeId !== null && ! preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if ($employeeId !== null && ! preg_match("/^[1-9]\d*$/", $employeeId)) {
             $employeeColumns = [
                 "id"
             ];
@@ -278,19 +278,19 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if ($employeeId === null || preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "(employee_id = :employee_id ";
         } else {
             $query .= "(SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId === null || preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
         } else {
             $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id)";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id)";
@@ -301,13 +301,13 @@ class OvertimeRateAssignmentDao
                 (employee_id IS NULL
         ";
 
-        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId === null || preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
         } else {
             $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id)";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id)";
@@ -318,7 +318,7 @@ class OvertimeRateAssignmentDao
                 (employee_id IS NULL AND job_title_id IS NULL
         ";
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id)";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id)";
@@ -330,19 +330,19 @@ class OvertimeRateAssignmentDao
             ORDER BY
                 CASE";
 
-        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if ($employeeId === null || preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "WHEN employee_id = :employee_id ";
         } else {
             $query .= "WHEN SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId === null || preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
         } else {
             $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id THEN 1";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id THEN 1";
@@ -352,13 +352,13 @@ class OvertimeRateAssignmentDao
             WHEN employee_id IS NULL
         ";
 
-        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId === null || preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "AND job_title_id = :job_title_id ";
         } else {
             $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id THEN 2";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id THEN 2";
@@ -368,7 +368,7 @@ class OvertimeRateAssignmentDao
             WHEN employee_id IS NULL AND job_title_id IS NULL
         ";
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND department_id = :department_id THEN 3";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id THEN 3";
@@ -420,19 +420,19 @@ class OvertimeRateAssignmentDao
             WHERE
         ";
 
-        if ($employeeId === null || preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if ($employeeId === null || preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "(employee_id = :employee_id OR (:employee_id IS NULL AND employee_id IS NULL)) ";
         } else {
             $query .= "SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if ($jobTitleId === null || preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if ($jobTitleId === null || preg_match("/^[1-9]\d*$/", $jobTitleId)) {
             $query .= "AND (job_title_id = :job_title_id OR (:job_title_id IS NULL AND job_title_id IS NULL)) ";
         } else {
             $query .= "AND SHA2(job_title_id, 256) = :job_title_id ";
         }
 
-        if ($departmentId === null || preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if ($departmentId === null || preg_match("/^[1-9]\d*$/", $departmentId)) {
             $query .= "AND (department_id = :department_id OR (:department_id IS NULL AND department_id IS NULL))";
         } else {
             $query .= "AND SHA2(department_id, 256) = :department_id";
