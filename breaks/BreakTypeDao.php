@@ -285,6 +285,7 @@ class BreakTypeDao
     {
         $query = "
             SELECT
+                id                               ,
                 name                             ,
                 duration_in_minutes              ,
                 is_paid                          ,

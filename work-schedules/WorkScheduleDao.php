@@ -387,6 +387,7 @@ class WorkScheduleDao
     {
         $query = "
             SELECT
+                id                               ,
                 start_time                       ,
                 end_time                         ,
                 is_flextime                      ,

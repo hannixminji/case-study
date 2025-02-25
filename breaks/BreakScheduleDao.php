@@ -318,6 +318,7 @@ class BreakScheduleDao
     {
         $query = "
             SELECT
+                id                       ,
                 work_schedule_snapshot_id,
                 break_type_snapshot_id   ,
                 start_time               ,
