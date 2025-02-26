@@ -363,7 +363,9 @@ class PayslipService
                         $formattedAdjustedWorkScheduleStartDateTime = $adjustedWorkScheduleStartDateTime->format('Y-m-d H:i:s');
 
                         if ( ! empty($workSchedule['attendance_records']) &&
-                                     $workSchedule['attendance_records'][0]['check_in_time'] !== null) {
+
+                                    ($workSchedule['attendance_records'][0]['check_in_time'    ] !== null) ||
+                                     $workSchedule['attendance_records'][0]['attendance_status'] === 'absent') {
 
                             if ( ! $isFlextime) {
                                 $employeeBreakColumns = [
@@ -491,11 +493,71 @@ class PayslipService
                                 }
 
                                 if ( ! $isFlextime && ! empty($mergedBreakRecords)) {
-                                    $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
-
                                     $breakRecords = [];
 
                                     foreach ($employeeBreakRecords as $breakRecord) {
+                                        $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
+                                        $breakScheduleEndTime   = $breakRecord['break_schedule_snapshot_end_time'  ];
+
+                                        $breakScheduleStartDateTime = new DateTime($date . ' ' . $breakScheduleStartTime);
+                                        $breakScheduleEndDateTime   = new DateTime($date . ' ' . $breakScheduleEndTime  );
+
+                                        if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
+                                            $breakScheduleStartDateTime->modify('+1 day');
+                                        }
+
+                                        if ($breakScheduleEndDateTime < $workScheduleStartDateTime) {
+                                            $breakScheduleEndDateTime->modify('+1 day');
+                                        }
+
+                                        if ($breakScheduleEndDateTime < $breakScheduleStartDateTime) {
+                                            $breakScheduleEndDateTime->modify('+1 day');
+                                        }
+
+                                        if ($checkInDateTime > $breakScheduleStartDateTime) {
+                                            $breakScheduleStartDateTime = clone $checkInDateTime;
+                                        }
+
+                                        if ($checkOutDateTime >= $breakScheduleStartDateTime) {
+                                            $breakRecordEndDateTime =
+                                                $breakRecord['end_time'] !== null
+                                                    ? new DateTime($breakRecord['end_time'])
+                                                    : null;
+
+                                            if ($breakRecordEndDateTime !== null &&
+                                                $breakRecordEndDateTime >   $breakScheduleEndDateTime) {
+
+                                                $breakScheduleEndDateTime = $breakRecordEndDateTime;
+
+                                            } else {
+                                                $breakScheduleEndDateTime =
+                                                    $checkOutDateTime >= $breakScheduleEndDateTime
+                                                        ? $breakScheduleEndDateTime
+                                                        : $checkOutDateTime;
+                                            }
+
+                                            $breakRecords[] = [
+                                                'start_time' => $breakScheduleStartDateTime->format('Y-m-d H:i:s'),
+                                                'end_time'   => $breakScheduleEndDateTime  ->format('Y-m-d H:i:s'),
+                                                'is_paid'    => $breakRecord['break_type_snapshot_is_paid']
+                                            ];
+                                        }
+                                    }
+
+                                    if ( ! empty($breakRecords)) {
+                                        usort($breakRecords, function ($breakRecordStartTimeA, $breakRecordStartTimeB) {
+                                            $breakStartTimeA = new DateTime($breakRecordStartTimeA['start_time']);
+                                            $breakStartTimeB = new DateTime($breakRecordStartTimeB['start_time']);
+
+                                            return $breakStartTimeA <=> $breakStartTimeB;
+                                        });
+
+                                        foreach ($breakRecords as $breakRecord) {
+                                            if ( ! $breakRecord['is_paid']) {
+                                                $breakRecordStartTime = new DateTime($breakRecord['start_time']);
+                                                $breakRecordEndTime   = new DateTime($breakRecord['end_time'  ]);
+                                            }
+                                        }
                                     }
                                 }
 

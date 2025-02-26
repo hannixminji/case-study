@@ -963,7 +963,11 @@ class AttendanceService
 
                 if ( ! empty($breakSchedules)) {
                     foreach ($breakSchedules as $breakSchedule) {
-                        if ( ! $breakSchedule['is_recorded']) {
+                        if ((  isset($breakSchedule['is_recorded']) &&
+                                   ! $breakSchedule['is_recorded']) ||
+
+                             ! isset($breakSchedule['is_recorded'])) {
+
                             $latestBreakTypeSnapshot = $this->breakTypeRepository
                                 ->fetchLatestBreakTypeSnapshotById($breakSchedule['break_type_id']);
 
@@ -1239,13 +1243,11 @@ class AttendanceService
                         if ($breakRecordEndDateTime !== null &&
                             $breakRecordEndDateTime >   $breakScheduleEndDateTime) {
 
-                            $breakDurationInMinutes =
-                                $breakScheduleStartDateTime->diff($breakRecordEndDateTime)->h * 60 +
-                                $breakScheduleStartDateTime->diff($breakRecordEndDateTime)->i;
+                            $breakDuration          = $breakScheduleStartDateTime->diff($breakRecordEndDateTime);
+                            $breakDurationInMinutes = $breakDuration->h * 60 + $breakDuration->i                ;
 
-                            $overtimeBreakDurationInMinutes =
-                                $breakScheduleEndDateTime->diff($breakRecordEndDateTime)->h * 60 +
-                                $breakScheduleEndDateTime->diff($breakRecordEndDateTime)->i;
+                            $overtimeBreakDuration          = $breakScheduleEndDateTime->diff($breakRecordEndDateTime)  ;
+                            $overtimeBreakDurationInMinutes = $overtimeBreakDuration->h * 60 + $overtimeBreakDuration->i;
 
                             if ($breakRecord['break_type_snapshot_is_paid']) {
                                 $paidBreakInMinutes   += $breakRecord['break_type_snapshot_duration_in_minutes'];
@@ -1261,9 +1263,8 @@ class AttendanceService
                                     ? $breakScheduleEndDateTime
                                     : $checkOutDateTime;
 
-                            $breakDurationInMinutes =
-                                $breakScheduleStartDateTime->diff($breakScheduleEndDateTime)->h * 60 +
-                                $breakScheduleStartDateTime->diff($breakScheduleEndDateTime)->i;
+                            $breakDuration          = $breakScheduleStartDateTime->diff($breakScheduleEndDateTime);
+                            $breakDurationInMinutes = $breakDuration->h * 60 + $breakDuration->i                  ;
 
                             if ($breakRecord['break_type_snapshot_is_paid']) {
                                 $paidBreakInMinutes += $breakDurationInMinutes;
