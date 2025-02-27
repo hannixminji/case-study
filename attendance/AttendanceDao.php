@@ -453,6 +453,7 @@ class AttendanceDao
                     FROM
                         attendance AS attendance
                     {$joinClauses}
+                    WHERE
                         " . implode(" ", $whereClauses) . "
                 ";
 

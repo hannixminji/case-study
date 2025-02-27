@@ -1057,7 +1057,7 @@ class PayslipService
 
                                         $isNightShift = $hour >= 22 || $hour < 6;
 
-                                        $workDurationInHours = $remainingMinutes / 60;
+                                        $workDurationInHours = 1.0;
 
                                         if ($isNightShift) {
                                             if ($numberOfHoursWorked > $totalRequiredWorkHours && $isOvertimeApproved) {
@@ -1164,7 +1164,7 @@ class PayslipService
 
     private function calculateSssContribution(float $salary): array
     {
-        $contributionTable = [
+        $contributions = [
             ['range' => [0    , 4249.99 ], 'employee_share' => 180.00 , 'employer_share' => 390.00 ],
             ['range' => [4250 , 4749.99 ], 'employee_share' => 202.50 , 'employer_share' => 437.50 ],
             ['range' => [4750 , 5249.99 ], 'employee_share' => 225.00 , 'employer_share' => 485.00 ],
@@ -1220,21 +1220,16 @@ class PayslipService
             ['range' => [29750, 'Over'  ], 'employee_share' => 1350.00, 'employer_share' => 2880.00]
         ];
 
-        foreach ($contributionTable as $row) {
-            if ($row['range'][1] === 'Over' &&
-                $salary >= $row['range'][0]) {
+        foreach ($contributions as $contribution) {
+            if (($contribution['range'][1] === 'Over'  &&
+                 $salary >= $contribution['range'][0]) ||
+
+                ($salary >= $contribution['range'][0]  &&
+                 $salary <= $contribution['range'][1])) {
 
                 return [
-                    'employee_share' => $row['employee_share'],
-                    'employer_share' => $row['employer_share']
-                ];
-
-            } elseif ($salary >= $row['range'][0] &&
-                      $salary <= $row['range'][1]) {
-
-                return [
-                    'employee_share' => $row['employee_share'],
-                    'employer_share' => $row['employer_share']
+                    'employee_share' => $contribution['employee_share'],
+                    'employer_share' => $contribution['employer_share']
                 ];
             }
         }
@@ -1292,93 +1287,57 @@ class PayslipService
         ];
     }
 
-    private function calculateWithholdingTax(float $compensation, string $frequency): float
+    private function calculateWithholdingTax(float $compensation, string $payFrequency): float
     {
         $withholdingTax = 0.00;
 
-        switch ($frequency) {
+        switch (strtolower($payFrequency)) {
             case 'daily':
-                if       ($compensation <= 685.00  ) {
-                    $withholdingTax = 0.00;
-                } elseif ($compensation <= 1095.00 ) {
-                    $withholdingTax = ($compensation - 685.00) * 0.15;
-                } elseif ($compensation <= 2191.00 ) {
-                    $withholdingTax = 61.65   + ($compensation - 1095.00 ) * 0.20;
-                } elseif ($compensation <= 5478.00 ) {
-                    $withholdingTax = 280.85  + ($compensation - 2191.00 ) * 0.25;
-                } elseif ($compensation <= 21917.00) {
-                    $withholdingTax = 1102.60 + ($compensation - 5478.00 ) * 0.30;
-                } else {
-                    $withholdingTax = 6034.30 + ($compensation - 21917.00) * 0.35;
-                }
+                if     ($compensation <=    685.00) { $withholdingTax = 0.00;                                          }
+                elseif ($compensation <=  1_095.00) { $withholdingTax =            ($compensation -    685.00) * 0.15; }
+                elseif ($compensation <=  2_191.00) { $withholdingTax =    61.65 + ($compensation -  1_095.00) * 0.20; }
+                elseif ($compensation <=  5_478.00) { $withholdingTax =   280.85 + ($compensation -  2_191.00) * 0.25; }
+                elseif ($compensation <= 21_917.00) { $withholdingTax = 1_102.60 + ($compensation -  5_478.00) * 0.30; }
+                else                                { $withholdingTax = 6_034.30 + ($compensation - 21_917.00) * 0.35; }
 
                 break;
 
             case 'weekly':
-                if ($compensation <= 4808.00) {
-                    $withholdingTax = 0.00;
-                } elseif ($compensation <= 7691.00) {
-                    $withholdingTax = ($compensation - 4808.00) * 0.15;
-                } elseif ($compensation <= 15384.00) {
-                    $withholdingTax = 432.60 + ($compensation - 7691.00) * 0.20;
-                } elseif ($compensation <= 38461.00) {
-                    $withholdingTax = 1971.20 + ($compensation - 15384.00) * 0.25;
-                } elseif ($compensation <= 153845.00) {
-                    $withholdingTax = 7740.45 + ($compensation - 38461.00) * 0.30;
-                } else {
-                    $withholdingTax = 42355.65 + ($compensation - 153845.00) * 0.35;
-                }
+                if     ($compensation <=   4_808.00) { $withholdingTax = 0.00;                                            }
+                elseif ($compensation <=   7_691.00) { $withholdingTax =             ($compensation -   4_808.00) * 0.15; }
+                elseif ($compensation <=  15_384.00) { $withholdingTax =    432.60 + ($compensation -   7_691.00) * 0.20; }
+                elseif ($compensation <=  38_461.00) { $withholdingTax =  1_971.20 + ($compensation -  15_384.00) * 0.25; }
+                elseif ($compensation <= 153_845.00) { $withholdingTax =  7_740.45 + ($compensation -  38_461.00) * 0.30; }
+                else                                 { $withholdingTax = 42_355.65 + ($compensation - 153_845.00) * 0.35; }
 
                 break;
 
             case 'bi-weekly':
-                if ($compensation <= 9616.00) {
-                    $withholdingTax = 0.00;
-                } elseif ($compensation <= 15382.00) {
-                    $withholdingTax = ($compensation - 9616.00) * 0.15;
-                } elseif ($compensation <= 30768.00) {
-                    $withholdingTax = 865.20 + ($compensation - 15382.00) * 0.20;
-                } elseif ($compensation <= 76922.00) {
-                    $withholdingTax = 3942.40 + ($compensation - 30768.00) * 0.25;
-                } elseif ($compensation <= 307690.00) {
-                    $withholdingTax = 15480.90 + ($compensation - 76922.00) * 0.30;
-                } else {
-                    $withholdingTax = 84671.30 + ($compensation - 307690.00) * 0.35;
-                }
+                if     ($compensation <=   9_616.00) { $withholdingTax = 0.00;                                            }
+                elseif ($compensation <=  15_382.00) { $withholdingTax =             ($compensation -   9_616.00) * 0.15; }
+                elseif ($compensation <=  30_768.00) { $withholdingTax =    865.20 + ($compensation -  15_382.00) * 0.20; }
+                elseif ($compensation <=  76_922.00) { $withholdingTax =  3_942.40 + ($compensation -  30_768.00) * 0.25; }
+                elseif ($compensation <= 307_690.00) { $withholdingTax = 15_480.90 + ($compensation -  76_922.00) * 0.30; }
+                else                                 { $withholdingTax = 84_671.30 + ($compensation - 307_690.00) * 0.35; }
 
                 break;
 
             case 'semi-monthly':
-                if ($compensation <= 10417.00) {
-                    $withholdingTax = 0.00;
-                } elseif ($compensation <= 16666.00) {
-                    $withholdingTax = ($compensation - 10417.00) * 0.15;
-                } elseif ($compensation <= 33332.00) {
-                    $withholdingTax = 937.50 + ($compensation - 16666.00) * 0.20;
-                } elseif ($compensation <= 83332.00) {
-                    $withholdingTax = 4270.70 + ($compensation - 33332.00) * 0.25;
-                } elseif ($compensation <= 333332.00) {
-                    $withholdingTax = 16770.70 + ($compensation - 83332.00) * 0.30;
-                } else {
-                    $withholdingTax = 91770.70 + ($compensation - 333332.00) * 0.35;
-                }
-
+                if     ($compensation <=  10_417.00) { $withholdingTax = 0.00;                                            }
+                elseif ($compensation <=  16_666.00) { $withholdingTax =             ($compensation -  10_417.00) * 0.15; }
+                elseif ($compensation <=  33_332.00) { $withholdingTax =    937.50 + ($compensation -  16_666.00) * 0.20; }
+                elseif ($compensation <=  83_332.00) { $withholdingTax =  4_270.70 + ($compensation -  33_332.00) * 0.25; }
+                elseif ($compensation <= 333_332.00) { $withholdingTax = 16_770.70 + ($compensation -  83_332.00) * 0.30; }
+                else                                 { $withholdingTax = 91_770.70 + ($compensation - 333_332.00) * 0.35; }
                 break;
 
             case 'monthly':
-                if ($compensation <= 20833.00) {
-                    $withholdingTax = 0.00;
-                } elseif ($compensation <= 33332.00) {
-                    $withholdingTax = ($compensation - 20833.00) * 0.15;
-                } elseif ($compensation <= 66666.00) {
-                    $withholdingTax = 1875.00 + ($compensation - 33332.00) * 0.20;
-                } elseif ($compensation <= 166666.00) {
-                    $withholdingTax = 8541.80 + ($compensation - 66666.00) * 0.25;
-                } elseif ($compensation <= 666666.00) {
-                    $withholdingTax = 33541.80 + ($compensation - 166666.00) * 0.30;
-                } else {
-                    $withholdingTax = 183541.80 + ($compensation - 666666.00) * 0.35;
-                }
+                if     ($compensation <=  20_833.00) { $withholdingTax = 0.00;                                             }
+                elseif ($compensation <=  33_332.00) { $withholdingTax =              ($compensation -  20_833.00) * 0.15; }
+                elseif ($compensation <=  66_666.00) { $withholdingTax =   1_875.00 + ($compensation -  33_332.00) * 0.20; }
+                elseif ($compensation <= 166_666.00) { $withholdingTax =   8_541.80 + ($compensation -  66_666.00) * 0.25; }
+                elseif ($compensation <= 666_666.00) { $withholdingTax =  33_541.80 + ($compensation - 166_666.00) * 0.30; }
+                else                                 { $withholdingTax = 183_541.80 + ($compensation - 666_666.00) * 0.35; }
 
                 break;
         }
