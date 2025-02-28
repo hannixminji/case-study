@@ -13,6 +13,7 @@ require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'             ;
 require_once __DIR__ . '/AttendanceRepository.php'                    ;
 
 require_once __DIR__ . '/../employees/EmployeeRepository.php'         ;
+require_once __DIR__ . '/../holidays/HolidayRepository.php'           ;
 require_once __DIR__ . '/../leaves/LeaveRequestRepository.php'        ;
 require_once __DIR__ . '/../work-schedules/WorkScheduleRepository.php';
 require_once __DIR__ . '/../settings/SettingRepository.php'           ;
@@ -25,6 +26,7 @@ class AttendanceService
     private readonly PDO                     $pdo                    ;
     private readonly AttendanceRepository    $attendanceRepository   ;
     private readonly EmployeeRepository      $employeeRepository     ;
+    private readonly HolidayRepository       $holidayRepository      ;
     private readonly LeaveRequestRepository  $leaveRequestRepository ;
     private readonly WorkScheduleRepository  $workScheduleRepository ;
     private readonly SettingRepository       $settingRepository      ;
@@ -36,6 +38,7 @@ class AttendanceService
         PDO                     $pdo                    ,
         AttendanceRepository    $attendanceRepository   ,
         EmployeeRepository      $employeeRepository     ,
+        HolidayRepository       $holidayRepository      ,
         LeaveRequestRepository  $leaveRequestRepository ,
         WorkScheduleRepository  $workScheduleRepository ,
         SettingRepository       $settingRepository      ,
@@ -46,6 +49,7 @@ class AttendanceService
         $this->pdo                     = $pdo                    ;
         $this->attendanceRepository    = $attendanceRepository   ;
         $this->employeeRepository      = $employeeRepository     ;
+        $this->holidayRepository       = $holidayRepository      ;
         $this->leaveRequestRepository  = $leaveRequestRepository ;
         $this->workScheduleRepository  = $workScheduleRepository ;
         $this->settingRepository       = $settingRepository      ;
@@ -107,62 +111,116 @@ class AttendanceService
         $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
         $formattedPreviousDate    = $previousDate   ->format('Y-m-d'      );
 
-        $leaveRequestColumns = [
-            'is_half_day'  ,
-            'half_day_part'
+        $holidayColumns = [
+            'is_paid'
         ];
 
-        $leaveRequestFilterCriteria = [
+        $holidayFilterCriteria = [
             [
-                'column'   => 'leave_request.deleted_at',
+                'column'   => 'holiday.deleted_at',
                 'operator' => 'IS NULL'
             ],
             [
-                'column'   => 'leave_request.employee_id',
-                'operator' => '='                        ,
-                'value'    => $employeeId
-            ],
-            [
-                'column'   => 'leave_request.start_date',
-                'operator' => '<='                      ,
+                'column'   => 'holiday.start_date' ,
+                'operator' => '<='                 ,
                 'value'    => $formattedCurrentDate
             ],
             [
-                'column'   => 'leave_request.end_date',
-                'operator' => '>='                    ,
+                'column'   => 'holiday.end_date'   ,
+                'operator' => '>='                 ,
                 'value'    => $formattedCurrentDate
-            ],
-            [
-                'column'     => 'leave_request.status'      ,
-                'operator'   => 'IN'                        ,
-                'value_list' => ['In Progress', 'Completed']
             ]
         ];
 
-        $isOnLeaveToday = $this->leaveRequestRepository->fetchAllLeaveRequests(
-            columns             : $leaveRequestColumns       ,
-            filterCriteria      : $leaveRequestFilterCriteria,
-            limit               : 1                          ,
+        $holidaySortCriteria = [
+            [
+                'column'    => 'holiday.start_date',
+                'direction' => 'DESC'
+            ]
+        ];
+
+        $isPaidHolidayToday = $this->holidayRepository->fetchAllHolidays(
+            columns             : $holidayColumns       ,
+            filterCriteria      : $holidayFilterCriteria,
+            sortCriteria        : $holidaySortCriteria  ,
+            limit               : 1                     ,
             includeTotalRowCount: false
         );
 
-        if ($isOnLeaveToday === ActionResult::FAILURE) {
+        if ($isPaidHolidayToday === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
                 'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
 
-        $isOnLeaveToday =
-            ! empty($isOnLeaveToday['result_set'])
-                ? $isOnLeaveToday['result_set'][0]
+        $isPaidHolidayToday =
+            ! empty($isPaidHolidayToday['result_set'])
+                ? $isPaidHolidayToday['result_set'][0]['is_paid']
                 : [];
 
-        if ( ! empty($isOnLeaveToday) && ! $isOnLeaveToday['is_half_day']) {
-            return [
-                'status'  => 'warning',
-                'message' => 'You are currently on leave. You cannot check in or check out.'
+        $isOnLeaveToday = [];
+
+        if ( ! $isPaidHolidayToday) {
+            $leaveRequestColumns = [
+                'is_half_day'  ,
+                'half_day_part'
             ];
+
+            $leaveRequestFilterCriteria = [
+                [
+                    'column'   => 'leave_request.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'leave_request.employee_id',
+                    'operator' => '='                        ,
+                    'value'    => $employeeId
+                ],
+                [
+                    'column'   => 'leave_request.start_date',
+                    'operator' => '<='                      ,
+                    'value'    => $formattedCurrentDate
+                ],
+                [
+                    'column'   => 'leave_request.end_date',
+                    'operator' => '>='                    ,
+                    'value'    => $formattedCurrentDate
+                ],
+                [
+                    'column'     => 'leave_request.status'      ,
+                    'operator'   => 'IN'                        ,
+                    'value_list' => ['In Progress', 'Completed']
+                ]
+            ];
+
+            $isOnLeaveToday = $this->leaveRequestRepository->fetchAllLeaveRequests(
+                columns             : $leaveRequestColumns       ,
+                filterCriteria      : $leaveRequestFilterCriteria,
+                limit               : 1                          ,
+                includeTotalRowCount: false
+            );
+
+            if ($isOnLeaveToday === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $isOnLeaveToday =
+                ! empty($isOnLeaveToday['result_set'])
+                    ? $isOnLeaveToday['result_set'][0]
+                    : [];
+
+            if ( ! empty($isOnLeaveToday) &&
+                       ! $isOnLeaveToday['is_half_day']) {
+
+                return [
+                    'status'  => 'warning',
+                    'message' => 'You are currently on leave. You cannot check in or check out.'
+                ];
+            }
         }
 
         $attendanceRecordColumns = [
@@ -352,7 +410,7 @@ class AttendanceService
                 if (empty($workSchedules)) {
                     return [
                         'status'  => 'warning',
-                        'message' => 'You don\'t have an assigned work schedule, or your schedule starts on a later date.'
+                        'message' => 'You don\'t have an assigned work schedule.'
                     ];
                 }
 
@@ -482,7 +540,56 @@ class AttendanceService
             $workScheduleStartDate = new DateTime($workScheduleStartDateTime->format('Y-m-d'));
             $workScheduleEndDate   = new DateTime($workScheduleEndDateTime  ->format('Y-m-d'));
 
-            if ($workScheduleEndDate > $workScheduleStartDate &&
+            $holidayColumns = [
+                'is_paid'
+            ];
+
+            $holidayFilterCriteria = [
+                [
+                    'column'   => 'holiday.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'holiday.start_date'  ,
+                    'operator' => '<='                  ,
+                    'value'    => $formattedPreviousDate
+                ],
+                [
+                    'column'   => 'holiday.end_date'    ,
+                    'operator' => '>='                  ,
+                    'value'    => $formattedPreviousDate
+                ]
+            ];
+
+            $holidaySortCriteria = [
+                [
+                    'column'    => 'holiday.start_date',
+                    'direction' => 'DESC'
+                ]
+            ];
+
+            $isPaidHolidayYesterday = $this->holidayRepository->fetchAllHolidays(
+                columns             : $holidayColumns       ,
+                filterCriteria      : $holidayFilterCriteria,
+                sortCriteria        : $holidaySortCriteria  ,
+                limit               : 1                     ,
+                includeTotalRowCount: false
+            );
+
+            if ($isPaidHolidayYesterday === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $isPaidHolidayYesterday =
+                ! empty($isPaidHolidayYesterday['result_set'])
+                    ? $isPaidHolidayYesterday['result_set'][0]['is_paid']
+                    : [];
+
+            if ( ! $isPaidHolidayYesterday &&
+                $workScheduleEndDate > $workScheduleStartDate &&
                 $workScheduleEndDateTime->format('H:i:s') !== '00:00:00' &&
                 $formattedCurrentDate === $workScheduleEndDate->format('Y-m-d')) {
 
@@ -545,7 +652,7 @@ class AttendanceService
                 }
             }
 
-            if ($isUsingLastAttendanceWorkSchedule) {
+            if ($isUsingLastAttendanceWorkSchedule && ( ! $isPaidHolidayToday || ! $isPaidHolidayYesterday)) {
                 $employeeBreakColumns = [
                     'break_schedule_snapshot_start_time'     ,
                     'break_schedule_snapshot_end_time'       ,
@@ -709,7 +816,7 @@ class AttendanceService
                   ! empty($didLeaveOccurYesterday) &&
                           $didLeaveOccurYesterday['is_half_day']) ||
 
-                ( ! empty($isOnLeaveToday['is_half_day']) &&
+                ( ! empty($isOnLeaveToday)                &&
                           $isOnLeaveToday['is_half_day'])) {
 
                 $halfDayPart =

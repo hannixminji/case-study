@@ -164,6 +164,74 @@ class PayslipService
                     ? $employeeAttendanceRecords['result_set']
                     : [];
 
+            $workHours = [
+                'regular_day' => [
+                    'non_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'special_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'regular_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'double_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ]
+                ],
+
+                'rest_day' => [
+                    'non_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'special_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'regular_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'double_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ]
+                ],
+
+                'non_worked_paid_hours' => [
+                    'leave'           => 0.0,
+                    'regular_holiday' => 0.0,
+                    'double_holiday'  => 0.0
+                ]
+            ];
+
             if ( ! empty($employeeAttendanceRecords)) {
                 $attendanceRecords = [];
 
@@ -271,78 +339,13 @@ class PayslipService
                     ];
                 }
 
-                $workHours = [
-                    'regular_day' => [
-                        'non_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
+                foreach ($attendanceRecords as $workDate => $workSchedules) {
+                    $numberOfHoursWorked    = 0.0;
+                    $totalRequiredWorkHours = 0.0;
 
-                        'special_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
-
-                        'regular_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
-
-                        'double_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ]
-                    ],
-
-                    'rest_day' => [
-                        'non_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
-
-                        'special_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
-
-                        'regular_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ],
-
-                        'double_holiday' => [
-                            'regular_hours'               => 0.0,
-                            'overtime_hours'              => 0.0,
-                            'night_differential'          => 0.0,
-                            'night_differential_overtime' => 0.0
-                        ]
-                    ],
-
-                    'non_worked_paid_hours' => [
-                        'leave'           => 0.0,
-                        'regular_holiday' => 0.0,
-                        'double_holiday'  => 0.0
-                    ]
-                ];
-
-                foreach ($attendanceRecords as $date => $workSchedules) {
-                    $numberOfHoursWorked = 0.0;
-
-                    $totalRequiredWorkHours = 8.0;
+                    foreach ($workSchedules as $workSchedule) {
+                        $totalRequiredWorkHours += $workSchedule['work_schedule']['total_work_hours'];
+                    }
 
                     foreach ($workSchedules as $workSchedule) {
                         $workScheduleSnapshotId = $workSchedule['work_schedule']['snapshot_id'];
@@ -351,8 +354,8 @@ class PayslipService
                         $workScheduleStartTime = $workSchedule['work_schedule']['start_time'];
                         $workScheduleEndTime   = $workSchedule['work_schedule']['end_time'  ];
 
-                        $workScheduleStartDateTime = new DateTime($date . ' ' . $workScheduleStartTime);
-                        $workScheduleEndDateTime   = new DateTime($date . ' ' . $workScheduleEndTime  );
+                        $workScheduleStartDateTime = new DateTime($workDate . ' ' . $workScheduleStartTime);
+                        $workScheduleEndDateTime   = new DateTime($workDate . ' ' . $workScheduleEndTime  );
 
                         if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
                             $workScheduleEndDateTime->modify('+1 day');
@@ -368,8 +371,8 @@ class PayslipService
 
                         if ( ! empty($workSchedule['attendance_records']) &&
 
-                                    ($workSchedule['attendance_records'][0]['check_in_time'    ] !== null) ||
-                                     $workSchedule['attendance_records'][0]['attendance_status'] === 'absent') {
+                                    ($workSchedule['attendance_records'][0]['check_in_time'    ] !== null)    ||
+                                     $workSchedule['attendance_records'][0]['attendance_status'] !== 'absent') {
 
                             if ( ! $isFlextime) {
                                 $employeeBreakColumns = [
@@ -503,8 +506,8 @@ class PayslipService
                                         $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
                                         $breakScheduleEndTime   = $breakRecord['break_schedule_snapshot_end_time'  ];
 
-                                        $breakScheduleStartDateTime = new DateTime($date . ' ' . $breakScheduleStartTime);
-                                        $breakScheduleEndDateTime   = new DateTime($date . ' ' . $breakScheduleEndTime  );
+                                        $breakScheduleStartDateTime = new DateTime($workDate . ' ' . $breakScheduleStartTime);
+                                        $breakScheduleEndDateTime   = new DateTime($workDate . ' ' . $breakScheduleEndTime  );
 
                                         if ($breakScheduleStartDateTime < $workScheduleStartDateTime) {
                                             $breakScheduleStartDateTime->modify('+1 day');
@@ -1150,15 +1153,76 @@ class PayslipService
                                         $numberOfHoursWorked += $workDurationInHours;
                                     }
                                 }
-
-                                // inside looping of attendance records
                             }
                         }
                     }
-                }
 
-                //
+                    $holidayType = 'non_holiday';
+
+                    if ( ! empty($datesMarkedAsHoliday[$workDate])) {
+                        if (count($datesMarkedAsHoliday[$workDate]) > 1) {
+                            if (count($datesMarkedAsHoliday[$workDate]) === 2) {
+                                if ($datesMarkedAsHoliday[$workDate][0]['is_paid'] ||
+                                    $datesMarkedAsHoliday[$workDate][1]['is_paid']) {
+
+                                    $holidayType = 'double_holiday';
+                                } else {
+                                    $holidayType = 'special_holiday';
+                                }
+
+                            } else {
+                                $hasPaidHoliday = false;
+
+                                foreach ($datesMarkedAsHoliday[$workDate] as $holiday) {
+                                    if ($holiday['is_paid']) {
+                                        $hasPaidHoliday = true;
+
+                                        break;
+                                    }
+                                }
+
+                                if ($hasPaidHoliday) {
+                                    $holidayType = 'regular_holiday';
+                                } else {
+                                    $holidayType = 'special_holiday';
+                                }
+                            }
+
+                        } elseif ($datesMarkedAsHoliday[$workDate][0]['is_paid']) {
+                            $holidayType = 'regular_holiday';
+                        } elseif ( ! $datesMarkedAsHoliday[$workDate][0]['is_paid']) {
+                            $holidayType = 'special_holiday';
+                        }
+                    }
+
+                    $remainingHours = $totalRequiredWorkHours - $numberOfHoursWorked;
+
+                    if ($remainingHours > 0) {
+                        if ($holidayType === 'regular_holiday') {
+                            $workHours['non_worked_paid_hours']['regular_holiday'] += $remainingHours;
+                        } elseif ($holidayType === 'double_holiday') {
+                            $workHours['non_worked_paid_hours']['double_holiday'] += $remainingHours;
+                        }
+                    }
+
+                    if ($holidayType === 'non_holiday') {
+                        if (   $datesMarkedAsLeave[$workDate]['is_leave'   ] &&
+                               $datesMarkedAsLeave[$workDate]['is_paid'    ] &&
+                             ! $datesMarkedAsLeave[$workDate]['is_half_day']) {
+
+                            $workHours['non_worked_paid_hours']['leave'] += $remainingHours;
+
+                        } elseif ($datesMarkedAsLeave[$workDate]['is_leave'   ] &&
+                                  $datesMarkedAsLeave[$workDate]['is_paid'    ] &&
+                                  $datesMarkedAsLeave[$workDate]['is_half_day']) {
+
+                            $workHours['non_worked_paid_hours']['leave'] += $remainingHours / 2;
+                        }
+                    }
+                }
             }
+
+            //
         }
     }
 
