@@ -328,7 +328,8 @@ class OvertimeRateAssignmentDao
             OR
                 (employee_id IS NULL AND job_title_id IS NULL AND department_id IS NULL)
             ORDER BY
-                CASE";
+                CASE
+        ";
 
         if ($employeeId === null || preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "WHEN employee_id = :employee_id ";

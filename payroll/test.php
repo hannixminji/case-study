@@ -8,24 +8,53 @@ require_once __DIR__ . '/PayrollGroup.php'        ;
 
 require_once __DIR__ . '/PayslipService.php'      ;
 
-$employeeDao      = new EmployeeDao     ($pdo);
-$attendanceDao    = new AttendanceDao   ($pdo);
-$holidayDao       = new HolidayDao      ($pdo);
-$leaveRequestDao  = new LeaveRequestDao ($pdo);
-$employeeBreakDao = new EmployeeBreakDao($pdo);
+$payslipDao                = new PayslipDao               ($pdo);
+$employeeDao               = new EmployeeDao              ($pdo);
+$holidayDao                = new HolidayDao               ($pdo);
+$attendanceDao             = new AttendanceDao            ($pdo);
+$leaveRequestDao           = new LeaveRequestDao          ($pdo);
 
-$employeeRepository      = new EmployeeRepository     ($employeeDao     );
-$attendanceRepository    = new AttendanceRepository   ($attendanceDao   );
-$holidayRepository       = new HolidayRepository      ($holidayDao      );
-$leaveRequestRepository  = new LeaveRequestRepository ($leaveRequestDao );
-$employeeBreakRepository = new EmployeeBreakRepository($employeeBreakDao);
+$overtimeRateDao           = new OvertimeRateDao          ($pdo);
+$departmentDao             = new DepartmentDao            ($pdo);
+$jobTitleDao               = new JobTitleDao              ($pdo);
+$employeeDao               = new EmployeeDao              ($pdo);
+$overtimeRateAssignmentDao = new OvertimeRateAssignmentDao(
+    pdo            : $pdo            ,
+    overtimeRateDao: $overtimeRateDao,
+    departmentDao  : $departmentDao  ,
+    jobTitleDao    : $jobTitleDao    ,
+    employeeDao    : $employeeDao
+);
+
+$employeeBreakDao          = new EmployeeBreakDao         ($pdo);
+$employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo);
+$employeeDeductionDao      = new EmployeeDeductionDao     ($pdo);
+$leaveEntitlementDao       = new LeaveEntitlementDao      ($pdo);
+
+$payslipRepository                = new PayslipRepository               ($payslipDao               );
+$employeeRepository               = new EmployeeRepository              ($employeeDao              );
+$holidayRepository                = new HolidayRepository               ($holidayDao               );
+$attendanceRepository             = new AttendanceRepository            ($attendanceDao            );
+$leaveRequestRepository           = new LeaveRequestRepository          ($leaveRequestDao          );
+$overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overtimeRateAssignmentDao);
+$overtimeRateRepository           = new OvertimeRateRepository          ($overtimeRateDao          );
+$employeeBreakRepository          = new EmployeeBreakRepository         ($employeeBreakDao         );
+$employeeAllowanceRepository      = new EmployeeAllowanceRepository     ($employeeAllowanceDao     );
+$employeeDeductionRepository      = new EmployeeDeductionRepository     ($employeeDeductionDao     );
+$leaveEntitlementRepository       = new LeaveEntitlementRepository      ($leaveEntitlementDao      );
 
 $payslipService = new PayslipService(
-    employeeRepository     : $employeeRepository     ,
-    attendanceRepository   : $attendanceRepository   ,
-    holidayRepository      : $holidayRepository      ,
-    leaveRequestRepository : $leaveRequestRepository ,
-    employeeBreakRepository: $employeeBreakRepository
+    payslipRepository               : $payslipRepository               ,
+    employeeRepository              : $employeeRepository              ,
+    holidayRepository               : $holidayRepository               ,
+    attendanceRepository            : $attendanceRepository            ,
+    leaveRequestRepository          : $leaveRequestRepository          ,
+    overtimeRateAssignmentRepository: $overtimeRateAssignmentRepository,
+    overtimeRateRepository          : $overtimeRateRepository          ,
+    employeeBreakRepository         : $employeeBreakRepository         ,
+    employeeAllowanceRepository     : $employeeAllowanceRepository     ,
+    employeeDeductionRepository     : $employeeDeductionRepository     ,
+    leaveEntitlementRepository      : $leaveEntitlementRepository
 );
 
 $payrollGroup = new PayrollGroup(
