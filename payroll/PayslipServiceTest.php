@@ -225,6 +225,13 @@ class PayslipService
                         'night_differential_overtime' => 0.0
                     ],
 
+                    'double_special_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
                     'double_holiday' => [
                         'regular_hours'               => 0.0,
                         'overtime_hours'              => 0.0,
@@ -249,6 +256,13 @@ class PayslipService
                     ],
 
                     'regular_holiday' => [
+                        'regular_hours'               => 0.0,
+                        'overtime_hours'              => 0.0,
+                        'night_differential'          => 0.0,
+                        'night_differential_overtime' => 0.0
+                    ],
+
+                    'double_special_holiday' => [
                         'regular_hours'               => 0.0,
                         'overtime_hours'              => 0.0,
                         'night_differential'          => 0.0,
@@ -436,159 +450,52 @@ class PayslipService
             }
 
             $netPay = $grossPay - ($sssDeduction + $philhealthDeduction + $pagibigFundDeduction + $totalDeductions);
-            $withholdingTax = $this->calculateWithholdingTax($netPay, strtolower($payrollGroup->getPayrollFrequency()));
-            $netPay -= $withholdingTax;
 
-            /*
             $month = (new DateTime($cutoffPeriodEndDate))->format('m');
 
-            $leaveEncashmentAmount = 0;
-            $thirteenMonthPay      = 0;
+            $thirteenMonthPay = 0;
 
             switch ($payrollFrequency) {
                 case 'weekly':
-                    if ($month === '12') {
-                        $leaveEntitlementColumns = [
-                            'remaining_days'
+                    $payslipColumns = [
+                    ];
+
+                    $payslipFilterCriteria = [
+                        [
+                        ]
+                    ];
+
+                    $isThirteenMonthPayPaidAlready = $this->payslipRepository->fetchAllPayslips(
+                        columns             : $payslipColumns       ,
+                        filterCriteria      : $payslipFilterCriteria,
+                        includeTotalRowCount: false
+                    );
+
+                    if ($isThirteenMonthPayPaidAlready === ActionResult::FAILURE) {
+                        return [
+                            'status'  => 'error',
+                            'message' => 'An unexpected error occurred. Please try again later.'
                         ];
-
-                        $leaveEntitlementFilterCriteria = [
-                            [
-                                'column'   => 'leave_entitlement.employee_id',
-                                'operator' => '='                            ,
-                                'value'    => $employeeId
-                            ]
-                        ];
-
-                        $unusedLeaveCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(
-                            columns             : $leaveEntitlementColumns       ,
-                            filterCriteria      : $leaveEntitlementFilterCriteria,
-                            includeTotalRowCount: false
-                        );
-
-                        if ($unusedLeaveCredits === ActionResult::FAILURE) {
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred. Please try again later.'
-                            ];
-                        }
-
-                        $unusedLeaveCredits =
-                            ! empty($unusedLeaveCredits['result_set'])
-                                ? $unusedLeaveCredits['result_set']
-                                : [];
-
-                        $leaveCreditsToEncash = 0;
-
-                        if ( ! empty($unusedLeaveCredits)) {
-                            foreach ($unusedLeaveCredits as $unusedLeaveCredit) {
-                                $leaveCreditsToEncash += $unusedLeaveCredit['remaining_days'];
-                            }
-                        }
-
-                        $leaveEncashmentAmount = ($basicSalary / 26) * $leaveCreditsToEncash;
-
-                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
                     }
+
+                    $isThirteenMonthPayPaidAlready =
+                        ! empty($isThirteenMonthPayPaidAlready['result_set'])
+                            ? $isThirteenMonthPayPaidAlready['result_set']
+                            : [];
 
                     break;
 
                 case 'bi-weekly':
-                    if ($month === '12') {
-                        $leaveEntitlementColumns = [
-                            'remaining_days'
-                        ];
-
-                        $leaveEntitlementFilterCriteria = [
-                            [
-                                'column'   => 'leave_entitlement.employee_id',
-                                'operator' => '='                            ,
-                                'value'    => $employeeId
-                            ]
-                        ];
-
-                        $unusedLeaveCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(
-                            columns             : $leaveEntitlementColumns       ,
-                            filterCriteria      : $leaveEntitlementFilterCriteria,
-                            includeTotalRowCount: false
-                        );
-
-                        if ($unusedLeaveCredits === ActionResult::FAILURE) {
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred. Please try again later.'
-                            ];
-                        }
-
-                        $unusedLeaveCredits =
-                            ! empty($unusedLeaveCredits['result_set'])
-                                ? $unusedLeaveCredits['result_set']
-                                : [];
-
-                        $leaveCreditsToEncash = 0;
-
-                        if ( ! empty($unusedLeaveCredits)) {
-                            foreach ($unusedLeaveCredits as $unusedLeaveCredit) {
-                                $leaveCreditsToEncash += $unusedLeaveCredit['remaining_days'];
-                            }
-                        }
-
-                        $leaveEncashmentAmount = ($basicSalary / 26) * $leaveCreditsToEncash;
-
-                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
-                    }
 
                     break;
 
                 case 'semi-monthly':
-                    if ($month === '12') {
-                        $leaveEntitlementColumns = [
-                            'remaining_days'
-                        ];
-
-                        $leaveEntitlementFilterCriteria = [
-                            [
-                                'column'   => 'leave_entitlement.employee_id',
-                                'operator' => '='                            ,
-                                'value'    => $employeeId
-                            ]
-                        ];
-
-                        $unusedLeaveCredits = $this->leaveEntitlementRepository->fetchAllLeaveEntitlements(
-                            columns             : $leaveEntitlementColumns       ,
-                            filterCriteria      : $leaveEntitlementFilterCriteria,
-                            includeTotalRowCount: false
-                        );
-
-                        if ($unusedLeaveCredits === ActionResult::FAILURE) {
-                            return [
-                                'status'  => 'error',
-                                'message' => 'An unexpected error occurred. Please try again later.'
-                            ];
-                        }
-
-                        $unusedLeaveCredits =
-                            ! empty($unusedLeaveCredits['result_set'])
-                                ? $unusedLeaveCredits['result_set']
-                                : [];
-
-                        $leaveCreditsToEncash = 0;
-
-                        if ( ! empty($unusedLeaveCredits)) {
-                            foreach ($unusedLeaveCredits as $unusedLeaveCredit) {
-                                $leaveCreditsToEncash += $unusedLeaveCredit['remaining_days'];
-                            }
-                        }
-
-                        $leaveEncashmentAmount = ($basicSalary / 26) * $leaveCreditsToEncash;
-
-                        $this->leaveEntitlementRepository->resetEmployeeAllLeaveBalances($employeeId);
-                    }
 
                     break;
             }
-            */
 
+            $withholdingTax = $this->calculateWithholdingTax($netPay, strtolower($payrollGroup->getPayrollFrequency()));
+            $netPay -= $withholdingTax;
         }
 
         return [
@@ -985,6 +892,12 @@ class PayslipService
                                                             $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                             $holidayType = 'double_holiday';
+
+                                                        } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                                   ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                            $holidayType = 'double_special_holiday';
+
                                                         } else {
                                                             $holidayType = 'special_holiday';
                                                         }
@@ -1050,6 +963,12 @@ class PayslipService
                                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                                 $holidayType = 'double_holiday';
+
+                                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                                $holidayType = 'double_special_holiday';
+
                                                             } else {
                                                                 $holidayType = 'special_holiday';
                                                             }
@@ -1132,6 +1051,12 @@ class PayslipService
                                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                                 $holidayType = 'double_holiday';
+
+                                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                                $holidayType = 'double_special_holiday';
+
                                                             } else {
                                                                 $holidayType = 'special_holiday';
                                                             }
@@ -1196,6 +1121,12 @@ class PayslipService
                                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                                 $holidayType = 'double_holiday';
+
+                                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                                $holidayType = 'double_special_holiday';
+
                                                             } else {
                                                                 $holidayType = 'special_holiday';
                                                             }
@@ -1265,6 +1196,12 @@ class PayslipService
                                             $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                             $holidayType = 'double_holiday';
+
+                                        } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                   ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                            $holidayType = 'double_special_holiday';
+
                                         } else {
                                             $holidayType = 'special_holiday';
                                         }
@@ -1373,6 +1310,12 @@ class PayslipService
                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                 $holidayType = 'double_holiday';
+
+                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                $holidayType = 'double_special_holiday';
+
                                             } else {
                                                 $holidayType = 'special_holiday';
                                             }
@@ -1498,6 +1441,12 @@ class PayslipService
                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                 $holidayType = 'double_holiday';
+
+                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                $holidayType = 'double_special_holiday';
+
                                             } else {
                                                 $holidayType = 'special_holiday';
                                             }
@@ -1605,6 +1554,12 @@ class PayslipService
                                                 $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                                 $holidayType = 'double_holiday';
+
+                                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                                $holidayType = 'double_special_holiday';
+
                                             } else {
                                                 $holidayType = 'special_holiday';
                                             }
@@ -1703,10 +1658,16 @@ class PayslipService
                 if ( ! empty($datesMarkedAsHoliday[$workDate])) {
                     if (count($datesMarkedAsHoliday[$workDate]) > 1) {
                         if (count($datesMarkedAsHoliday[$workDate]) === 2) {
-                            if ($datesMarkedAsHoliday[$workDate][0]['is_paid'] ||
-                                $datesMarkedAsHoliday[$workDate][1]['is_paid']) {
+                            if ($datesMarkedAsHoliday[$date][0]['is_paid'] ||
+                                $datesMarkedAsHoliday[$date][1]['is_paid']) {
 
                                 $holidayType = 'double_holiday';
+
+                            } elseif ( ! $datesMarkedAsHoliday[$date][0]['is_paid'] &&
+                                       ! $datesMarkedAsHoliday[$date][1]['is_paid']) {
+
+                                $holidayType = 'double_special_holiday';
+
                             } else {
                                 $holidayType = 'special_holiday';
                             }
@@ -1748,12 +1709,12 @@ class PayslipService
                     } elseif ($holidayType === 'double_holiday') {
                         $workHours['non_worked_paid_hours']['double_holiday'] += $remainingHours;
 
-                        $grossPay += $remainingHours * $hourlyRate;
-                        $basicPay += $remainingHours * $hourlyRate;
+                        $grossPay += $remainingHours * ($hourlyRate * 2);
+                        $basicPay += $remainingHours *  $hourlyRate     ;
                     }
                 }
 
-                if ($holidayType === 'non_holiday' || $holidayType === 'special_holiday') {
+                if ($holidayType === 'non_holiday' || $holidayType === 'special_holiday' || $holidayType === 'double_special_holiday') {
                     if (   $datesMarkedAsLeave[$workDate]['is_leave'   ] &&
                            $datesMarkedAsLeave[$workDate]['is_paid'    ] &&
                          ! $datesMarkedAsLeave[$workDate]['is_half_day']) {

@@ -144,20 +144,22 @@ class LeaveEntitlementDao
     ): array|ActionResult {
 
         $tableColumns = [
-            "id"                      => "leave_entitlement.id                      AS id"                     ,
-            "employee_id"             => "leave_entitlement.employee_id             AS employee_id"            ,
-            "leave_type_id"           => "leave_entitlement.leave_type_id           AS leave_type_id"          ,
-            "number_of_entitled_days" => "leave_entitlement.number_of_entitled_days AS number_of_entitled_days",
-            "number_of_days_taken"    => "leave_entitlement.number_of_days_taken    AS number_of_days_taken"   ,
-            "remaining_days"          => "leave_entitlement.remaining_days          AS remaining_days"         ,
-            "created_at"              => "leave_entitlement.created_at              AS created_at"             ,
-            "deleted_at"              => "leave_entitlement.deleted_at              AS deleted_at"             ,
+            "id"                       => "leave_entitlement.id                      AS id"                      ,
+            "employee_id"              => "leave_entitlement.employee_id             AS employee_id"             ,
+            "leave_type_id"            => "leave_entitlement.leave_type_id           AS leave_type_id"           ,
+            "number_of_entitled_days"  => "leave_entitlement.number_of_entitled_days AS number_of_entitled_days" ,
+            "number_of_days_taken"     => "leave_entitlement.number_of_days_taken    AS number_of_days_taken"    ,
+            "remaining_days"           => "leave_entitlement.remaining_days          AS remaining_days"          ,
+            "created_at"               => "leave_entitlement.created_at              AS created_at"              ,
+            "deleted_at"               => "leave_entitlement.deleted_at              AS deleted_at"              ,
 
-            "employee_first_name"     => "employee.first_name                       AS employee_first_name"    ,
-            "employee_middle_name"    => "employee.middle_name                      AS employee_middle_name"   ,
-            "employee_last_name"      => "employee.last_name                        AS employee_last_name"     ,
+            "employee_first_name"      => "employee.first_name                       AS employee_first_name"     ,
+            "employee_middle_name"     => "employee.middle_name                      AS employee_middle_name"    ,
+            "employee_last_name"       => "employee.last_name                        AS employee_last_name"      ,
 
-            "leave_type_name"         => "leave_type.name                           AS leave_type_name"
+            "leave_type_name"          => "leave_type.name                           AS leave_type_name"         ,
+            "leave_type_is_paid"       => "leave_type.is_paid                        AS leave_type_is_paid"      ,
+            "leave_type_is_encashable" => "leave_type.is_encashable                  AS leave_type_is_encashable"
         ];
 
         $selectedColumns =
@@ -182,7 +184,10 @@ class LeaveEntitlementDao
             ";
         }
 
-        if (array_key_exists("leave_type_name", $selectedColumns)) {
+        if (array_key_exists("leave_type_name"         , $selectedColumns) ||
+            array_key_exists("leave_type_is_paid"      , $selectedColumns) ||
+            array_key_exists("leave_type_is_encashable", $selectedColumns)) {
+
             $joinClauses .= "
                 LEFT JOIN
                     leave_types AS leave_type
@@ -205,6 +210,7 @@ class LeaveEntitlementDao
 
                 switch ($operator) {
                     case "="   :
+                    case ">="  :
                     case "LIKE":
                         $whereClauses    [] = "{$column} {$operator} ?";
                         $queryParameters [] = $filterCriterion["value"];

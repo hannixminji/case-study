@@ -3,28 +3,24 @@
 class Payslip
 {
     public function __construct(
-        private readonly   int|string|null $id                            ,
-        private readonly   int|string      $employeeId                    ,
-        private readonly   int|string      $payrollGroupId                ,
-        private readonly   string          $paydayDate                    ,
-        private readonly   string          $cutoffStartDate               ,
-        private readonly   string          $cutoffEndDate                 ,
-        private readonly   float           $totalRegularHours             ,
-        private readonly   float           $totalOvertimeHours            ,
-        private readonly   float           $totalNightDifferential        ,
-        private readonly   float           $totalNightDifferentialOvertime,
-        private readonly   float           $totalRegularHolidayHours      ,
-        private readonly   float           $totalSpecialHolidayHours      ,
-        private readonly   float           $totalDaysWorked               ,
-        private readonly   float           $totalHoursWorked              ,
-        private readonly   float           $grossPay                      ,
-        private readonly   float           $netPay                        ,
-        private readonly   float           $sssDeduction                  ,
-        private readonly   float           $philhealthDeduction           ,
-        private readonly   float           $pagibigFundDeduction          ,
-        private readonly   float           $withholdingTax                ,
-        private readonly ? float           $thirteenMonthPay              ,
-        private readonly ? float           $leaveSalary
+        private readonly   int|string|null $id                  ,
+        private readonly   int|string      $employeeId          ,
+        private readonly   int|string      $payrollGroupId      ,
+        private readonly   string          $payDate             ,
+        private readonly   string          $payPeriodStartDate  ,
+        private readonly   string          $payPeriodEndDate    ,
+        private readonly   float           $basicSalary         ,
+        private readonly   float           $basicPay            ,
+        private readonly   float           $grossPay            ,
+        private readonly   float           $netPay              ,
+        private readonly   float           $sssDeduction        ,
+        private readonly   float           $philhealthDeduction ,
+        private readonly   float           $pagibigFundDeduction,
+        private readonly   float           $withholdingTax      ,
+        private readonly ? float           $thirteenMonthPay    ,
+        private readonly ? float           $leaveSalary         ,
+        private readonly   string          $workHours           ,
+        private readonly   string          $overtimeRates
     ) {
     }
 
@@ -43,59 +39,29 @@ class Payslip
         return $this->payrollGroupId;
     }
 
-    public function getpaydayDate(): string
+    public function getPayDate(): string
     {
-        return $this->paydayDate;
+        return $this->payDate;
     }
 
-    public function getCutoffStartDate(): string
+    public function getPayPeriodStartDate(): string
     {
-        return $this->cutoffStartDate;
+        return $this->payPeriodStartDate;
     }
 
-    public function getCutoffEndDate(): string
+    public function getPayPeriodEndDate(): string
     {
-        return $this->cutoffEndDate;
+        return $this->payPeriodEndDate;
     }
 
-    public function getTotalRegularHours(): float
+    public function getBasicSalary(): float
     {
-        return $this->totalRegularHours;
+        return $this->basicSalary;
     }
 
-    public function getTotalOvertimeHours(): float
+    public function getBasicPay(): float
     {
-        return $this->totalOvertimeHours;
-    }
-
-    public function getTotalNightDifferential(): float
-    {
-        return $this->totalNightDifferential;
-    }
-
-    public function getTotalNightDifferentialOvertime(): float
-    {
-        return $this->totalNightDifferentialOvertime;
-    }
-
-    public function getTotalRegularHolidayHours(): float
-    {
-        return $this->totalRegularHolidayHours;
-    }
-
-    public function getTotalSpecialHolidayHours(): float
-    {
-        return $this->totalSpecialHolidayHours;
-    }
-
-    public function getTotalDaysWorked(): float
-    {
-        return $this->totalDaysWorked;
-    }
-
-    public function getTotalHoursWorked(): float
-    {
-        return $this->totalHoursWorked;
+        return $this->basicPay;
     }
 
     public function getGrossPay(): float
@@ -136,5 +102,15 @@ class Payslip
     public function getLeaveSalary(): ?float
     {
         return $this->leaveSalary;
+    }
+
+    public function getWorkHours(): string
+    {
+        return $this->workHours;
+    }
+
+    public function getOvertimeRates(): string
+    {
+        return $this->overtimeRates;
     }
 }

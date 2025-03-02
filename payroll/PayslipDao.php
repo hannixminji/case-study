@@ -16,50 +16,42 @@ class PayslipDao
     {
         $query = "
             INSERT INTO payslips (
-                employee_id                      ,
-                payroll_group_id                 ,
-                payday_date                      ,
-                cutoff_start_date                ,
-                cutoff_end_date                  ,
-                total_regular_hours              ,
-                total_overtime_hours             ,
-                total_night_differential         ,
-                total_night_differential_overtime,
-                total_regular_holiday_hours      ,
-                total_special_holiday_hours      ,
-                total_days_worked                ,
-                total_hours_worked               ,
-                gross_pay                        ,
-                net_pay                          ,
-                sss_deduction                    ,
-                philhealth_deduction             ,
-                pagibig_fund_deduction           ,
-                withholding_tax                  ,
-                thirteen_month_pay               ,
-                leave_salary
+                employee_id           ,
+                payroll_group_id      ,
+                pay_date              ,
+                pay_period_start_date ,
+                pay_period_end_date   ,
+                basic_salary          ,
+                basic_pay             ,
+                gross_pay             ,
+                net_pay               ,
+                sss_deduction         ,
+                philhealth_deduction  ,
+                pagibig_fund_deduction,
+                withholding_tax       ,
+                thirteen_month_pay    ,
+                leave_salary          ,
+                work_hours            ,
+                overtime_rates
             )
             VALUES (
-                :employee_id                      ,
-                :payroll_group_id                 ,
-                :payday_date                      ,
-                :cutoff_start_date                ,
-                :cutoff_end_date                  ,
-                :total_regular_hours              ,
-                :total_overtime_hours             ,
-                :total_night_differential         ,
-                :total_night_differential_overtime,
-                :total_regular_holiday_hours      ,
-                :total_special_holiday_hours      ,
-                :total_days_worked                ,
-                :total_hours_worked               ,
-                :gross_pay                        ,
-                :net_pay                          ,
-                :sss_deduction                    ,
-                :philhealth_deduction             ,
-                :pagibig_fund_deduction           ,
-                :withholding_tax                  ,
-                :thirteen_month_pay               ,
-                :leave_salary
+                :employee_id           ,
+                :payroll_group_id      ,
+                :pay_date              ,
+                :pay_period_start_date ,
+                :pay_period_end_date   ,
+                :basic_salary          ,
+                :basic_pay             ,
+                :gross_pay             ,
+                :net_pay               ,
+                :sss_deduction         ,
+                :philhealth_deduction  ,
+                :pagibig_fund_deduction,
+                :withholding_tax       ,
+                :thirteen_month_pay    ,
+                :leave_salary          ,
+                :work_hours            ,
+                :overtime_rates
             )
         ";
 
@@ -72,27 +64,23 @@ class PayslipDao
 
             $statement = $this->pdo->prepare($query);
 
-            $statement->bindValue(":employee_id"                      , $payslip->getEmployeeId()                    , Helper::getPdoParameterType($payslip->getEmployeeId()                    ));
-            $statement->bindValue(":payroll_group_id"                 , $payslip->getPayrollGroupId()                , Helper::getPdoParameterType($payslip->getPayrollGroupId()                ));
-            $statement->bindValue(":payday_date"                      , $payslip->getpaydayDate()                    , Helper::getPdoParameterType($payslip->getpaydayDate()                    ));
-            $statement->bindValue(":cutoff_start_date"                , $payslip->getCutoffStartDate()               , Helper::getPdoParameterType($payslip->getCutoffStartDate()               ));
-            $statement->bindValue(":cutoff_end_date"                  , $payslip->getCutoffEndDate()                 , Helper::getPdoParameterType($payslip->getCutoffEndDate()                 ));
-            $statement->bindValue(":total_regular_hours"              , $payslip->getTotalRegularHours()             , Helper::getPdoParameterType($payslip->getTotalRegularHours()             ));
-            $statement->bindValue(":total_overtime_hours"             , $payslip->getTotalOvertimeHours()            , Helper::getPdoParameterType($payslip->getTotalOvertimeHours()            ));
-            $statement->bindValue(":total_night_differential"         , $payslip->getTotalNightDifferential()        , Helper::getPdoParameterType($payslip->getTotalNightDifferential()        ));
-            $statement->bindValue(":total_night_differential_overtime", $payslip->getTotalNightDifferentialOvertime(), Helper::getPdoParameterType($payslip->getTotalNightDifferentialOvertime()));
-            $statement->bindValue(":total_regular_holiday_hours"      , $payslip->getTotalRegularHolidayHours()      , Helper::getPdoParameterType($payslip->getTotalRegularHolidayHours()      ));
-            $statement->bindValue(":total_special_holiday_hours"      , $payslip->getTotalSpecialHolidayHours()      , Helper::getPdoParameterType($payslip->getTotalSpecialHolidayHours()      ));
-            $statement->bindValue(":total_days_worked"                , $payslip->getTotalDaysWorked()               , Helper::getPdoParameterType($payslip->getTotalDaysWorked()               ));
-            $statement->bindValue(":total_hours_worked"               , $payslip->getTotalHoursWorked()              , Helper::getPdoParameterType($payslip->getTotalHoursWorked()              ));
-            $statement->bindValue(":gross_pay"                        , $payslip->getGrossPay()                      , Helper::getPdoParameterType($payslip->getGrossPay()                      ));
-            $statement->bindValue(":net_pay"                          , $payslip->getNetPay()                        , Helper::getPdoParameterType($payslip->getNetPay()                        ));
-            $statement->bindValue(":sss_deduction"                    , $payslip->getSssDeduction()                  , Helper::getPdoParameterType($payslip->getSssDeduction()                  ));
-            $statement->bindValue(":philhealth_deduction"             , $payslip->getPhilhealthDeduction()           , Helper::getPdoParameterType($payslip->getPhilhealthDeduction()           ));
-            $statement->bindValue(":pagibig_fund_deduction"           , $payslip->getPagibigFundDeduction()          , Helper::getPdoParameterType($payslip->getPagibigFundDeduction()          ));
-            $statement->bindValue(":withholding_tax"                  , $payslip->getWithholdingTax()                , Helper::getPdoParameterType($payslip->getWithholdingTax()                ));
-            $statement->bindValue(":thirteen_month_pay"               , $payslip->getThirteenMonthPay()              , Helper::getPdoParameterType($payslip->getThirteenMonthPay()              ));
-            $statement->bindValue(":leave_salary"                     , $payslip->getLeaveSalary()                   , Helper::getPdoParameterType($payslip->getLeaveSalary()                   ));
+            $statement->bindValue(":employee_id"           , $payslip->getEmployeeId()          , Helper::getPdoParameterType($payslip->getEmployeeId()          ));
+            $statement->bindValue(":payroll_group_id"      , $payslip->getPayrollGroupId()      , Helper::getPdoParameterType($payslip->getPayrollGroupId()      ));
+            $statement->bindValue(":pay_date"              , $payslip->getPayDate()             , Helper::getPdoParameterType($payslip->getPayDate()             ));
+            $statement->bindValue(":pay_period_start_date" , $payslip->getPayPeriodStartDate()  , Helper::getPdoParameterType($payslip->getPayPeriodStartDate()  ));
+            $statement->bindValue(":pay_period_end_date"   , $payslip->getPayPeriodEndDate()    , Helper::getPdoParameterType($payslip->getPayPeriodEndDate()    ));
+            $statement->bindValue(":basic_salary"          , $payslip->getBasicSalary()         , Helper::getPdoParameterType($payslip->getBasicSalary()         ));
+            $statement->bindValue(":basic_pay"             , $payslip->getBasicPay()            , Helper::getPdoParameterType($payslip->getBasicPay()            ));
+            $statement->bindValue(":gross_pay"             , $payslip->getGrossPay()            , Helper::getPdoParameterType($payslip->getGrossPay()            ));
+            $statement->bindValue(":net_pay"               , $payslip->getNetPay()              , Helper::getPdoParameterType($payslip->getNetPay()              ));
+            $statement->bindValue(":sss_deduction"         , $payslip->getSssDeduction()        , Helper::getPdoParameterType($payslip->getSssDeduction()        ));
+            $statement->bindValue(":philhealth_deduction"  , $payslip->getPhilhealthDeduction() , Helper::getPdoParameterType($payslip->getPhilhealthDeduction() ));
+            $statement->bindValue(":pagibig_fund_deduction", $payslip->getPagibigFundDeduction(), Helper::getPdoParameterType($payslip->getPagibigFundDeduction()));
+            $statement->bindValue(":withholding_tax"       , $payslip->getWithholdingTax()      , Helper::getPdoParameterType($payslip->getWithholdingTax()      ));
+            $statement->bindValue(":thirteen_month_pay"    , $payslip->getThirteenMonthPay()    , Helper::getPdoParameterType($payslip->getThirteenMonthPay()    ));
+            $statement->bindValue(":leave_salary"          , $payslip->getLeaveSalary()         , Helper::getPdoParameterType($payslip->getLeaveSalary()         ));
+            $statement->bindValue(":work_hours"            , $payslip->getWorkHours()           , Helper::getPdoParameterType($payslip->getWorkHours()           ));
+            $statement->bindValue(":overtime_rates"        , $payslip->getOvertimeRates()       , Helper::getPdoParameterType($payslip->getOvertimeRates()       ));
 
             $statement->execute();
 
@@ -124,44 +112,40 @@ class PayslipDao
     ): array|ActionResult {
 
         $tableColumns = [
-            "id"                                => "payslip.id                                AS id"                               ,
-            "employee_id"                       => "payslip.employee_id                       AS employee_id"                      ,
-            "payroll_group_id"                  => "payslip.payroll_group_id                  AS payroll_group_id"                 ,
-            "payday_date"                       => "payslip.payday_date                       AS payday_date"                      ,
-            "cutoff_start_date"                 => "payslip.cutoff_start_date                 AS cutoff_start_date"                ,
-            "cutoff_end_date"                   => "payslip.cutoff_end_date                   AS cutoff_end_date"                  ,
-            "total_regular_hours"               => "payslip.total_regular_hours               AS total_regular_hours"              ,
-            "total_overtime_hours"              => "payslip.total_overtime_hours              AS total_overtime_hours"             ,
-            "total_night_differential"          => "payslip.total_night_differential          AS total_night_differential"         ,
-            "total_night_differential_overtime" => "payslip.total_night_differential_overtime AS total_night_differential_overtime",
-            "total_regular_holiday_hours"       => "payslip.total_regular_holiday_hours       AS total_regular_holiday_hours"      ,
-            "total_special_holiday_hours"       => "payslip.total_special_holiday_hours       AS total_special_holiday_hours"      ,
-            "total_days_worked"                 => "payslip.total_days_worked                 AS total_days_worked"                ,
-            "total_hours_worked"                => "payslip.total_hours_worked                AS total_hours_worked"               ,
-            "gross_pay"                         => "payslip.gross_pay                         AS gross_pay"                        ,
-            "net_pay"                           => "payslip.net_pay                           AS net_pay"                          ,
-            "sss_deduction"                     => "payslip.sss_deduction                     AS sss_deduction"                    ,
-            "philhealth_deduction"              => "payslip.philhealth_deduction              AS philhealth_deduction"             ,
-            "pagibig_fund_deduction"            => "payslip.pagibig_fund_deduction            AS pagibig_fund_deduction"           ,
-            "withholding_tax"                   => "payslip.withholding_tax                   AS withholding_tax"                  ,
-            "thirteen_month_pay"                => "payslip.thirteen_month_pay                AS thirteen_month_pay"               ,
-            "leave_salary"                      => "payslip.leave_salary                      AS leave_salary"                     ,
-            "created_at"                        => "payslip.created_at                        AS created_at"                       ,
-            "updated_at"                        => "payslip.updated_at                        AS updated_at"                       ,
-            "deleted_at"                        => "payslip.deleted_at                        AS deleted_at"                       ,
+            "id"                           => "payslip.id                     AS id"                    ,
+            "employee_id"                  => "payslip.employee_id            AS employee_id"           ,
+            "payroll_group_id"             => "payslip.payroll_group_id       AS payroll_group_id"      ,
+            "pay_date"                     => "payslip.pay_date               AS pay_date"              ,
+            "pay_period_start_date"        => "payslip.pay_period_start_date  AS pay_period_start_date" ,
+            "pay_period_end_date"          => "payslip.pay_period_end_date    AS pay_period_end_date"   ,
+            "basic_salary"                 => "payslip.basic_salary           AS basic_salary"          ,
+            "basic_pay"                    => "payslip.basic_pay              AS basic_pay"             ,
+            "gross_pay"                    => "payslip.gross_pay              AS gross_pay"             ,
+            "net_pay"                      => "payslip.net_pay                AS net_pay"               ,
+            "sss_deduction"                => "payslip.sss_deduction          AS sss_deduction"         ,
+            "philhealth_deduction"         => "payslip.philhealth_deduction   AS philhealth_deduction"  ,
+            "pagibig_fund_deduction"       => "payslip.pagibig_fund_deduction AS pagibig_fund_deduction",
+            "withholding_tax"              => "payslip.withholding_tax        AS withholding_tax"       ,
+            "thirteen_month_pay"           => "payslip.thirteen_month_pay     AS thirteen_month_pay"    ,
+            "leave_salary"                 => "payslip.leave_salary           AS leave_salary"          ,
+            "work_hours"                   => "payslip.work_hours             AS work_hours"            ,
+            "overtime_rates"               => "payslip.overtime_rates         AS overtime_rates"        ,
+            "created_at"                   => "payslip.created_at             AS created_at"            ,
+            "updated_at"                   => "payslip.updated_at             AS updated_at"            ,
+            "deleted_at"                   => "payslip.deleted_at             AS deleted_at"            ,
 
-            "employee_full_name"                => "employee.full_name                        AS full_name"                        ,
-            "employee_code"                     => "employee.employee_code                    AS employee_code"                    ,
-            "employee_employment_type"          => "employee.employment_type                  AS employment_type"                  ,
-            "employee_basic_salary"             => "employee.basic_salary                     AS basic_salary"                     ,
-            "employee_bank_name"                => "employee.bank_name                        AS bank_name"                        ,
-            "employee_bank_branch_name"         => "employee.bank_branch_name                 AS bank_branch_name"                 ,
-            "employee_bank_account_number"      => "employee.bank_account_number              AS bank_account_number"              ,
-            "employee_bank_account_type"        => "employee.bank_account_type                AS bank_account_type"                ,
+            "employee_full_name"           => "employee.full_name             AS full_name"             ,
+            "employee_code"                => "employee.employee_code         AS employee_code"         ,
+            "employee_employment_type"     => "employee.employment_type       AS employment_type"       ,
+            "employee_basic_salary"        => "employee.basic_salary          AS basic_salary"          ,
+            "employee_bank_name"           => "employee.bank_name             AS bank_name"             ,
+            "employee_bank_branch_name"    => "employee.bank_branch_name      AS bank_branch_name"      ,
+            "employee_bank_account_number" => "employee.bank_account_number   AS bank_account_number"   ,
+            "employee_bank_account_type"   => "employee.bank_account_type     AS bank_account_type"     ,
 
-            "employee_job_title"                => "job_title.title                           AS job_title_title"                  ,
+            "employee_job_title"           => "job_title.title                AS job_title_title"       ,
 
-            "employee_department_name"          => "department.name                           AS department_name"
+            "employee_department_name"     => "department.name                AS department_name"
         ];
 
         $selectedColumns =
@@ -344,94 +328,6 @@ class PayslipDao
 
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the payslips. " .
-                      "Exception: {$exception->getMessage()}");
-
-            return ActionResult::FAILURE;
-        }
-    }
-
-    public function update(Payslip $payslip): ActionResult
-    {
-        $query = "
-            UPDATE payslips
-            SET
-                employee_id                       = :employee_id                      ,
-                payroll_group_id                  = :payroll_group_id                 ,
-                payday_date                       = :payday_date                      ,
-                cutoff_start_date                 = :cutoff_start_date                ,
-                cutoff_end_date                   = :cutoff_end_date                  ,
-                total_regular_hours               = :total_regular_hours              ,
-                total_overtime_hours              = :total_overtime_hours             ,
-                total_night_differential          = :total_night_differential         ,
-                total_night_differential_overtime = :total_night_differential_overtime,
-                total_regular_holiday_hours       = :total_regular_holiday_hours      ,
-                total_special_holiday_hours       = :total_special_holiday_hours      ,
-                total_days_worked                 = :total_days_worked                ,
-                total_hours_worked                = :total_hours_worked               ,
-                gross_pay                         = :gross_pay                        ,
-                net_pay                           = :net_pay                          ,
-                sss_deduction                     = :sss_deduction                    ,
-                philhealth_deduction              = :philhealth_deduction             ,
-                pagibig_fund_deduction            = :pagibig_fund_deduction           ,
-                withholding_tax                   = :withholding_tax                  ,
-                thirteen_month_pay                = :thirteen_month_pay               ,
-                leave_salary                      = :leave_salary
-            WHERE
-        ";
-
-        if (preg_match("/^[1-9]\d*$/", $payslip->getId())) {
-            $query .= "id = :payslip_id";
-        } else {
-            $query .= "SHA2(id, 256) = :payslip_id";
-        }
-
-        $isLocalTransaction = ! $this->pdo->inTransaction();
-
-        try {
-            if ($isLocalTransaction) {
-                $this->pdo->beginTransaction();
-            }
-
-            $statement = $this->pdo->prepare($query);
-
-            $statement->bindValue(":employee_id"                      , $payslip->getEmployeeId()                    , Helper::getPdoParameterType($payslip->getEmployeeId()                    ));
-            $statement->bindValue(":payroll_group_id"                 , $payslip->getPayrollGroupId()                , Helper::getPdoParameterType($payslip->getPayrollGroupId()                ));
-            $statement->bindValue(":payday_date"                      , $payslip->getpaydayDate()                    , Helper::getPdoParameterType($payslip->getpaydayDate()                    ));
-            $statement->bindValue(":cutoff_start_date"                , $payslip->getCutoffStartDate()               , Helper::getPdoParameterType($payslip->getCutoffStartDate()               ));
-            $statement->bindValue(":cutoff_end_date"                  , $payslip->getCutoffEndDate()                 , Helper::getPdoParameterType($payslip->getCutoffEndDate()                 ));
-            $statement->bindValue(":total_regular_hours"              , $payslip->getTotalRegularHours()             , Helper::getPdoParameterType($payslip->getTotalRegularHours()             ));
-            $statement->bindValue(":total_overtime_hours"             , $payslip->getTotalOvertimeHours()            , Helper::getPdoParameterType($payslip->getTotalOvertimeHours()            ));
-            $statement->bindValue(":total_night_differential"         , $payslip->getTotalNightDifferential()        , Helper::getPdoParameterType($payslip->getTotalNightDifferential()        ));
-            $statement->bindValue(":total_night_differential_overtime", $payslip->getTotalNightDifferentialOvertime(), Helper::getPdoParameterType($payslip->getTotalNightDifferentialOvertime()));
-            $statement->bindValue(":total_regular_holiday_hours"      , $payslip->getTotalRegularHolidayHours()      , Helper::getPdoParameterType($payslip->getTotalRegularHolidayHours()      ));
-            $statement->bindValue(":total_special_holiday_hours"      , $payslip->getTotalSpecialHolidayHours()      , Helper::getPdoParameterType($payslip->getTotalSpecialHolidayHours()      ));
-            $statement->bindValue(":total_days_worked"                , $payslip->getTotalDaysWorked()               , Helper::getPdoParameterType($payslip->getTotalDaysWorked()               ));
-            $statement->bindValue(":total_hours_worked"               , $payslip->getTotalHoursWorked()              , Helper::getPdoParameterType($payslip->getTotalHoursWorked()              ));
-            $statement->bindValue(":gross_pay"                        , $payslip->getGrossPay()                      , Helper::getPdoParameterType($payslip->getGrossPay()                      ));
-            $statement->bindValue(":net_pay"                          , $payslip->getNetPay()                        , Helper::getPdoParameterType($payslip->getNetPay()                        ));
-            $statement->bindValue(":sss_deduction"                    , $payslip->getSssDeduction()                  , Helper::getPdoParameterType($payslip->getSssDeduction()                  ));
-            $statement->bindValue(":philhealth_deduction"             , $payslip->getPhilhealthDeduction()           , Helper::getPdoParameterType($payslip->getPhilhealthDeduction()           ));
-            $statement->bindValue(":pagibig_fund_deduction"           , $payslip->getPagibigFundDeduction()          , Helper::getPdoParameterType($payslip->getPagibigFundDeduction()          ));
-            $statement->bindValue(":withholding_tax"                  , $payslip->getWithholdingTax()                , Helper::getPdoParameterType($payslip->getWithholdingTax()                ));
-            $statement->bindValue(":thirteen_month_pay"               , $payslip->getThirteenMonthPay()              , Helper::getPdoParameterType($payslip->getThirteenMonthPay()              ));
-            $statement->bindValue(":leave_salary"                     , $payslip->getLeaveSalary()                   , Helper::getPdoParameterType($payslip->getLeaveSalary()                   ));
-
-            $statement->bindValue(":payslip_id"                       , $payslip->getId()                            , Helper::getPdoParameterType($payslip->getId()                            ));
-
-            $statement->execute();
-
-            if ($isLocalTransaction) {
-                $this->pdo->commit();
-            }
-
-            return ActionResult::SUCCESS;
-
-        } catch (PDOException $exception) {
-            if ($isLocalTransaction) {
-                $this->pdo->rollBack();
-            }
-
-            error_log("Database Error: An error occurred while updating the payslip. " .
                       "Exception: {$exception->getMessage()}");
 
             return ActionResult::FAILURE;

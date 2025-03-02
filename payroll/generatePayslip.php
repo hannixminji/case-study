@@ -5,24 +5,19 @@ require_once __DIR__ . '/../database/database.php'  ;
 require_once __DIR__ . '/PayrollGroup.php'          ;
 
 require_once __DIR__ . '/PayslipService.php'        ;
+
 require_once __DIR__ . '/PayrollGroupRepository.php';
 
-/*
 $payslipDao                = new PayslipDao               ($pdo);
 $employeeDao               = new EmployeeDao              ($pdo);
-$workScheduleDao           = new WorkScheduleDao          ($pdo);
-$attendanceDao             = new AttendanceDao            ($pdo);
 $holidayDao                = new HolidayDao               ($pdo);
+$attendanceDao             = new AttendanceDao            ($pdo);
 $leaveRequestDao           = new LeaveRequestDao          ($pdo);
-$breakScheduleDao          = new BreakScheduleDao         ($pdo);
-$employeeBreakDao          = new EmployeeBreakDao         ($pdo);
-$settingDao                = new SettingDao               ($pdo);
-$employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo);
-$employeeDeductionDao      = new EmployeeDeductionDao     ($pdo);
 
 $overtimeRateDao           = new OvertimeRateDao          ($pdo);
 $departmentDao             = new DepartmentDao            ($pdo);
 $jobTitleDao               = new JobTitleDao              ($pdo);
+$employeeDao               = new EmployeeDao              ($pdo);
 $overtimeRateAssignmentDao = new OvertimeRateAssignmentDao(
     pdo            : $pdo            ,
     overtimeRateDao: $overtimeRateDao,
@@ -31,42 +26,40 @@ $overtimeRateAssignmentDao = new OvertimeRateAssignmentDao(
     employeeDao    : $employeeDao
 );
 
+$employeeBreakDao          = new EmployeeBreakDao         ($pdo);
+$employeeAllowanceDao      = new EmployeeAllowanceDao     ($pdo);
+$employeeDeductionDao      = new EmployeeDeductionDao     ($pdo);
 $leaveEntitlementDao       = new LeaveEntitlementDao      ($pdo);
-
-$payrollGroupDao           = new PayrollGroupDao          ($pdo);
 
 $payslipRepository                = new PayslipRepository               ($payslipDao               );
 $employeeRepository               = new EmployeeRepository              ($employeeDao              );
-$workScheduleRepository           = new WorkScheduleRepository          ($workScheduleDao          );
-$attendanceRepository             = new AttendanceRepository            ($attendanceDao            );
 $holidayRepository                = new HolidayRepository               ($holidayDao               );
+$attendanceRepository             = new AttendanceRepository            ($attendanceDao            );
 $leaveRequestRepository           = new LeaveRequestRepository          ($leaveRequestDao          );
-$breakScheduleRepository          = new BreakScheduleRepository         ($breakScheduleDao         );
+$overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overtimeRateAssignmentDao);
+$overtimeRateRepository           = new OvertimeRateRepository          ($overtimeRateDao          );
 $employeeBreakRepository          = new EmployeeBreakRepository         ($employeeBreakDao         );
-$settingRepository                = new SettingRepository               ($settingDao               );
 $employeeAllowanceRepository      = new EmployeeAllowanceRepository     ($employeeAllowanceDao     );
 $employeeDeductionRepository      = new EmployeeDeductionRepository     ($employeeDeductionDao     );
-$overtimeRateRepository           = new OvertimeRateRepository          ($overtimeRateDao          );
-$overtimeRateAssignmentRepository = new OvertimeRateAssignmentRepository($overtimeRateAssignmentDao);
 $leaveEntitlementRepository       = new LeaveEntitlementRepository      ($leaveEntitlementDao      );
-$payrollGroupRepository           = new PayrollGroupRepository          ($payrollGroupDao          );
 
 $payslipService = new PayslipService(
     payslipRepository               : $payslipRepository               ,
     employeeRepository              : $employeeRepository              ,
-    workScheduleRepository          : $workScheduleRepository          ,
-    attendanceRepository            : $attendanceRepository            ,
     holidayRepository               : $holidayRepository               ,
+    attendanceRepository            : $attendanceRepository            ,
     leaveRequestRepository          : $leaveRequestRepository          ,
-    breakScheduleRepository         : $breakScheduleRepository         ,
+    overtimeRateAssignmentRepository: $overtimeRateAssignmentRepository,
+    overtimeRateRepository          : $overtimeRateRepository          ,
     employeeBreakRepository         : $employeeBreakRepository         ,
-    settingRepository               : $settingRepository               ,
     employeeAllowanceRepository     : $employeeAllowanceRepository     ,
     employeeDeductionRepository     : $employeeDeductionRepository     ,
-    overtimeRateRepository          : $overtimeRateRepository          ,
-    overtimeRateAssignmentRepository: $overtimeRateAssignmentRepository,
     leaveEntitlementRepository      : $leaveEntitlementRepository
 );
+
+$payrollGroupDao        = new PayrollGroupDao       ($pdo                   );
+$payrollGroupRepository = new PayrollGroupRepository($payrollGroupDao       );
+$payrollGroupService    = new PayrollGroupService   ($payrollGroupRepository);
 
 $currentDateTime   = (new DateTime())->modify('-1 day'     );
 $currentDate       =       $currentDateTime->format('Y-m-d');
@@ -93,14 +86,13 @@ $payrollGroupFilterCriteria = [
         'operator' => '='                   ,
         'value'    => 'Active'              ,
         'boolean'  => 'AND'
+    ],
+    [
+        'column'   => 'payroll_group.day_of_weekly_cutoff',
+        'operator' => '='                                 ,
+        'value'    => $currentDayOfWeek                   ,
+        'boolean'  => 'OR'
     ]
-];
-
-$payrollGroupFilterCriteria[] = [
-    'column'   => 'payroll_group.day_of_weekly_cutoff',
-    'operator' => '='                                 ,
-    'value'    => $currentDayOfWeek                   ,
-    'boolean'  => 'OR'
 ];
 
 if ($currentWeekNumber % 2 === 0) {
@@ -129,9 +121,10 @@ $payrollGroupSortCriteria = [
     ]
 ];
 
-$payrollGroups = $payrollGroupRepository->fetchAllPayrollGroups(
+$payrollGroups = $payrollGroupService->fetchAllPayrollGroups(
     columns             : $payrollGroupColumns       ,
     filterCriteria      : $payrollGroupFilterCriteria,
+    sortCriteria        : $payrollGroupSortCriteria  ,
     includeTotalRowCount: false
 );
 
@@ -142,7 +135,10 @@ if ($payrollGroups === ActionResult::FAILURE) {
     ];
 }
 
-$payrollGroups = $payrollGroups['result_set'];
+$payrollGroups =
+    ! empty($payrollGroups['result_set'])
+        ? $payrollGroups['result_set']
+        : [];
 
 if ( ! empty($payrollGroups)) {
     foreach ($payrollGroups as $payrollGroup) {
@@ -178,7 +174,7 @@ if ( ! empty($payrollGroups)) {
                     $cutoffPeriodStartDate = new DateTime($currentDate  );
                     $cutoffPeriodEndDate   = clone $cutoffPeriodStartDate;
 
-                    $cutoffPeriodStartDate->modify('-14 days');
+                    $cutoffPeriodStartDate->modify('-13 days');
                 }
 
                 break;
@@ -260,4 +256,3 @@ if ( ! empty($payrollGroups)) {
         }
     }
 }
-*/
