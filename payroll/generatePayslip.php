@@ -1,12 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../database/database.php'  ;
+require_once __DIR__ . '/../database/database.php';
 
-require_once __DIR__ . '/PayrollGroup.php'          ;
+require_once __DIR__ . '/PayrollGroup.php'        ;
 
-require_once __DIR__ . '/PayslipService.php'        ;
-
-require_once __DIR__ . '/PayrollGroupRepository.php';
+require_once __DIR__ . '/PayslipService.php'      ;
+require_once __DIR__ . '/PayrollGroupService.php' ;
 
 $payslipDao                = new PayslipDao               ($pdo);
 $employeeDao               = new EmployeeDao              ($pdo);

@@ -34,9 +34,4 @@ class PayslipRepository
             includeTotalRowCount: $includeTotalRowCount
         );
     }
-
-    public function updatePayslip(Payslip $payslip): ActionResult
-    {
-        return $this->payslipDao->update($payslip);
-    }
 }
