@@ -62,7 +62,8 @@ class LeaveRequestRepository
             'start_date'        ,
             'end_date'          ,
             'is_half_day'       ,
-            'status'
+            'status'            ,
+            'created_at'
         ];
 
         $filterCriteria = [
@@ -110,7 +111,8 @@ class LeaveRequestRepository
             $datesMarkedAsLeave[$date->format('Y-m-d')] = [
                 'is_leave'    => false,
                 'is_paid'     => false,
-                'is_half_day' => false
+                'is_half_day' => false,
+                'created_at'  => null
             ];
         }
 
@@ -125,10 +127,11 @@ class LeaveRequestRepository
             foreach ($leaveDatePeriod as $leaveDate) {
                 if (isset($datesMarkedAsLeave[$leaveDate->format('Y-m-d')])) {
                     $datesMarkedAsLeave[$leaveDate->format('Y-m-d')] = [
-                        'is_leave'    => true                   ,
-                        'is_paid'     => $isPaid                ,
-                        'is_half_day' => $isHalfDay             ,
-                        'status'      => $leaveRequest['status']
+                        'is_leave'    => true                       ,
+                        'is_paid'     => $isPaid                    ,
+                        'is_half_day' => $isHalfDay                 ,
+                        'status'      => $leaveRequest['status'    ],
+                        'created_at'  => $leaveRequest['created_at']
                     ];
                 }
             }
