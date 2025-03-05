@@ -30,8 +30,6 @@ class LeaveRequestService
           bool  $includeTotalRowCount = true
     ): array|ActionResult {
 
-        $this->leaveRequestRepository->updateLeaveRequestStatuses((new DateTime())->format('Y-m-d'));
-
         return $this->leaveRequestRepository->fetchAllLeaveRequests(
             columns             : $columns             ,
             filterCriteria      : $filterCriteria      ,
@@ -50,6 +48,11 @@ class LeaveRequestService
     public function updateLeaveRequestStatus(int|string $leaveRequestId, string $status): ActionResult
     {
         return $this->leaveRequestRepository->updateLeaveRequestStatus($leaveRequestId, $status);
+    }
+
+    public function updateLeaveRequestStatuses(string $currentDate): ActionResult
+    {
+        return $this->leaveRequestRepository->updateLeaveRequestStatuses($currentDate);
     }
 
     public function isEmployeeOnLeave(int|string $employeeId): array|null|ActionResult

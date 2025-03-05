@@ -145,7 +145,9 @@ class PayslipDao
 
             "employee_job_title"           => "job_title.title                AS job_title_title"       ,
 
-            "employee_department_name"     => "department.name                AS department_name"
+            "employee_department_name"     => "department.name                AS department_name"       ,
+
+            "total_basic_pay"              => "SUM(basic_pay)                 AS total_basic_pay"
         ];
 
         $selectedColumns =
@@ -212,11 +214,19 @@ class PayslipDao
 
                 switch ($operator) {
                     case "="   :
+                    case ">="  :
+                    case "<="  :
                     case "LIKE":
                         $whereClauses    [] = "{$column} {$operator} ?";
                         $queryParameters [] = $filterCriterion["value"];
 
                         $filterParameters[] = $filterCriterion["value"];
+
+                        break;
+
+                    case "IS NULL"    :
+                    case "IS NOT NULL":
+                        $whereClauses[] = "{$column} {$operator}";
 
                         break;
 
@@ -282,7 +292,7 @@ class PayslipDao
             {$limitClause}
             {$offsetClause}
         ";
-
+echo $query;
         try {
             $statement = $this->pdo->prepare($query);
 
@@ -329,7 +339,7 @@ class PayslipDao
         } catch (PDOException $exception) {
             error_log("Database Error: An error occurred while fetching the payslips. " .
                       "Exception: {$exception->getMessage()}");
-
+echo $exception->getMessage();
             return ActionResult::FAILURE;
         }
     }

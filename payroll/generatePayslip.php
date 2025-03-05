@@ -1,11 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../database/database.php';
+require_once __DIR__ . '/../database/database.php'         ;
 
-require_once __DIR__ . '/PayrollGroup.php'        ;
+require_once __DIR__ . '/PayrollGroup.php'                 ;
 
-require_once __DIR__ . '/PayslipService.php'      ;
-require_once __DIR__ . '/PayrollGroupService.php' ;
+require_once __DIR__ . '/PayslipService.php'               ;
+require_once __DIR__ . '/../leaves/LeaveRequestService.php';
+require_once __DIR__ . '/PayrollGroupService.php'          ;
 
 $payslipDao                = new PayslipDao               ($pdo);
 $employeeDao               = new EmployeeDao              ($pdo);
@@ -56,15 +57,63 @@ $payslipService = new PayslipService(
     leaveEntitlementRepository      : $leaveEntitlementRepository
 );
 
+$leaveRequestAttachmentDao        = new LeaveRequestAttachmentDao       ($pdo                      );
+$leaveRequestAttachmentRepository = new LeaveRequestAttachmentRepository($leaveRequestAttachmentDao);
+$leaveRequestService              = new LeaveRequestService             (
+    leaveRequestRepository          : $leaveRequestRepository          ,
+    leaveRequestAttachmentRepository: $leaveRequestAttachmentRepository
+);
+
 $payrollGroupDao        = new PayrollGroupDao       ($pdo                   );
 $payrollGroupRepository = new PayrollGroupRepository($payrollGroupDao       );
 $payrollGroupService    = new PayrollGroupService   ($payrollGroupRepository);
 
-$currentDateTime   = (new DateTime())->modify('-1 day'     );
-$currentDate       =       $currentDateTime->format('Y-m-d');
-$currentDayOfMonth = (int) $currentDateTime->format('j'    );
-$currentWeekNumber = (int) $currentDateTime->format('W'    );
-$currentDayOfWeek  = (int) $currentDateTime->format('w'    );
+$currentDateTime = new DateTime();
+
+if ($leaveRequestService->updateLeaveRequestStatuses($currentDateTime->format('Y-m-d')) === ActionResult::FAILURE) {
+    return [
+        'status'  => 'error',
+        'message' => 'An unexpected error occurred. Please try again later.'
+    ];
+}
+
+$employeeColumns = [
+    'id'
+];
+
+$employeeFilterCriteria = [
+    [
+        'column'   => 'employee.deleted_at',
+        'operator' => 'IS NULL'
+    ]
+];
+
+$employees = $employeeRepository->fetchAllEmployees(
+    columns             : $employeeColumns       ,
+    filterCriteria      : $employeeFilterCriteria,
+    includeTotalRowCount: false
+);
+
+if ($employees === ActionResult::FAILURE) {
+    return [
+        'status'  => 'error',
+        'message' => 'An unexpected error occurred. Please try again later.'
+    ];
+}
+
+$employees =
+    ! empty($employees['result_set'])
+        ? $employees['result_set']
+        : [];
+
+foreach ($employees as $employee) {
+}
+
+$currentDateTime   = (clone $currentDateTime)->modify('-1 day');
+$currentDate       =        $currentDateTime ->format('Y-m-d' );
+$currentDayOfMonth = (int)  $currentDateTime ->format('j'     );
+$currentWeekNumber = (int)  $currentDateTime ->format('W'     );
+$currentDayOfWeek  = (int)  $currentDateTime ->format('w'     );
 
 $payrollGroupColumns = [
     'id'                        ,
@@ -193,7 +242,7 @@ if ( ! empty($payrollGroups)) {
                     $numberOfDaysInMonth = (int) $cutoffPeriodStartDate->format('t');
 
                     if ($firstCutoff === 15 || $numberOfDaysInMonth <= $secondCutoff) {
-                        $cutoffPeriodStartDate->modify('first day of next month');
+                        $cutoffPeriodStartDate->modify('first day of this month');
                     } else {
                         $cutoffPeriodStartDate->modify('+16 days');
                     }
@@ -220,7 +269,7 @@ if ( ! empty($payrollGroups)) {
         if ($cutoffPeriodStartDate !== null &&
             $cutoffPeriodEndDate   !== null) {
 
-            $paydayDate = (new DateTime($currentDate))
+            $paydayDate = (clone $cutoffPeriodEndDate)
                 ->modify('+' . $payrollGroup['payday_offset'] . ' days');
 
             if ($paydayDate->format('l') === 'Sunday') {
