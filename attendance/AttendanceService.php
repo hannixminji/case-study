@@ -376,6 +376,8 @@ class AttendanceService
                             WHERE
                                 work_schedule_snapshot.work_schedule_id = work_schedule.id
                             AND
+                                attendance.deleted_at IS NULL
+                            AND
                                 attendance.date = '{$formattedCurrentDate}'
                         "
                     ]
