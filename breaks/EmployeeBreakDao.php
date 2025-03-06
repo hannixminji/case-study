@@ -355,6 +355,9 @@ class EmployeeBreakDao
             array_key_exists("work_schedule_snapshot_minutes_can_check_in_before_shift", $selectedColumns) ||
             array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
 
+            array_key_exists("employee_profile_picture"                                , $selectedColumns) ||
+            array_key_exists("employee_code"                                           , $selectedColumns) ||
+
             array_key_exists("work_schedule_id"                                        , $selectedColumns) ||
             array_key_exists("work_schedule_employee_id"                               , $selectedColumns) ||
             array_key_exists("work_schedule_start_time"                                , $selectedColumns) ||
