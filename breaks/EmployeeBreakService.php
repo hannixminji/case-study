@@ -22,6 +22,27 @@ class EmployeeBreakService
         $this->attendanceRepository    = $attendanceRepository   ;
     }
 
+    public function fetchAllEmployeeBreaks(
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? array $groupByColumns       = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
+    ): array|ActionResult {
+
+        return $this->employeeBreakRepository->fetchAllEmployeeBreaks(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            groupByColumns      : $groupByColumns      ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
+    }
+
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeColumns = [

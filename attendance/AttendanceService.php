@@ -58,6 +58,25 @@ class AttendanceService
         $this->breakTypeRepository     = $breakTypeRepository    ;
     }
 
+    public function fetchAllAttendance(
+        ? array $columns              = null,
+        ? array $filterCriteria       = null,
+        ? array $sortCriteria         = null,
+        ? int   $limit                = null,
+        ? int   $offset               = null,
+          bool  $includeTotalRowCount = true
+    ): array|ActionResult {
+
+        return $this->attendanceRepository->fetchAllAttendance(
+            columns             : $columns             ,
+            filterCriteria      : $filterCriteria      ,
+            sortCriteria        : $sortCriteria        ,
+            limit               : $limit               ,
+            offset              : $offset              ,
+            includeTotalRowCount: $includeTotalRowCount
+        );
+    }
+
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeColumns = [

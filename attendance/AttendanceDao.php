@@ -238,6 +238,7 @@ class AttendanceDao
             "work_schedule_snapshot_active_at"                         => "work_schedule_snapshot.active_at                         AS work_schedule_snapshot_active_at"                        ,
 
             "employee_full_name"                                       => "employee.full_name                                       AS employee_full_name"                                      ,
+            "employee_profile_picture"                                 => "employee.profile_picture                                 AS employee_profile_picture"                                ,
             "employee_code"                                            => "employee.employee_code                                   AS employee_code"                                           ,
             "employee_job_title_id"                                    => "employee.job_title_id                                    AS employee_job_title_id"                                   ,
             "employee_department_id"                                   => "employee.department_id                                   AS employee_department_id"                                  ,
@@ -273,6 +274,7 @@ class AttendanceDao
             array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
 
             array_key_exists("employee_full_name"                                      , $selectedColumns) ||
+            array_key_exists("employee_profile_picture"                                , $selectedColumns) ||
             array_key_exists("employee_code"                                           , $selectedColumns) ||
             array_key_exists("employee_job_title_id"                                   , $selectedColumns) ||
             array_key_exists("employee_department_id"                                  , $selectedColumns) ||
@@ -291,16 +293,17 @@ class AttendanceDao
             ";
         }
 
-        if (array_key_exists("employee_full_name"    , $selectedColumns) ||
-            array_key_exists("employee_code"         , $selectedColumns) ||
-            array_key_exists("employee_job_title_id" , $selectedColumns) ||
-            array_key_exists("employee_department_id", $selectedColumns) ||
-            array_key_exists("employee_supervisor_id", $selectedColumns) ||
-            array_key_exists("employee_deleted_at"   , $selectedColumns) ||
+        if (array_key_exists("employee_full_name"      , $selectedColumns) ||
+            array_key_exists("employee_profile_picture", $selectedColumns) ||
+            array_key_exists("employee_code"           , $selectedColumns) ||
+            array_key_exists("employee_job_title_id"   , $selectedColumns) ||
+            array_key_exists("employee_department_id"  , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"  , $selectedColumns) ||
+            array_key_exists("employee_deleted_at"     , $selectedColumns) ||
 
-            array_key_exists("job_title"             , $selectedColumns) ||
+            array_key_exists("job_title"               , $selectedColumns) ||
 
-            array_key_exists("department_name"       , $selectedColumns)) {
+            array_key_exists("department_name"         , $selectedColumns)) {
 
             $joinClauses .= "
                 LEFT JOIN

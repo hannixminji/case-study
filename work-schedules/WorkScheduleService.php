@@ -35,6 +35,11 @@ class WorkScheduleService
         );
     }
 
+    public function fetchLatestWorkScheduleSnapshotById(int $workScheduleId): array|ActionResult
+    {
+        return $this->workScheduleRepository->fetchLatestWorkScheduleSnapshotById($workScheduleId);
+    }
+
     public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
     {
         return $this->workScheduleRepository->updateWorkSchedule($workSchedule);
