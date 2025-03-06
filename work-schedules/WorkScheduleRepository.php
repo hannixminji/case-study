@@ -50,9 +50,17 @@ class WorkScheduleRepository
         return $this->workScheduleDao->update($workSchedule);
     }
 
-    public function getRecurrenceDates(string $recurrenceRule, string $startDate, string $endDate): array|ActionResult
-    {
-        return $this->workScheduleDao->getRecurrenceDates($recurrenceRule, $startDate, $endDate);
+    public function getRecurrenceDates(
+        string $recurrenceRule,
+        string $startDate     ,
+        string $endDate
+    ): array|ActionResult {
+
+        return $this->workScheduleDao->getRecurrenceDates(
+            recurrenceRule: $recurrenceRule,
+            startDate     : $startDate     ,
+            endDate       : $endDate
+        );
     }
 
     public function deleteWorkSchedule(int|string $workScheduleId): ActionResult

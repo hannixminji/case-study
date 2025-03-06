@@ -209,6 +209,9 @@ class EmployeeBreakDao
             "work_schedule_snapshot_minutes_can_check_in_before_shift" => "work_schedule_snapshot.minutes_can_check_in_before_shift AS work_schedule_snapshot_minutes_can_check_in_before_shift",
             "work_schedule_snapshot_active_at"                         => "work_schedule_snapshot.active_at                         AS work_schedule_snapshot_active_at"                        ,
 
+            "employee_profile_picture"                                 => "employee.profile_picture                                 AS employee_profile_picture"                                ,
+            "employee_code"                                            => "employee.employee_code                                   AS employee_code"                                           ,
+
             "work_schedule_id"                                         => "work_schedule.id                                         AS work_schedule_id"                                        ,
             "work_schedule_employee_id"                                => "work_schedule.employee_id                                AS work_schedule_employee_id"                               ,
             "work_schedule_start_time"                                 => "work_schedule.start_time                                 AS work_schedule_start_time"                                ,
@@ -279,6 +282,9 @@ class EmployeeBreakDao
             array_key_exists("work_schedule_snapshot_grace_period"                     , $selectedColumns) ||
             array_key_exists("work_schedule_snapshot_minutes_can_check_in_before_shift", $selectedColumns) ||
             array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
+
+            array_key_exists("employee_profile_picture"                                , $selectedColumns) ||
+            array_key_exists("employee_code"                                           , $selectedColumns) ||
 
             array_key_exists("work_schedule_id"                                        , $selectedColumns) ||
             array_key_exists("work_schedule_employee_id"                               , $selectedColumns) ||
@@ -367,6 +373,17 @@ class EmployeeBreakDao
                     work_schedule_snapshots AS work_schedule_snapshot
                 ON
                     break_schedule_snapshot.work_schedule_snapshot_id = work_schedule_snapshot.id
+            ";
+        }
+
+        if (array_key_exists("employee_profile_picture", $selectedColumns) ||
+            array_key_exists("employee_code"           , $selectedColumns)) {
+
+            $joinClauses .= "
+                LEFT JOIN
+                    employees AS employee
+                ON
+                    work_schedule_snapshot.employee_id = employee.id
             ";
         }
 

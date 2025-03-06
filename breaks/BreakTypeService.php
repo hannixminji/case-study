@@ -16,6 +16,11 @@ class BreakTypeService
         return $this->breakTypeRepository->createBreakType($breakType);
     }
 
+    public function createBreakTypeSnapshot(BreakTypeSnapshot $breakTypeSnapshot): int|ActionResult
+    {
+        return $this->breakTypeRepository->createBreakTypeSnapshot($breakTypeSnapshot);
+    }
+
     public function fetchAllBreakTypes(
         ? array $columns              = null,
         ? array $filterCriteria       = null,

@@ -2,16 +2,21 @@
 
 echo '<pre>';
 
-require_once __DIR__ . '/../database/database.php'                 ;
+require_once __DIR__ . '/../database/database.php'                  ;
 
-require_once __DIR__ . '/PayrollGroup.php'                         ;
+require_once __DIR__ . '/../work-schedules/WorkScheduleSnapshot.php';
+require_once __DIR__ . '/../breaks/BreakScheduleSnapshot.php'       ;
+require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'           ;
+require_once __DIR__ . '/PayrollGroup.php'                          ;
 
-require_once __DIR__ . '/PayslipService.php'                       ;
-require_once __DIR__ . '/../leaves/LeaveRequestService.php'        ;
-require_once __DIR__ . '/PayrollGroupService.php'                  ;
-require_once __DIR__ . '/../holidays/HolidayService.php'           ;
-require_once __DIR__ . '/../settings/SettingService.php'           ;
-require_once __DIR__ . '/../work-schedules/WorkScheduleService.php';
+require_once __DIR__ . '/PayslipService.php'                        ;
+require_once __DIR__ . '/../holidays/HolidayService.php'            ;
+require_once __DIR__ . '/../settings/SettingService.php'            ;
+require_once __DIR__ . '/../leaves/LeaveRequestService.php'         ;
+require_once __DIR__ . '/../work-schedules/WorkScheduleService.php' ;
+require_once __DIR__ . '/../breaks/BreakScheduleService.php'        ;
+require_once __DIR__ . '/../breaks/BreakTypeService.php'            ;
+require_once __DIR__ . '/PayrollGroupService.php'                   ;
 
 $payslipDao                = new PayslipDao               ($pdo);
 $employeeDao               = new EmployeeDao              ($pdo);
@@ -188,7 +193,7 @@ try {
                     attendance_record.deleted_at IS NULL
                 AND
                     attendance_record.date = :current_date
-            );
+            )
     ';
 
     $statement = $pdo->prepare($query);
@@ -229,128 +234,51 @@ try {
             }
         }
 
-        foreach ($workSchedules as $workSchedule) {
-            $latestWorkScheduleSnapshot = $workScheduleService
-                ->fetchLatestWorkScheduleSnapshotById($workSchedule['id']);
+        $currentWorkSchedules = [];
 
-            if ($latestWorkScheduleSnapshot === ActionResult::FAILURE) {
+        foreach ($workSchedules as $workSchedule) {
+            $workScheduleDates = $workScheduleService->getRecurrenceDates(
+                $workSchedule['recurrence_rule'],
+                $currentDate                    ,
+                $currentDate
+            );
+
+            if ($workScheduleDates === ActionResult::FAILURE) {
                 return [
                     'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
 
-            if ( ! empty($latestWorkScheduleSnapshot)) {
-                $workScheduleSnapshotId = $latestWorkScheduleSnapshot['id'];
+            foreach ($workScheduleDates as $workScheduleDate) {
+                $currentWorkSchedules[$workScheduleDate][] = $workSchedule;
             }
+        }
 
-            if (empty($latestWorkScheduleSnapshot) ||
+        foreach ($currentWorkSchedules as $workSchedule) {
+            $workScheduleSnapshot = new WorkScheduleSnapshot(
+                workScheduleId    : $workSchedule['id'                  ],
+                employeeId        : $workSchedule['employee_id'         ],
+                startTime         : $workSchedule['start_time'          ],
+                endTime           : $workSchedule['end_time'            ],
+                isFlextime        : $workSchedule['is_flextime'         ],
+                totalHoursPerWeek : $workSchedule['total_hours_per_week'],
+                totalWorkHours    : $workSchedule['total_work_hours'    ],
+                startDate         : $workSchedule['start_date'          ],
+                recurrenceRule    : $workSchedule['recurrence_rule'     ],
+                gracePeriod       : $gracePeriod                         ,
+                earlyCheckInWindow: $earlyCheckInWindow
+            );
 
-                $workSchedule['start_time'          ] !== $latestWorkScheduleSnapshot['start_time'                       ] ||
-                $workSchedule['end_time'            ] !== $latestWorkScheduleSnapshot['end_time'                         ] ||
-                $workSchedule['is_flextime'         ] !== $latestWorkScheduleSnapshot['is_flextime'                      ] ||
-                $workSchedule['total_hours_per_week'] !== $latestWorkScheduleSnapshot['total_hours_per_week'             ] ||
-                $workSchedule['total_work_hours'    ] !== $latestWorkScheduleSnapshot['total_work_hours'                 ] ||
-                $workSchedule['start_date'          ] !== $latestWorkScheduleSnapshot['start_date'                       ] ||
-                $workSchedule['recurrence_rule'     ] !== $latestWorkScheduleSnapshot['recurrence_rule'                  ] ||
-                $gracePeriod                          !== $latestWorkScheduleSnapshot['grace_period'                     ] ||
-                $earlyCheckInWindow                   !== $latestWorkScheduleSnapshot['minutes_can_check_in_before_shift']) {
+            $workScheduleSnapshotId = $workScheduleService
+                ->createWorkScheduleSnapshot($workScheduleSnapshot);
 
-                $query = '
-                    INSERT INTO work_schedule_snapshots (
-                        work_schedule_id                 ,
-                        employee_id                      ,
-                        start_time                       ,
-                        end_time                         ,
-                        is_flextime                      ,
-                        total_hours_per_week             ,
-                        total_work_hours                 ,
-                        start_date                       ,
-                        recurrence_rule                  ,
-                        grace_period                     ,
-                        minutes_can_check_in_before_shift
-                    )
-                    VALUES (
-                        :work_schedule_id                 ,
-                        :employee_id                      ,
-                        :start_time                       ,
-                        :end_time                         ,
-                        :is_flextime                      ,
-                        :total_hours_per_week             ,
-                        :total_work_hours                 ,
-                        :start_date                       ,
-                        :recurrence_rule                  ,
-                        :grace_period                     ,
-                        :minutes_can_check_in_before_shift
-                    )
-                ';
-
-                $statement = $pdo->prepare($query);
-
-                $statement->bindValue(":work_schedule_id"                 , $workSchedule['id'                  ], Helper::getPdoParameterType($workSchedule['id'                  ]));
-                $statement->bindValue(":employee_id"                      , $workSchedule['employee_id'         ], Helper::getPdoParameterType($workSchedule['employee_id'         ]));
-                $statement->bindValue(":start_time"                       , $workSchedule['start_time'          ], Helper::getPdoParameterType($workSchedule['start_time'          ]));
-                $statement->bindValue(":end_time"                         , $workSchedule['end_time'            ], Helper::getPdoParameterType($workSchedule['end_time'            ]));
-                $statement->bindValue(":is_flextime"                      , $workSchedule['is_flextime'         ], Helper::getPdoParameterType($workSchedule['is_flextime'         ]));
-                $statement->bindValue(":total_hours_per_week"             , $workSchedule['total_hours_per_week'], Helper::getPdoParameterType($workSchedule['total_hours_per_week']));
-                $statement->bindValue(":total_work_hours"                 , $workSchedule['total_work_hours'    ], Helper::getPdoParameterType($workSchedule['total_work_hours'    ]));
-                $statement->bindValue(":start_date"                       , $workSchedule['start_date'          ], Helper::getPdoParameterType($workSchedule['start_date'          ]));
-                $statement->bindValue(":recurrence_rule"                  , $workSchedule['recurrence_rule'     ], Helper::getPdoParameterType($workSchedule['recurrence_rule'     ]));
-                $statement->bindValue(":grace_period"                     , $gracePeriod                         , Helper::getPdoParameterType($gracePeriod                         ));
-                $statement->bindValue(":minutes_can_check_in_before_shift", $earlyCheckInWindow                  , Helper::getPdoParameterType($earlyCheckInWindow                  ));
-
-                $statement->execute();
-
-                $workScheduleSnapshotId = $pdo->lastInsertId();
+            if ($workScheduleSnapshotId === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
             }
-
-            $query = '
-                INSERT INTO attendance (
-                    work_schedule_snapshot_id      ,
-                    date                           ,
-                    check_in_time                  ,
-                    check_out_time                 ,
-                    total_break_duration_in_minutes,
-                    total_hours_worked             ,
-                    late_check_in                  ,
-                    early_check_out                ,
-                    overtime_hours                 ,
-                    is_overtime_approved           ,
-                    attendance_status              ,
-                    remarks
-                )
-                VALUES (
-                    :work_schedule_snapshot_id      ,
-                    :date                           ,
-                    :check_in_time                  ,
-                    :check_out_time                 ,
-                    :total_break_duration_in_minutes,
-                    :total_hours_worked             ,
-                    :late_check_in                  ,
-                    :early_check_out                ,
-                    :overtime_hours                 ,
-                    :is_overtime_approved           ,
-                    :attendance_status              ,
-                    :remarks
-                )
-            ';
-
-            $statement = $pdo->prepare($query);
-
-            $statement->bindValue(":work_schedule_snapshot_id"      , $workScheduleSnapshotId, Helper::getPdoParameterType($workScheduleSnapshotId));
-            $statement->bindValue(":date"                           , $currentDate           , Helper::getPdoParameterType($currentDate           ));
-            $statement->bindValue(":check_in_time"                  , null                   , Helper::getPdoParameterType(null                   ));
-            $statement->bindValue(":check_out_time"                 , null                   , Helper::getPdoParameterType(null                   ));
-            $statement->bindValue(":total_break_duration_in_minutes", 0                      , Helper::getPdoParameterType(0                      ));
-            $statement->bindValue(":total_hours_worked"             , 0.00                   , Helper::getPdoParameterType(0.00                   ));
-            $statement->bindValue(":late_check_in"                  , 0                      , Helper::getPdoParameterType(0                      ));
-            $statement->bindValue(":early_check_out"                , 0                      , Helper::getPdoParameterType(0                      ));
-            $statement->bindValue(":overtime_hours"                 , 0.00                   , Helper::getPdoParameterType(0                      ));
-            $statement->bindValue(":is_overtime_approved"           , 0                      , Helper::getPdoParameterType(0                      ));
-            $statement->bindValue(":attendance_status"              , $attendanceStatus      , Helper::getPdoParameterType($attendanceStatus      ));
-            $statement->bindValue(":remarks"                        , null                   , Helper::getPdoParameterType(null                   ));
-
-            $statement->execute();
         }
     }
 

@@ -16,6 +16,11 @@ class BreakScheduleService
         return $this->breakScheduleRepository->createBreakSchedule($breakSchedule);
     }
 
+    public function createBreakScheduleSnapshot(BreakScheduleSnapshot $breakScheduleSnapshot): int|ActionResult
+    {
+        return $this->breakScheduleRepository->createBreakScheduleSnapshot($breakScheduleSnapshot);
+    }
+
     public function fetchAllBreakSchedules(
         ? array $columns              = null,
         ? array $filterCriteria       = null,
