@@ -279,6 +279,81 @@ try {
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
+
+            $emptyAttendanceRecord = new Attendance(
+                id                         : null                   ,
+                workScheduleSnapshotId     : $workScheduleSnapshotId,
+                date                       : $currentDate           ,
+                checkInTime                : null                   ,
+                checkOutTime               : null                   ,
+                totalBreakDurationInMinutes: 0                      ,
+                totalHoursWorked           : 0.00                   ,
+                lateCheckIn                : 0                      ,
+                earlyCheckOut              : 0                      ,
+                overtimeHours              : 0.00                   ,
+                isOvertimeApproved         : false                  ,
+                attendanceStatus           : $attendanceStatus      ,
+                remarks                    : null
+            );
+
+            $createEmptyAttendanceRecordResult = $attendanceRepository
+                ->createAttendance($emptyAttendanceRecord);
+
+            if ($createEmptyAttendanceRecordResult === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $breakScheduleColumns = [
+                'id'                               ,
+                'break_type_id'                    ,
+                'start_time'                       ,
+                'end_time'                         ,
+
+                'break_type_name'                  ,
+                'break_type_duration_in_minutes'   ,
+                'break_type_is_paid'               ,
+                'is_require_break_in_and_break_out'
+            ];
+
+            $breakScheduleFilterCriteria = [
+                [
+                    'column'   => 'break_schedule.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'break_schedule.work_schedule_id',
+                    'operator' => '='                              ,
+                    'value'    => $workSchedule['id']
+                ]
+            ];
+
+            $breakSchedules = $breakScheduleService->fetchAllBreakSchedules(
+                columns             : $breakScheduleColumns       ,
+                filterCriteria      : $breakScheduleFilterCriteria,
+                includeTotalRowCount: false
+            );
+
+            if ($breakSchedules === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $breakSchedules =
+                ! empty($breakSchedules['result_set'])
+                    ? $breakSchedules['result_set']
+                    : [];
+
+            foreach ($breakSchedules as $breakSchedule) {
+
+            }
+
+
+
         }
     }
 

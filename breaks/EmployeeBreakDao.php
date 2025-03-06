@@ -209,6 +209,7 @@ class EmployeeBreakDao
             "work_schedule_snapshot_minutes_can_check_in_before_shift" => "work_schedule_snapshot.minutes_can_check_in_before_shift AS work_schedule_snapshot_minutes_can_check_in_before_shift",
             "work_schedule_snapshot_active_at"                         => "work_schedule_snapshot.active_at                         AS work_schedule_snapshot_active_at"                        ,
 
+            "employee_full_name"                                       => "employee.full_name                                       AS employee_full_name"                                      ,
             "employee_profile_picture"                                 => "employee.profile_picture                                 AS employee_profile_picture"                                ,
             "employee_code"                                            => "employee.employee_code                                   AS employee_code"                                           ,
 
@@ -283,6 +284,7 @@ class EmployeeBreakDao
             array_key_exists("work_schedule_snapshot_minutes_can_check_in_before_shift", $selectedColumns) ||
             array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
 
+            array_key_exists("employee_full_name"                                      , $selectedColumns) ||
             array_key_exists("employee_profile_picture"                                , $selectedColumns) ||
             array_key_exists("employee_code"                                           , $selectedColumns) ||
 
@@ -355,6 +357,7 @@ class EmployeeBreakDao
             array_key_exists("work_schedule_snapshot_minutes_can_check_in_before_shift", $selectedColumns) ||
             array_key_exists("work_schedule_snapshot_active_at"                        , $selectedColumns) ||
 
+            array_key_exists("employee_full_name"                                      , $selectedColumns) ||
             array_key_exists("employee_profile_picture"                                , $selectedColumns) ||
             array_key_exists("employee_code"                                           , $selectedColumns) ||
 
@@ -379,7 +382,8 @@ class EmployeeBreakDao
             ";
         }
 
-        if (array_key_exists("employee_profile_picture", $selectedColumns) ||
+        if (array_key_exists("employee_full_name"      , $selectedColumns) ||
+            array_key_exists("employee_profile_picture", $selectedColumns) ||
             array_key_exists("employee_code"           , $selectedColumns)) {
 
             $joinClauses .= "
