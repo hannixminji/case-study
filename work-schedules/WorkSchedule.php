@@ -8,8 +8,8 @@ class WorkSchedule
         private readonly   string          $startTime        ,
         private readonly   string          $endTime          ,
         private readonly   bool            $isFlextime       ,
-        private readonly ? int             $totalHoursPerWeek,
-        private readonly   int             $totalWorkHours   ,
+        private readonly ? float           $totalHoursPerWeek,
+        private readonly   float           $totalWorkHours   ,
         private readonly   string          $startDate        ,
         private readonly   string          $recurrenceRule
     ) {
@@ -40,12 +40,12 @@ class WorkSchedule
         return $this->isFlextime;
     }
 
-    public function getTotalHoursPerWeek(): ?int
+    public function getTotalHoursPerWeek(): ?float
     {
         return $this->totalHoursPerWeek;
     }
 
-    public function getTotalWorkHours(): int
+    public function getTotalWorkHours(): float
     {
         return $this->totalWorkHours;
     }
