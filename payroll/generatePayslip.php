@@ -614,7 +614,6 @@ if ( ! empty($payrollGroups)) {
                 }
             }
 
-            /*
             $generatePayslipResult = $payslipService->generatePayslip(
                 payrollGroup         : $newPayrollGroup                       ,
                 cutoffPeriodStartDate: $cutoffPeriodStartDate->format('Y-m-d'),
@@ -628,7 +627,6 @@ if ( ! empty($payrollGroups)) {
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
-            */
         }
     }
 }
