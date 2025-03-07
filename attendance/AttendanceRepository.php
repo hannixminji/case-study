@@ -55,6 +55,11 @@ class AttendanceRepository
         return $this->attendanceDao->update($attendance);
     }
 
+    public function updateAttendanceStatusByDate(string $status, string $date): ActionResult
+    {
+        return $this->attendanceDao->updateStatusByDate($status, $date);
+    }
+
     public function approveOvertime(int|string $attendanceId): ActionResult
     {
         return $this->attendanceDao->approveOvertime($attendanceId);

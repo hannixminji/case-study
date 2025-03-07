@@ -77,6 +77,11 @@ class AttendanceService
         );
     }
 
+    public function approveOvertime(int|string $attendanceId): ActionResult
+    {
+        return $this->attendanceRepository->approveOvertime($attendanceId);
+    }
+
     public function handleRfidTap(string $rfidUid, string $currentDateTime): array
     {
         $employeeColumns = [
@@ -387,17 +392,17 @@ class AttendanceService
                             SELECT
                                 1
                             FROM
-                                attendance
+                                attendance AS attendance_record
                             JOIN
                                 work_schedule_snapshots AS work_schedule_snapshot
                             ON
-                                attendance.work_schedule_snapshot_id = work_schedule_snapshot.id
+                                attendance_record.work_schedule_snapshot_id = work_schedule_snapshot.id
                             WHERE
                                 work_schedule_snapshot.work_schedule_id = work_schedule.id
                             AND
-                                attendance.deleted_at IS NULL
+                                attendance_record.deleted_at IS NULL
                             AND
-                                attendance.date = '{$formattedCurrentDate}'
+                                attendance_record.date = '{$formattedCurrentDate}'
                         "
                     ]
                 ];

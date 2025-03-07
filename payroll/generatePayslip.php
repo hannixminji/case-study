@@ -285,6 +285,8 @@ try {
                     ];
                 }
 
+                $attendanceStatus = 'Absent';
+
                 $emptyAttendanceRecord = new Attendance(
                     id                         : null                   ,
                     workScheduleSnapshotId     : $workScheduleSnapshotId,
@@ -610,76 +612,4 @@ if ( ! empty($payrollGroups)) {
             */
         }
     }
-}
-
-function getCurrentWorkSchedule(
-    array  $assignedWorkSchedules,
-    string $currentDateTime
-): array {
-
-    $currentDateTime = new DateTime($currentDateTime);
-
-    $nextWorkSchedule = [];
-
-    foreach ($assignedWorkSchedules as $workDate => $workSchedules) {
-        foreach ($workSchedules as $workSchedule) {
-            $workStartTime = $workSchedule['start_time'];
-            $workEndTime   = $workSchedule['end_time'  ];
-
-            $workStartDateTime = new DateTime($workDate . ' ' . $workStartTime);
-            $workEndDateTime   = new DateTime($workDate . ' ' . $workEndTime  );
-
-            if ($workEndDateTime <= $workStartDateTime) {
-                $workEndDateTime->modify('+1 day');
-            }
-
-            $workSchedule['start_time'] = $workStartDateTime->format('Y-m-d H:i:s');
-            $workSchedule['end_time'  ] = $workEndDateTime  ->format('Y-m-d H:i:s');
-
-            if ($currentDateTime >= $workStartDateTime && $currentDateTime < $workEndDateTime) {
-                return $workSchedule;
-            }
-
-            if ($currentDateTime < $workStartDateTime && empty($nextWorkSchedule)) {
-                $nextWorkSchedule = $workSchedule;
-            }
-        }
-    }
-
-    return $nextWorkSchedule;
-}
-
-function getPreviousWorkSchedule(
-    array $assignedWorkSchedules,
-    array $currentWorkSchedule
-): array {
-
-    $currentWorkStartDateTime = new DateTime($currentWorkSchedule['start_time']);
-
-    $previousWorkSchedule = [];
-
-    foreach ($assignedWorkSchedules as $workDate => $workSchedules) {
-        foreach ($workSchedules as $workSchedule) {
-            $workStartTime = $workSchedule['start_time'];
-            $workEndTime   = $workSchedule['end_time'  ];
-
-            $workStartDateTime = new DateTime($workDate . ' ' . $workStartTime);
-            $workEndDateTime   = new DateTime($workDate . ' ' . $workEndTime  );
-
-            if ($workEndDateTime <= $workStartDateTime) {
-                $workEndDateTime->modify('+1 day');
-            }
-
-            $workSchedule['start_time'] = $workStartDateTime->format('Y-m-d H:i:s');
-            $workSchedule['end_time'  ] = $workEndDateTime  ->format('Y-m-d H:i:s');
-
-            if ($currentWorkStartDateTime <= $workStartDateTime) {
-                return $previousWorkSchedule;
-            }
-
-            $previousWorkSchedule = $workSchedule;
-        }
-    }
-
-    return $previousWorkSchedule;
 }
