@@ -109,6 +109,13 @@ $currentWeekNumber = (int)  $currentDateTime                   ->format('W'     
 $currentDayOfWeek  = (int)  $currentDateTime                   ->format('w'     );
 
 try {
+    if ($leaveRequestService->updateLeaveRequestStatuses($originalCurrentDateTime->format('Y-m-d')) === ActionResult::FAILURE) {
+        return [
+            'status'  => 'error',
+            'message' => 'An unexpected error occurred. Please try again later.'
+        ];
+    }
+
     $datesMarkedAsHoliday = $holidayService->getHolidayDatesForPeriod(
         startDate: $previousDate,
         endDate  : $currentDate

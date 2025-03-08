@@ -504,7 +504,7 @@ class AttendanceService
                 $adjustedWorkScheduleStartDateTime = clone $workScheduleStartDateTime;
 
                 if ( ! $currentWorkSchedule['is_flextime']) {
-                    $earlyCheckInWindow = (int) $this->settingRepository->fetchSettingValue(
+                    $earlyCheckInWindow = $this->settingRepository->fetchSettingValue(
                         settingKey: 'minutes_can_check_in_before_shift',
                         groupName : 'work_schedule'
                     );
@@ -515,6 +515,8 @@ class AttendanceService
                             'message' => 'An unexpected error occurred. Please try again later.'
                         ];
                     }
+
+                    $earlyCheckInWindow = (int) $earlyCheckInWindow;
 
                     $adjustedWorkScheduleStartDateTime->modify('-' . $earlyCheckInWindow . ' minutes');
 
@@ -990,7 +992,7 @@ class AttendanceService
             $gracePeriod      = 0        ;
 
             if ( ! $workSchedule['is_flextime']) {
-                $gracePeriod = (int) $this->settingRepository->fetchSettingValue(
+                $gracePeriod = $this->settingRepository->fetchSettingValue(
                     settingKey: 'grace_period' ,
                     groupName : 'work_schedule'
                 );
@@ -1001,6 +1003,8 @@ class AttendanceService
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
+
+                $gracePeriod = (int) $gracePeriod;
 
                 $adjustedStartTime = (clone $workScheduleStartDateTime)->modify('+' . $gracePeriod . ' minutes');
 
