@@ -459,7 +459,7 @@ class AttendanceService
                     if (empty($workScheduleDates)) {
                         return [
                             'status'  => 'information',
-                            'message' => 'You don\'t have a work schedule today.'
+                            'message' => 'You do not have a work schedule today.'
                         ];
                     }
 

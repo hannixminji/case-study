@@ -6,10 +6,10 @@ final class Helper
     {
         return match (true) {
             $value === null                    => PDO::PARAM_NULL,
-            is_int($value)                     => PDO::PARAM_INT ,
             is_bool($value)                    => PDO::PARAM_BOOL,
-            is_resource($value)                => PDO::PARAM_LOB ,
+            is_int($value)                     => PDO::PARAM_INT ,
             preg_match('/^[1-9]\d*$/', $value) => PDO::PARAM_INT ,
+            is_resource($value)                => PDO::PARAM_LOB ,
             default                            => PDO::PARAM_STR
         };
     }

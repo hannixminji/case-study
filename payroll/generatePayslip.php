@@ -121,7 +121,7 @@ try {
         ];
     }
 
-    $gracePeriod = (int) $settingRepository->fetchSettingValue(
+    $gracePeriod = $settingRepository->fetchSettingValue(
         settingKey: 'grace_period' ,
         groupName : 'work_schedule'
     );
@@ -133,7 +133,9 @@ try {
         ];
     }
 
-    $earlyCheckInWindow = (int) $settingRepository->fetchSettingValue(
+    $gracePeriod = (int) $gracePeriod;
+
+    $earlyCheckInWindow = $settingRepository->fetchSettingValue(
         settingKey: 'minutes_can_check_in_before_shift',
         groupName : 'work_schedule'
     );
@@ -144,6 +146,8 @@ try {
             'message' => 'An unexpected error occurred. Please try again later.'
         ];
     }
+
+    $earlyCheckInWindow = (int) $earlyCheckInWindow;
 
     $query = '
         SELECT
@@ -184,18 +188,60 @@ try {
         $employeesWorkSchedules[$workSchedule['employee_id']][] = $workSchedule;
     }
 
-    foreach ($employeesWorkSchedules as $employeeId => $workSchedules) {
-        $datesMarkedAsLeave = $leaveRequestService->getLeaveDatesForPeriod(
-            employeeId: $employeeId  ,
-            startDate : $previousDate,
-            endDate   : $currentDate
-        );
+    $previousTwoDaysDate = (new DateTime($previousDate))
+        ->modify('-1 day')
+        ->format('Y-m-d' );
 
-        if ($datesMarkedAsLeave === ActionResult::FAILURE) {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.'
-            ];
+    foreach ($employeesWorkSchedules as $employeeId => $workSchedules) {
+        $query = '
+            SELECT
+                attendance_record.date                  AS date            ,
+                work_schedule_snapshot.work_schedule_id AS work_schedule_id,
+                work_schedule_snapshot.start_time       AS start_time      ,
+                work_schedule_snapshot.end_time         AS end_time
+            FROM
+                attendance AS attendance_record
+            JOIN
+                work_schedule_snapshots AS work_schedule_snapshot
+            ON
+                attendance_record.work_schedule_snapshot_id = work_schedule_snapshot.id
+            WHERE
+                attendance_record.deleted_at IS NULL
+            AND
+                attendance_record.date BETWEEN :previous_two_days_date AND :current_date
+            AND
+                work_schedule_snapshot.employee_id = :employee_id
+            GROUP BY
+                attendance_record.date                 ,
+                work_schedule_snapshot.work_schedule_id
+            ORDER BY
+                attendance_record.date            ASC,
+                work_schedule_snapshot.start_time ASC
+        ';
+
+        $statement = $pdo->prepare($query);
+
+        $statement->bindValue(':previous_two_days_date', $previousTwoDaysDate, Helper::getPdoParameterType($previousTwoDaysDate));
+        $statement->bindValue(':current_date'          , $currentDate        , Helper::getPdoParameterType($currentDate        ));
+        $statement->bindValue(':employee_id'           , $employeeId         , Helper::getPdoParameterType($employeeId         ));
+
+        $statement->execute();
+
+        $employeeRecordedWorkSchedules = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $recordedWorkSchedules = [];
+
+        $recordedWorkSchedules[$previousTwoDaysDate] = [];
+        $recordedWorkSchedules[$previousDate       ] = [];
+        $recordedWorkSchedules[$currentDate        ] = [];
+
+        foreach ($employeeRecordedWorkSchedules as $recordedWorkSchedule) {
+            $date           = $recordedWorkSchedule['date'            ];
+            $workScheduleId = $recordedWorkSchedule['work_schedule_id'];
+
+            $recordedWorkSchedule['is_recorded'] = true;
+
+            $recordedWorkSchedules[$date][$workScheduleId] = $recordedWorkSchedule;
         }
 
         $currentWorkSchedules = [];
@@ -203,7 +249,7 @@ try {
         foreach ($workSchedules as $workSchedule) {
             $workScheduleDates = $workScheduleService->getRecurrenceDates(
                 $workSchedule['recurrence_rule'],
-                $previousDate                   ,
+                $previousTwoDaysDate            ,
                 $currentDate
             );
 
@@ -219,78 +265,95 @@ try {
             }
         }
 
-        if (isset($currentWorkSchedules[$previousDate])) {
-            $lastWorkSchedule = end($currentWorkSchedules[$previousDate]);
-
-            if ( ! empty($lastWorkSchedule)) {
-                if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
-                    $currentWorkSchedules[$previousDate] = [$lastWorkSchedule];
-                } else {
-                    unset($currentWorkSchedules[$previousDate]);
-                }
-            }
-        }
-
-        if (isset($currentWorkSchedules[$currentDate])) {
-            $lastWorkSchedule = end($currentWorkSchedules[$currentDate]);
-
-            if ( ! empty($lastWorkSchedule)) {
-                if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
-                    array_pop($currentWorkSchedules[$currentDate]);
-                }
-            }
-        }
-
         foreach ($currentWorkSchedules as $date => $workSchedules) {
-            $workScheduleIds = array_column($workSchedules, 'id');
+            foreach ($workSchedules as $workSchedule) {
+                $workScheduleId = $workSchedule['id'];
 
-            if ( ! empty($workScheduleIds)) {
-                $placeholders = implode(',', array_fill(0, count($workScheduleIds), '?'));
+                if ( ! isset($recordedWorkSchedules[$date][$workScheduleId])) {
+                    $recordedWorkSchedules[$date][$workScheduleId] = $workSchedule;
+                }
+            }
+        }
 
-                $query = "
-                    SELECT DISTINCT
-                        work_schedule_snapshot.work_schedule_id
-                    FROM
-                        attendance AS attendance_record
-                    JOIN
-                        work_schedule_snapshots AS work_schedule_snapshot
-                    ON
-                        attendance_record.work_schedule_snapshot_id = work_schedule_snapshot.id
-                    WHERE
-                        work_schedule_snapshot.work_schedule_id IN ($placeholders)
-                    AND
-                        attendance_record.deleted_at IS NULL
-                    AND
-                        attendance_record.date = ?
-                ";
+        foreach ($recordedWorkSchedules as &$workSchedules) {
+            usort($workSchedules, fn($workScheduleA, $workScheduleB) =>
+                $workScheduleA['start_time'] <=> $workScheduleB['start_time']
+            );
 
-                $statement = $pdo->prepare($query);
+            $workSchedules = array_values($workSchedules);
+        }
 
-                foreach ($workScheduleIds as $index => $id) {
-                    $statement->bindValue($index + 1, $id, Helper::getPdoParameterType($id));
+        $previousWorkScheduleEndDateTime = null;
+
+        foreach ($recordedWorkSchedules as $date => $workSchedules) {
+            foreach ($workSchedules as $index => $workSchedule) {
+                $currentWorkScheduleStartTime = $workSchedule['start_time'];
+                $currentWorkScheduleEndTime   = $workSchedule['end_time'  ];
+
+                $currentWorkScheduleStartDateTime = new DateTime($date . ' ' . $currentWorkScheduleStartTime);
+                $currentWorkScheduleEndDateTime   = new DateTime($date . ' ' . $currentWorkScheduleEndTime  );
+
+                if ($currentWorkScheduleEndDateTime <= $currentWorkScheduleStartDateTime) {
+                    $currentWorkScheduleEndDateTime->modify('+1 day');
                 }
 
-                $statement->bindValue(count($workScheduleIds) + 1, $date, Helper::getPdoParameterType($date));
+                $adjustedEarlyCheckInWindow = $earlyCheckInWindow;
 
-                $statement->execute();
+                if ($previousWorkScheduleEndDateTime !== null) {
+                    $adjustedCurrentWorkScheduleStartDateTime = (clone $currentWorkScheduleStartDateTime)
+                        ->modify('-' . $earlyCheckInWindow . ' minutes');
 
-                $existingSchedules = $statement->fetchAll(PDO::FETCH_COLUMN);
+                    if ($previousWorkScheduleEndDateTime > $adjustedCurrentWorkScheduleStartDateTime) {
+                        $gapDuration          = $previousWorkScheduleEndDateTime->diff($currentWorkScheduleStartDateTime);
+                        $gapDurationInMinutes = $gapDuration->h * 60 + $gapDuration->i;
+
+                        $adjustedEarlyCheckInWindow = max(0, $gapDurationInMinutes);
+                    }
+                }
+
+                if ( ! isset($workSchedule['is_recorded'])) {
+                    $recordedWorkSchedules[$date][$index]['early_check_in_window'] = $adjustedEarlyCheckInWindow;
+                }
+
+                $previousWorkScheduleEndDateTime = clone $currentWorkScheduleEndDateTime;
             }
+        }
 
+        unset($recordedWorkSchedules[$previousTwoDaysDate]);
+
+        $lastWorkSchedule = end($recordedWorkSchedules[$previousDate]);
+
+        if ( ! empty($lastWorkSchedule)) {
+            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
+                $recordedWorkSchedules[$previousDate] = [$lastWorkSchedule];
+            } else {
+                unset($recordedWorkSchedules[$previousDate]);
+            }
+        }
+
+        $lastWorkSchedule = end($recordedWorkSchedules[$currentDate]);
+
+        if ( ! empty($lastWorkSchedule)) {
+            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
+                array_pop($recordedWorkSchedules[$currentDate]);
+            }
+        }
+
+        foreach ($recordedWorkSchedules as $date => $workSchedules) {
             foreach ($workSchedules as $workSchedule) {
-                if ( ! in_array($workSchedule['id'], $existingSchedules)) {
+                if ( ! isset($workSchedule['is_recorded'])) {
                     $workScheduleSnapshot = new WorkScheduleSnapshot(
-                        workScheduleId    : $workSchedule['id'                  ],
-                        employeeId        : $workSchedule['employee_id'         ],
-                        startTime         : $workSchedule['start_time'          ],
-                        endTime           : $workSchedule['end_time'            ],
-                        isFlextime        : $workSchedule['is_flextime'         ],
-                        totalHoursPerWeek : $workSchedule['total_hours_per_week'],
-                        totalWorkHours    : $workSchedule['total_work_hours'    ],
-                        startDate         : $workSchedule['start_date'          ],
-                        recurrenceRule    : $workSchedule['recurrence_rule'     ],
-                        gracePeriod       : $gracePeriod                         ,
-                        earlyCheckInWindow: $earlyCheckInWindow
+                        workScheduleId    : $workSchedule['id'                   ],
+                        employeeId        : $workSchedule['employee_id'          ],
+                        startTime         : $workSchedule['start_time'           ],
+                        endTime           : $workSchedule['end_time'             ],
+                        isFlextime        : $workSchedule['is_flextime'          ],
+                        totalHoursPerWeek : $workSchedule['total_hours_per_week' ],
+                        totalWorkHours    : $workSchedule['total_work_hours'     ],
+                        startDate         : $workSchedule['start_date'           ],
+                        recurrenceRule    : $workSchedule['recurrence_rule'      ],
+                        gracePeriod       : $gracePeriod                          ,
+                        earlyCheckInWindow: $workSchedule['early_check_in_window']
                     );
 
                     $workScheduleSnapshotId = $workScheduleService
