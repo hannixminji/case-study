@@ -385,25 +385,6 @@ class AttendanceService
                         'column'   => 'work_schedule.employee_id',
                         'operator' => '='                        ,
                         'value'    => $employeeId
-                    ],
-                    [
-                        'operator' => 'NOT EXISTS',
-                        'subquery' => "
-                            SELECT
-                                1
-                            FROM
-                                attendance AS attendance_record
-                            JOIN
-                                work_schedule_snapshots AS work_schedule_snapshot
-                            ON
-                                attendance_record.work_schedule_snapshot_id = work_schedule_snapshot.id
-                            WHERE
-                                work_schedule_snapshot.work_schedule_id = work_schedule.id
-                            AND
-                                attendance_record.deleted_at IS NULL
-                            AND
-                                attendance_record.date = '{$formattedCurrentDate}'
-                        "
                     ]
                 ];
 
@@ -440,6 +421,69 @@ class AttendanceService
                     ];
                 }
 
+                $formattedPreviousTwoDaysDate = (clone $previousDate)
+                    ->modify('-1 day')
+                    ->format('Y-m-d' );
+
+                $query = '
+                    SELECT
+                        attendance_record.date                  AS date            ,
+                        work_schedule_snapshot.work_schedule_id AS work_schedule_id,
+                        work_schedule_snapshot.start_time       AS start_time      ,
+                        work_schedule_snapshot.end_time         AS end_time
+                    FROM
+                        attendance AS attendance_record
+                    JOIN
+                        work_schedule_snapshots AS work_schedule_snapshot
+                    ON
+                        attendance_record.work_schedule_snapshot_id = work_schedule_snapshot.id
+                    WHERE
+                        attendance_record.deleted_at IS NULL
+                    AND
+                        attendance_record.date BETWEEN :previous_two_days_date AND :current_date
+                    AND
+                        work_schedule_snapshot.employee_id = :employee_id
+                    GROUP BY
+                        attendance_record.date                 ,
+                        work_schedule_snapshot.work_schedule_id
+                    ORDER BY
+                        attendance_record.date            ASC,
+                        work_schedule_snapshot.start_time ASC
+                ';
+
+                try {
+                    $statement = $this->pdo->prepare($query);
+
+                    $statement->bindValue(':previous_two_days_date', $formattedPreviousTwoDaysDate, Helper::getPdoParameterType($formattedPreviousTwoDaysDate));
+                    $statement->bindValue(':current_date'          , $formattedCurrentDate        , Helper::getPdoParameterType($formattedCurrentDate        ));
+                    $statement->bindValue(':employee_id'           , $employeeId                  , Helper::getPdoParameterType($employeeId                  ));
+
+                    $statement->execute();
+
+                    $employeeRecordedWorkSchedules = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+                } catch (PDOException $exception) {
+                    return [
+                        'status'  => 'error',
+                        'message' => 'An unexpected error occurred. Please try again later.'
+                    ];
+                }
+
+                $recordedWorkSchedules = [];
+
+                $recordedWorkSchedules[$formattedPreviousTwoDaysDate] = [];
+                $recordedWorkSchedules[$formattedPreviousDate       ] = [];
+                $recordedWorkSchedules[$formattedCurrentDate        ] = [];
+
+                foreach ($employeeRecordedWorkSchedules as $recordedWorkSchedule) {
+                    $date           = $recordedWorkSchedule['date'            ];
+                    $workScheduleId = $recordedWorkSchedule['work_schedule_id'];
+
+                    $recordedWorkSchedule['is_recorded'] = true;
+
+                    $recordedWorkSchedules[$date][$workScheduleId] = $recordedWorkSchedule;
+                }
+
                 $currentWorkSchedules = [];
 
                 foreach ($workSchedules as $workSchedule) {
@@ -467,6 +511,26 @@ class AttendanceService
                         $currentWorkSchedules[$workScheduleDate][] = $workSchedule;
                     }
                 }
+
+                foreach ($currentWorkSchedules as $date => $workSchedules) {
+                    foreach ($workSchedules as $workSchedule) {
+                        $workScheduleId = $workSchedule['id'];
+
+                        if ( ! isset($recordedWorkSchedules[$date][$workScheduleId])) {
+                            $recordedWorkSchedules[$date][$workScheduleId] = $workSchedule;
+                        }
+                    }
+                }
+
+                foreach ($recordedWorkSchedules as &$workSchedules) {
+                    usort($workSchedules, fn($workScheduleA, $workScheduleB) =>
+                        $workScheduleA['start_time'] <=> $workScheduleB['start_time']
+                    );
+
+                    $workSchedules = array_values($workSchedules);
+                }
+
+                $currentWorkSchedules = $recordedWorkSchedules;
 
                 $currentWorkSchedule = $this->getCurrentWorkSchedule(
                     $currentWorkSchedules    ,
@@ -1637,11 +1701,11 @@ class AttendanceService
                 $workSchedule['start_time'] = $workStartDateTime->format('Y-m-d H:i:s');
                 $workSchedule['end_time'  ] = $workEndDateTime  ->format('Y-m-d H:i:s');
 
-                if ($currentDateTime >= $workStartDateTime && $currentDateTime < $workEndDateTime) {
+                if ($currentDateTime >= $workStartDateTime && $currentDateTime < $workEndDateTime && ! isset($workSchedule['is_recorded'])) {
                     return $workSchedule;
                 }
 
-                if ($currentDateTime < $workStartDateTime && empty($nextWorkSchedule)) {
+                if ($currentDateTime < $workStartDateTime && empty($nextWorkSchedule) && ! isset($workSchedule['is_recorded'])) {
                     $nextWorkSchedule = $workSchedule;
                 }
             }

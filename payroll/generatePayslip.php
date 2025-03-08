@@ -1,7 +1,5 @@
 <?php
 
-echo '<pre>';
-
 require_once __DIR__ . '/../database/database.php'                  ;
 
 require_once __DIR__ . '/../work-schedules/WorkScheduleSnapshot.php';
