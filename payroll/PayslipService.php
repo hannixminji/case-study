@@ -1011,6 +1011,10 @@ class PayslipService
                                             'is_paid'    => $isPaid
                                         ];
                                     }
+
+                                    if ($previousBreakRecordEndDateTime === null) {
+                                        $previousBreakRecordEndDateTime = $breakScheduleEndDateTime;
+                                    }
                                 }
 
                                 if ( ! empty($breakRecords)) {
