@@ -193,6 +193,7 @@ class EmployeeBreakService
             }
 
             $earlyCheckInWindow = $lastAttendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
+
             $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
                 ->modify('-' . $earlyCheckInWindow . ' minutes');
 
@@ -226,6 +227,10 @@ class EmployeeBreakService
                     'operator'    => 'BETWEEN'                                  ,
                     'lower_bound' => $formattedAdjustedWorkScheduleStartDateTime,
                     'upper_bound' => $formattedWorkScheduleEndDateTime
+                ],
+                [
+                    'column'   => 'employee_break.start_time',
+                    'operator' => 'IS NOT NULL'
                 ]
             ];
 
@@ -259,13 +264,7 @@ class EmployeeBreakService
             if (empty($lastBreakRecord)                  ||
 
                ($lastBreakRecord['start_time'] !== null  &&
-                $lastBreakRecord['end_time'  ] !== null) ||
-
-               ($lastBreakRecord['start_time'] === null  &&
-                $lastBreakRecord['end_time'  ] !== null) ||
-
-               ($lastBreakRecord['start_time'] === null  &&
-                $lastBreakRecord['end_time'  ] === null)) {
+                $lastBreakRecord['end_time'  ] !== null)) {
 
                 $isBreakIn = true;
 
@@ -495,15 +494,24 @@ class EmployeeBreakService
             }
         }
 
-        if ($isBreakIn) {
-            return [
-                'status'  => 'success',
-                'message' => 'Break-in recorded successfully.'
-            ];
+        if (isset($isBreakIn)) {
+            if ($isBreakIn) {
+                return [
+                    'status'  => 'success',
+                    'message' => 'Break-in recorded successfully.'
+                ];
+
+            } else {
+                return [
+                    'status'  => 'success',
+                    'message' => 'Break-out recorded successfully.'
+                ];
+            }
+
         } else {
             return [
-                'status'  => 'success',
-                'message' => 'Break-out recorded successfully.'
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
     }

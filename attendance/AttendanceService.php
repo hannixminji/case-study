@@ -283,6 +283,10 @@ class AttendanceService
                 'column'   => 'work_schedule_snapshot.employee_id',
                 'operator' => '='                                 ,
                 'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.check_in_time',
+                'operator' => 'IS NOT NULL'
             ]
         ];
 
@@ -324,13 +328,7 @@ class AttendanceService
         if (empty($lastAttendanceRecord)                      ||
 
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
-            $lastAttendanceRecord['check_out_time'] !== null) ||
-
-           ($lastAttendanceRecord['check_in_time' ] === null  &&
-            $lastAttendanceRecord['check_out_time'] !== null) ||
-
-           ($lastAttendanceRecord['check_in_time' ] === null  &&
-            $lastAttendanceRecord['check_out_time'] === null)) {
+            $lastAttendanceRecord['check_out_time'] !== null)) {
 
             $isCheckIn = true;
 
@@ -1412,7 +1410,11 @@ class AttendanceService
                     }
                 }
 
+                $previousBreakRecordEndDateTime = null;
+
                 foreach ($mergedBreakRecords as $breakRecord) {
+                    $isPaid = $breakRecord['break_type_snapshot_is_paid'];
+
                     $breakScheduleStartTime = $breakRecord['break_schedule_snapshot_start_time'];
                     $breakScheduleEndTime   = $breakRecord['break_schedule_snapshot_end_time'  ];
 
@@ -1433,6 +1435,8 @@ class AttendanceService
 
                     if ($checkInDateTime > $breakScheduleStartDateTime) {
                         $breakScheduleStartDateTime = clone $checkInDateTime;
+                    } elseif ( ! $isPaid && $previousBreakRecordEndDateTime !== null && $previousBreakRecordEndDateTime > $breakScheduleStartDateTime) {
+                        $breakScheduleStartDateTime = clone $previousBreakRecordEndDateTime;
                     }
 
                     if ($checkOutDateTime >= $breakScheduleStartDateTime) {
@@ -1450,13 +1454,15 @@ class AttendanceService
                             $overtimeBreakDuration          = $breakScheduleEndDateTime->diff($breakRecordEndDateTime)  ;
                             $overtimeBreakDurationInMinutes = $overtimeBreakDuration->h * 60 + $overtimeBreakDuration->i;
 
-                            if ($breakRecord['break_type_snapshot_is_paid']) {
+                            if ($isPaid) {
                                 $paidBreakInMinutes   += $breakRecord['break_type_snapshot_duration_in_minutes'];
-                                $unpaidBreakInMinutes += $overtimeBreakDurationInMinutes;
+                                $unpaidBreakInMinutes += max(0, $overtimeBreakDurationInMinutes);
 
                             } else {
-                                $unpaidBreakInMinutes += $breakDurationInMinutes;
+                                $unpaidBreakInMinutes += max(0, $breakDurationInMinutes);
                             }
+
+                            $breakScheduleEndDateTime = clone $breakRecordEndDateTime;
 
                         } else {
                             $breakScheduleEndDateTime =
@@ -1464,13 +1470,19 @@ class AttendanceService
                                     ? $breakScheduleEndDateTime
                                     : $checkOutDateTime;
 
+                            if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
+                                $breakScheduleStartDateTime = clone $breakScheduleEndDateTime;
+
+                                $previousBreakRecordEndDateTime = $breakScheduleEndDateTime;
+                            }
+
                             $breakDuration          = $breakScheduleStartDateTime->diff($breakScheduleEndDateTime);
                             $breakDurationInMinutes = $breakDuration->h * 60 + $breakDuration->i                  ;
 
-                            if ($breakRecord['break_type_snapshot_is_paid']) {
-                                $paidBreakInMinutes += $breakDurationInMinutes;
+                            if ($isPaid) {
+                                $paidBreakInMinutes += max(0, $breakDurationInMinutes);
                             } else {
-                                $unpaidBreakInMinutes += $breakDurationInMinutes;
+                                $unpaidBreakInMinutes += max(0, $breakDurationInMinutes);
                             }
                         }
                     }
@@ -1663,18 +1675,30 @@ class AttendanceService
             }
         }
 
-        if ($isCheckIn) {
-            return [
-                'status'  => 'success',
-                'message' => 'Checked-in recorded successfully.'
-            ];
+        if (isset($isCheckIn)) {
+            if ($isCheckIn) {
+                return [
+                    'status'  => 'success',
+                    'message' => 'Checked-in recorded successfully.'
+                ];
+
+            } else {
+                return [
+                    'status'  => 'success',
+                    'message' => 'Checked-out recorded successfully.'
+                ];
+            }
 
         } else {
             return [
-                'status'  => 'success',
-                'message' => 'Checked-out recorded successfully.'
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
             ];
         }
+    }
+
+    public function updateAttendance()
+    {
     }
 
     private function getCurrentWorkSchedule(

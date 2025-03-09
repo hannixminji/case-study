@@ -359,7 +359,8 @@ class AttendanceDao
 
                         break;
 
-                    case "IS NULL":
+                    case "IS NULL"    :
+                    case "IS NOT NULL":
                         $whereClauses[] = "{$column} {$operator}";
 
                         break;
