@@ -1617,7 +1617,6 @@ class AttendanceService
                     remarks                     : $lastAttendanceRecord['remarks'                          ]
                 );
 
-                /*
                 $attendanceCheckOutResult = $this->attendanceRepository->checkOut($currentAttendanceRecord);
 
                 if ($attendanceCheckOutResult === ActionResult::FAILURE) {
@@ -1626,7 +1625,6 @@ class AttendanceService
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
-                */
 
                 $this->pdo->beginTransaction();
 
@@ -1648,7 +1646,6 @@ class AttendanceService
                             remarks                    : $attendanceRecord['remarks'                        ]
                         );
 
-                        /*
                         $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($currentAttendanceRecord);
 
                         if ($attendanceUpdateResult === ActionResult::FAILURE) {
@@ -1659,7 +1656,6 @@ class AttendanceService
                                 'message' => 'Failed to update one or more attendance records.'
                             ];
                         }
-                        */
                     }
                 }
 
