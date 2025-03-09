@@ -992,6 +992,8 @@ class PayslipService
 
                                             $breakScheduleEndDateTime = $breakRecordEndDateTime;
 
+                                            $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
+
                                         } else {
                                             $breakScheduleEndDateTime =
                                                 $checkOutDateTime >= $breakScheduleEndDateTime
@@ -1001,7 +1003,7 @@ class PayslipService
                                             if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
                                                 $breakScheduleStartDateTime = clone $breakScheduleEndDateTime;
 
-                                                $previousBreakRecordEndDateTime = $breakScheduleEndDateTime;
+                                                $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
                                             }
                                         }
 

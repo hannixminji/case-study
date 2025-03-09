@@ -1464,6 +1464,8 @@ class AttendanceService
 
                             $breakScheduleEndDateTime = clone $breakRecordEndDateTime;
 
+                            $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
+
                         } else {
                             $breakScheduleEndDateTime =
                                 $checkOutDateTime >= $breakScheduleEndDateTime
@@ -1473,7 +1475,7 @@ class AttendanceService
                             if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
                                 $breakScheduleStartDateTime = clone $breakScheduleEndDateTime;
 
-                                $previousBreakRecordEndDateTime = $breakScheduleEndDateTime;
+                                $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
                             }
 
                             $breakDuration          = $breakScheduleStartDateTime->diff($breakScheduleEndDateTime);
