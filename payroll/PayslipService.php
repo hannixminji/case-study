@@ -1577,7 +1577,7 @@ class PayslipService
 
                                 $workTimePeriod = new DatePeriod(
                                     $adjustedCheckInDateTime ,
-                                    $breakTimeInterval       ,
+                                    $workTimeInterval        ,
                                     $adjustedCheckOutDateTime
                                 );
 

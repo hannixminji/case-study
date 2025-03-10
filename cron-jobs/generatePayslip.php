@@ -9,7 +9,7 @@ require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'           ;
 require_once __DIR__ . '/../breaks/EmployeeBreak.php'               ;
 require_once __DIR__ . '/../payroll/PayrollGroup.php'               ;
 
-require_once __DIR__ . '/../PayslipService.php'                     ;
+require_once __DIR__ . '/../payroll/PayslipService.php'             ;
 require_once __DIR__ . '/../holidays/HolidayService.php'            ;
 require_once __DIR__ . '/../settings/SettingService.php'            ;
 require_once __DIR__ . '/../leaves/LeaveRequestService.php'         ;
@@ -96,7 +96,7 @@ $payrollGroupDao        = new PayrollGroupDao       ($pdo                   );
 $payrollGroupRepository = new PayrollGroupRepository($payrollGroupDao       );
 $payrollGroupService    = new PayrollGroupService   ($payrollGroupRepository);
 
-$originalCurrentDateTime = new DateTime();
+$originalCurrentDateTime = new DateTime('2025-03-16');
 
 $currentDateTime   =  clone $originalCurrentDateTime                             ;
 $currentDateTime   = (clone $currentDateTime)->modify('-1 day')                  ;
@@ -280,12 +280,12 @@ try {
             }
         }
 
-        foreach ($recordedWorkSchedules as &$workSchedules) {
+        foreach ($recordedWorkSchedules as $date => $workSchedules) {
             usort($workSchedules, fn($workScheduleA, $workScheduleB) =>
                 $workScheduleA['start_time'] <=> $workScheduleB['start_time']
             );
 
-            $workSchedules = array_values($workSchedules);
+            $recordedWorkSchedules[$date] = array_values($workSchedules);
         }
 
         $previousWorkScheduleEndDateTime = null;
@@ -376,7 +376,7 @@ try {
                     $emptyAttendanceRecord = new Attendance(
                         id                         : null                   ,
                         workScheduleSnapshotId     : $workScheduleSnapshotId,
-                        date                       : $currentDate           ,
+                        date                       : $date                  ,
                         checkInTime                : null                   ,
                         checkOutTime               : null                   ,
                         totalBreakDurationInMinutes: 0                      ,
