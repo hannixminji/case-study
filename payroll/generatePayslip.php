@@ -329,7 +329,7 @@ try {
         $lastWorkSchedule = end($recordedWorkSchedules[$previousDate]);
 
         if ( ! empty($lastWorkSchedule)) {
-            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
+            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time'] && $lastWorkSchedule['end_time'] !== '00:00:00') {
                 $recordedWorkSchedules[$previousDate] = [$lastWorkSchedule];
             } else {
                 unset($recordedWorkSchedules[$previousDate]);
@@ -339,7 +339,7 @@ try {
         $lastWorkSchedule = end($recordedWorkSchedules[$currentDate]);
 
         if ( ! empty($lastWorkSchedule)) {
-            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time']) {
+            if ($lastWorkSchedule['end_time'] <= $lastWorkSchedule['start_time'] && $lastWorkSchedule['end_time'] !== '00:00:00') {
                 array_pop($recordedWorkSchedules[$currentDate]);
             }
         }
