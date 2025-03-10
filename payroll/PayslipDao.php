@@ -147,6 +147,8 @@ class PayslipDao
 
             "employee_department_name"     => "department.name                AS department_name"       ,
 
+            "pay_frequency"                => "payroll_group.pay_frequency    AS pay_frequency"         ,
+
             "total_basic_pay"              => "SUM(basic_pay)                 AS total_basic_pay"
         ];
 
@@ -197,6 +199,15 @@ class PayslipDao
                     departments AS department
                 ON
                     employee.department_id = department.id
+            ";
+        }
+
+        if (array_key_exists("pay_frequency", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    payroll_groups AS payroll_group
+                ON
+                    payslip.payroll_group_id = payroll_group.id
             ";
         }
 

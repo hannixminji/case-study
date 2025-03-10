@@ -1703,8 +1703,12 @@ class AttendanceService
         }
     }
 
-    public function updateAttendance()
-    {
+    public function updateAttendance(
+        int|string $attendanceId,
+        string $checkInDateTime,
+    ): array {
+
+        return [];
     }
 
     private function getCurrentWorkSchedule(
