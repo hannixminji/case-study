@@ -1704,8 +1704,9 @@ class AttendanceService
     }
 
     public function updateAttendance(
-        int|string $attendanceId,
-        string $checkInDateTime,
+        int|string $attendanceId    ,
+        string     $checkInDateTime ,
+        string     $checkOutDateTime
     ): array {
 
         return [];
