@@ -1709,6 +1709,83 @@ class AttendanceService
         string     $checkOutDateTime
     ): array {
 
+        $checkInDateTime  = new DateTime($checkInDateTime );
+        $checkOutDateTime = new DateTime($checkOutDateTime);
+
+        $formattedCheckInDateTime  = $checkInDateTime ->format('Y-m-d H:i:s');
+        $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
+
+        $attendanceRecordColumns = [
+            'date'                                                    ,
+
+            'work_schedule_snapshot_start_time'                       ,
+            'work_schedule_snapshot_end_time'                         ,
+            'work_schedule_snapshot_is_flextime'                      ,
+            'work_schedule_snapshot_grace_period'                     ,
+            'work_schedule_snapshot_minutes_can_check_in_before_shift'
+        ];
+
+        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
+            $attendanceRecordFilterCriteria = [
+                [
+                    'column'   => 'attendance.id',
+                    'operator' => '='            ,
+                    'value'    => $attendanceId
+                ]
+            ];
+
+        } else {
+            $attendanceRecordFilterCriteria = [
+                [
+                    'column'   => 'SHA2(attendance.id, 256)',
+                    'operator' => '='                       ,
+                    'value'    => $attendanceId
+                ]
+            ];
+        }
+
+        $attendanceRecord = $this->attendanceRepository->fetchAllAttendance(
+            columns             : $attendanceRecordColumns       ,
+            filterCriteria      : $attendanceRecordFilterCriteria,
+            limit               : 1                              ,
+            includeTotalRowCount: false
+        );
+
+        if ($attendanceRecord === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
+        }
+
+        $attendanceRecord =
+            ! empty($attendanceRecord['result_set'])
+                ? $attendanceRecord['result_set'][0]
+                : [];
+
+        $workScheduleDate = $attendanceRecord['date'];
+
+        $holidayColumns = [
+            'is_paid'
+        ];
+
+        $holidayFilterCriteria = [
+            [
+                'column'   => 'holiday.deleted_at',
+                'operator' => 'IS NULL'
+            ],
+            [
+                'column'   => 'holiday.start_date' ,
+                'operator' => '<='                 ,
+                'value'    => $workScheduleDate
+            ],
+            [
+                'column'   => 'holiday.end_date'   ,
+                'operator' => '>='                 ,
+                'value'    => $workScheduleDate
+            ]
+        ];
+
         return [];
     }
 
