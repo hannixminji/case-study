@@ -1716,11 +1716,16 @@ class AttendanceService
         $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
 
         $attendanceRecordColumns = [
+            'work_schedule_snapshot_id'                               ,
             'date'                                                    ,
+            'is_overtime_approved'                                    ,
+            'remarks'                                                 ,
 
+            'work_schedule_snapshot_employee_id'                      ,
             'work_schedule_snapshot_start_time'                       ,
             'work_schedule_snapshot_end_time'                         ,
             'work_schedule_snapshot_is_flextime'                      ,
+            'work_schedule_snapshot_total_work_hours'                 ,
             'work_schedule_snapshot_grace_period'                     ,
             'work_schedule_snapshot_minutes_can_check_in_before_shift'
         ];
@@ -1765,6 +1770,8 @@ class AttendanceService
 
         $workScheduleDate = $attendanceRecord['date'];
 
+        $employeeId = $attendanceRecord['work_schedule_snapshot_employee_id'];
+
         $holidayColumns = [
             'is_paid'
         ];
@@ -1775,16 +1782,150 @@ class AttendanceService
                 'operator' => 'IS NULL'
             ],
             [
-                'column'   => 'holiday.start_date' ,
-                'operator' => '<='                 ,
+                'column'   => 'holiday.start_date',
+                'operator' => '<='                ,
                 'value'    => $workScheduleDate
             ],
             [
-                'column'   => 'holiday.end_date'   ,
-                'operator' => '>='                 ,
+                'column'   => 'holiday.end_date',
+                'operator' => '>='              ,
                 'value'    => $workScheduleDate
             ]
         ];
+
+        $isPaidHoliday = $this->holidayRepository->fetchAllHolidays(
+            columns             : $holidayColumns       ,
+            filterCriteria      : $holidayFilterCriteria,
+            limit               : 1                     ,
+            includeTotalRowCount: false
+        );
+
+        if ($isPaidHoliday === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred. Please try again later.'
+            ];
+        }
+
+        $isPaidHoliday =
+            ! empty($isPaidHoliday['result_set'])
+                ? $isPaidHoliday['result_set'][0]['is_paid']
+                : [];
+
+        $isOnLeave = [];
+
+        if ($isPaidHoliday) {
+            $leaveRequestColumns = [
+                'is_half_day'  ,
+                'half_day_part'
+            ];
+
+            $leaveRequestFilterCriteria = [
+                [
+                    'column'   => 'leave_request.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => 'leave_request.employee_id',
+                    'operator' => '='                        ,
+                    'value'    => $employeeId
+                ],
+                [
+                    'column'   => 'leave_request.start_date',
+                    'operator' => '<='                      ,
+                    'value'    => $workScheduleDate
+                ],
+                [
+                    'column'   => 'leave_request.end_date',
+                    'operator' => '>='                    ,
+                    'value'    => $workScheduleDate
+                ],
+                [
+                    'column'     => 'leave_request.status'      ,
+                    'operator'   => 'IN'                        ,
+                    'value_list' => ['In Progress', 'Completed']
+                ]
+            ];
+
+            $isOnLeave = $this->leaveRequestRepository->fetchAllLeaveRequests(
+                columns             : $leaveRequestColumns       ,
+                filterCriteria      : $leaveRequestFilterCriteria,
+                limit               : 1                          ,
+                includeTotalRowCount: false
+            );
+
+            if ($isOnLeave === ActionResult::FAILURE) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'An unexpected error occurred. Please try again later.'
+                ];
+            }
+
+            $isOnLeave =
+                ! empty($isOnLeave['result_set'])
+                    ? $isOnLeave['result_set'][0]
+                    : [];
+
+            if ( ! empty($isOnLeave) &&
+                       ! $isOnLeave['is_half_day']) {
+
+                return [
+                    'status'  => 'warning',
+                    'message' => 'The attendance record is marked as a full-day leave and cannot be modified.'
+                ];
+            }
+        }
+
+        $workScheduleStartTime = $attendanceRecord['work_schedule_snapshot_start_time'];
+        $workScheduleEndTime   = $attendanceRecord['work_schedule_snapshot_end_time'  ];
+
+        $workScheduleStartDateTime = new DateTime($workScheduleDate . ' ' . $workScheduleStartTime);
+        $workScheduleEndDateTime   = new DateTime($workScheduleDate . ' ' . $workScheduleEndTime  );
+
+        if ($workScheduleEndDateTime <= $workScheduleStartDateTime) {
+            $workScheduleEndDateTime->modify('+1 day');
+        }
+
+        $earlyCheckInWindow = $attendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
+
+        $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
+            ->modify('-' . $earlyCheckInWindow . ' minutes');
+
+        if (empty($checkInDateTime) || empty($checkOutDateTime)) {
+            return [
+                'status'  => 'invalid',
+                'message' => ''
+            ];
+        }
+
+        if ($checkOutDateTime < $checkInDateTime) {
+            return [
+                'status'  => 'invalid',
+                'message' => ''
+            ];
+        }
+
+        if ($checkInDateTime < $adjustedWorkScheduleStartDateTime) {
+            return [
+                'status'  => 'invalid',
+                'message' => ''
+            ];
+        }
+
+        if ($checkInDateTime >= $workScheduleEndDateTime) {
+            return [
+                'status'  => 'invalid',
+                'message' => ''
+            ];
+        }
+
+        $now = new DateTime();
+        if ($checkInDateTime > $now || $checkOutDateTime > $now) {
+            return [
+                'status'  => 'invalid',
+                'message' => ''
+            ];
+        }
 
         return [];
     }

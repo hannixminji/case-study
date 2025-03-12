@@ -112,50 +112,56 @@ class PayslipDao
     ): array|ActionResult {
 
         $tableColumns = [
-            "id"                           => "payslip.id                     AS id"                    ,
-            "employee_id"                  => "payslip.employee_id            AS employee_id"           ,
-            "payroll_group_id"             => "payslip.payroll_group_id       AS payroll_group_id"      ,
-            "pay_date"                     => "payslip.pay_date               AS pay_date"              ,
-            "pay_period_start_date"        => "payslip.pay_period_start_date  AS pay_period_start_date" ,
-            "pay_period_end_date"          => "payslip.pay_period_end_date    AS pay_period_end_date"   ,
-            "basic_salary"                 => "payslip.basic_salary           AS basic_salary"          ,
-            "basic_pay"                    => "payslip.basic_pay              AS basic_pay"             ,
-            "gross_pay"                    => "payslip.gross_pay              AS gross_pay"             ,
-            "net_pay"                      => "payslip.net_pay                AS net_pay"               ,
-            "sss_deduction"                => "payslip.sss_deduction          AS sss_deduction"         ,
-            "philhealth_deduction"         => "payslip.philhealth_deduction   AS philhealth_deduction"  ,
-            "pagibig_fund_deduction"       => "payslip.pagibig_fund_deduction AS pagibig_fund_deduction",
-            "withholding_tax"              => "payslip.withholding_tax        AS withholding_tax"       ,
-            "thirteen_month_pay"           => "payslip.thirteen_month_pay     AS thirteen_month_pay"    ,
-            "leave_salary"                 => "payslip.leave_salary           AS leave_salary"          ,
-            "work_hours"                   => "payslip.work_hours             AS work_hours"            ,
-            "overtime_rates"               => "payslip.overtime_rates         AS overtime_rates"        ,
-            "created_at"                   => "payslip.created_at             AS created_at"            ,
-            "updated_at"                   => "payslip.updated_at             AS updated_at"            ,
-            "deleted_at"                   => "payslip.deleted_at             AS deleted_at"            ,
+            "id"                           => "payslip.id                      AS id"                    ,
+            "employee_id"                  => "payslip.employee_id             AS employee_id"           ,
+            "payroll_group_id"             => "payslip.payroll_group_id        AS payroll_group_id"      ,
+            "pay_date"                     => "payslip.pay_date                AS pay_date"              ,
+            "pay_period_start_date"        => "payslip.pay_period_start_date   AS pay_period_start_date" ,
+            "pay_period_end_date"          => "payslip.pay_period_end_date     AS pay_period_end_date"   ,
+            "basic_salary"                 => "payslip.basic_salary            AS basic_salary"          ,
+            "basic_pay"                    => "payslip.basic_pay               AS basic_pay"             ,
+            "gross_pay"                    => "payslip.gross_pay               AS gross_pay"             ,
+            "net_pay"                      => "payslip.net_pay                 AS net_pay"               ,
+            "sss_deduction"                => "payslip.sss_deduction           AS sss_deduction"         ,
+            "philhealth_deduction"         => "payslip.philhealth_deduction    AS philhealth_deduction"  ,
+            "pagibig_fund_deduction"       => "payslip.pagibig_fund_deduction  AS pagibig_fund_deduction",
+            "withholding_tax"              => "payslip.withholding_tax         AS withholding_tax"       ,
+            "thirteen_month_pay"           => "payslip.thirteen_month_pay      AS thirteen_month_pay"    ,
+            "leave_salary"                 => "payslip.leave_salary            AS leave_salary"          ,
+            "work_hours"                   => "payslip.work_hours              AS work_hours"            ,
+            "overtime_rates"               => "payslip.overtime_rates          AS overtime_rates"        ,
+            "created_at"                   => "payslip.created_at              AS created_at"            ,
+            "updated_at"                   => "payslip.updated_at              AS updated_at"            ,
+            "deleted_at"                   => "payslip.deleted_at              AS deleted_at"            ,
 
-            "employee_full_name"           => "employee.full_name             AS full_name"             ,
-            "employee_marital_status"      => "employee.marital_status        AS marital_status"        ,
-            "employee_code"                => "employee.employee_code         AS employee_code"         ,
-            "employee_employment_type"     => "employee.employment_type       AS employment_type"       ,
-            "employee_date_of_hire"        => "employee.date_of_hire          AS date_of_hire"          ,
-            "employee_basic_salary"        => "employee.basic_salary          AS basic_salary"          ,
-            "tin_number"                   => "employee.tin_number            AS tin_number"            ,
-            "sss_number"                   => "employee.sss_number            AS sss_number"            ,
-            "philhealth_number"            => "employee.philhealth_number     AS philhealth_number"     ,
-            "pagibig_fund_number"          => "employee.pagibig_fund_number   AS pagibig_fund_number"   ,
-            "employee_bank_name"           => "employee.bank_name             AS bank_name"             ,
-            "employee_bank_branch_name"    => "employee.bank_branch_name      AS bank_branch_name"      ,
-            "employee_bank_account_number" => "employee.bank_account_number   AS bank_account_number"   ,
-            "employee_bank_account_type"   => "employee.bank_account_type     AS bank_account_type"     ,
+            "employee_full_name"           => "employee.full_name              AS full_name"             ,
+            "employee_marital_status"      => "employee.marital_status         AS marital_status"        ,
+            "employee_email_address"       => "employee.email_address          AS email_address"         ,
+            "employee_profile_picture"     => "employee.profile_picture        AS profile_picture"       ,
+            "employee_code"                => "employee.employee_code          AS employee_code"         ,
+            "employee_job_title_id"        => "employee.job_title_id           AS job_title_id"          ,
+            "employee_department_id"       => "employee.department_id          AS department_id"         ,
+            "employee_employment_type"     => "employee.employment_type        AS employment_type"       ,
+            "employee_date_of_hire"        => "employee.date_of_hire           AS date_of_hire"          ,
+            "employee_supervisor_id"       => "employee.supervisor_id          AS supervisor_id"         ,
+            "employee_access_role"         => "employee.access_role            AS access_role"           ,
+            "employee_basic_salary"        => "employee.basic_salary           AS basic_salary"          ,
+            "tin_number"                   => "employee.tin_number             AS tin_number"            ,
+            "sss_number"                   => "employee.sss_number             AS sss_number"            ,
+            "philhealth_number"            => "employee.philhealth_number      AS philhealth_number"     ,
+            "pagibig_fund_number"          => "employee.pagibig_fund_number    AS pagibig_fund_number"   ,
+            "employee_bank_name"           => "employee.bank_name              AS bank_name"             ,
+            "employee_bank_branch_name"    => "employee.bank_branch_name       AS bank_branch_name"      ,
+            "employee_bank_account_number" => "employee.bank_account_number    AS bank_account_number"   ,
+            "employee_bank_account_type"   => "employee.bank_account_type      AS bank_account_type"     ,
 
-            "employee_job_title"           => "job_title.title                AS job_title_title"       ,
+            "employee_job_title"           => "job_title.title                 AS job_title_title"       ,
 
-            "employee_department_name"     => "department.name                AS department_name"       ,
+            "employee_department_name"     => "department.name                 AS department_name"       ,
 
-            "pay_frequency"                => "payroll_group.pay_frequency    AS pay_frequency"         ,
+            "payroll_frequency"            => "payroll_group.payroll_frequency AS payroll_frequency"     ,
 
-            "total_basic_pay"              => "SUM(basic_pay)                 AS total_basic_pay"
+            "total_basic_pay"              => "SUM(basic_pay)                  AS total_basic_pay"
         ];
 
         $selectedColumns =
@@ -169,10 +175,21 @@ class PayslipDao
         $joinClauses = "";
 
         if (array_key_exists("employee_full_name"          , $selectedColumns) ||
+            array_key_exists("employee_marital_status"     , $selectedColumns) ||
+            array_key_exists("employee_email_address"      , $selectedColumns) ||
+            array_key_exists("employee_profile_picture"    , $selectedColumns) ||
             array_key_exists("employee_code"               , $selectedColumns) ||
-            array_key_exists("employee_department_name"    , $selectedColumns) ||
+            array_key_exists("employee_job_title_id"       , $selectedColumns) ||
+            array_key_exists("employee_department_id"      , $selectedColumns) ||
             array_key_exists("employee_employment_type"    , $selectedColumns) ||
+            array_key_exists("employee_date_of_hire"       , $selectedColumns) ||
+            array_key_exists("employee_supervisor_id"      , $selectedColumns) ||
+            array_key_exists("employee_access_role"        , $selectedColumns) ||
             array_key_exists("employee_basic_salary"       , $selectedColumns) ||
+            array_key_exists("tin_number"                  , $selectedColumns) ||
+            array_key_exists("sss_number"                  , $selectedColumns) ||
+            array_key_exists("philhealth_number"           , $selectedColumns) ||
+            array_key_exists("pagibig_fund_number"         , $selectedColumns) ||
             array_key_exists("employee_bank_name"          , $selectedColumns) ||
             array_key_exists("employee_bank_branch_name"   , $selectedColumns) ||
             array_key_exists("employee_bank_account_number", $selectedColumns) ||
@@ -208,7 +225,7 @@ class PayslipDao
             ";
         }
 
-        if (array_key_exists("pay_frequency", $selectedColumns)) {
+        if (array_key_exists("payroll_frequency", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     payroll_groups AS payroll_group
