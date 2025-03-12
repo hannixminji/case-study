@@ -155,31 +155,15 @@ class BreakTypeDao
             $whereClauses[] = "break_type.deleted_at IS NULL";
 
         } else {
-            foreach ($filterCriteria as $filterCriterion) {
-                $column   = $filterCriterion["column"  ];
-                $operator = $filterCriterion["operator"];
+            $whereClauses[] = $this->buildFilterCriteria(
+                filterCriteria  : $filterCriteria  ,
+                queryParameters : $queryParameters ,
+                filterParameters: $filterParameters
+            );
+        }
 
-                switch ($operator) {
-                    case "="   :
-                    case "LIKE":
-                        $whereClauses    [] = "{$column} {$operator} ?";
-                        $queryParameters [] = $filterCriterion["value"];
-
-                        $filterParameters[] = $filterCriterion["value"];
-
-                        break;
-
-                    case "BETWEEN":
-                        $whereClauses    [] = "{$column} {$operator} ? AND ?";
-                        $queryParameters [] = $filterCriterion["lower_bound"];
-                        $queryParameters [] = $filterCriterion["upper_bound"];
-
-                        $filterParameters[] = $filterCriterion["lower_bound"];
-                        $filterParameters[] = $filterCriterion["upper_bound"];
-
-                        break;
-                }
-            }
+        if (in_array(trim(end($whereClauses)), ["AND", "OR"], true)) {
+            array_pop($whereClauses);
         }
 
         $orderByClauses = [];
@@ -225,7 +209,7 @@ class BreakTypeDao
             FROM
                 break_types AS break_type
             WHERE
-            " . implode(" AND ", $whereClauses) . "
+            " . implode(" ", $whereClauses) . "
             " . ( ! empty($orderByClauses) ? "ORDER BY " . implode(", ", $orderByClauses) : "") . "
             {$limitClause}
             {$offsetClause}
@@ -254,7 +238,7 @@ class BreakTypeDao
                     FROM
                         break_types AS break_type
                     WHERE
-                        " . implode(" AND ", $whereClauses) . "
+                        " . implode(" ", $whereClauses) . "
                 ";
 
                 $countStatement = $this->pdo->prepare($totalRowCountQuery);
@@ -279,6 +263,96 @@ class BreakTypeDao
 
             return ActionResult::FAILURE;
         }
+    }
+
+    private function buildFilterCriteria(
+        array  $filterCriteria  ,
+        array &$queryParameters ,
+        array &$filterParameters
+    ): string {
+
+        $totalNumberOfConditions = count($filterCriteria);
+        $subConditions           = []                    ;
+
+        foreach ($filterCriteria as $index => $filterCriterion) {
+            $isNestedCondition = false;
+
+            foreach ($filterCriterion as $condition) {
+                if (is_array($condition)) {
+                    $isNestedCondition = true;
+
+                    break;
+                }
+            }
+
+            if ($isNestedCondition) {
+                $nestedConditions = $this->buildFilterCriteria(
+                    filterCriteria  : $filterCriterion ,
+                    queryParameters : $queryParameters ,
+                    filterParameters: $filterParameters
+                );
+
+                $subConditions[] = "($nestedConditions)";
+
+            } else {
+                $column   = $filterCriterion["column"  ]         ;
+                $operator = $filterCriterion["operator"]         ;
+                $boolean  = $filterCriterion["boolean" ] ?? "AND";
+
+                switch ($operator) {
+                    case "="   :
+                    case "!="  :
+                    case ">="  :
+                    case "<="  :
+                    case "LIKE":
+                        $subCondition = "{$column} {$operator} ?";
+
+                        $queryParameters [] = $filterCriterion["value"];
+                        $filterParameters[] = $filterCriterion["value"];
+
+                        break;
+
+                    case "IS NULL"    :
+                    case "IS NOT NULL":
+                        $subCondition = "{$column} {$operator}";
+
+                        break;
+
+                    case "BETWEEN":
+                        $subCondition = "{$column} {$operator} ? AND ?";
+
+                        $queryParameters [] = $filterCriterion["lower_bound"];
+                        $queryParameters [] = $filterCriterion["upper_bound"];
+
+                        $filterParameters[] = $filterCriterion["lower_bound"];
+                        $filterParameters[] = $filterCriterion["upper_bound"];
+
+                        break;
+
+                    case "IN":
+                        $valueList = $filterCriterion["value_list"];
+
+                        if ( ! empty($valueList)) {
+                            $placeholders = implode(", ", array_fill(0, count($valueList), "?"));
+
+                            $subCondition     = "{$column} IN ({$placeholders})"          ;
+
+                            $queryParameters  = array_merge($queryParameters , $valueList);
+                            $filterParameters = array_merge($filterParameters, $valueList);
+                        }
+
+                        break;
+                }
+
+                if ($index < $totalNumberOfConditions - 1) {
+                    $subCondition .= " {$boolean}";
+                }
+
+                $subConditions[] = $subCondition;
+            }
+        }
+
+        return implode(" ", $subConditions);
     }
 
     public function fetchLatestSnapshotById(int $breakTypeId): array|ActionResult

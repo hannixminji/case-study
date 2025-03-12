@@ -346,10 +346,6 @@ class AttendanceDao
             );
         }
 
-        if (in_array(trim(end($whereClauses)), ["AND", "OR"], true)) {
-            array_pop($whereClauses);
-        }
-
         $orderByClauses = [];
 
         if ( ! empty($sortCriteria)) {
@@ -512,6 +508,20 @@ class AttendanceDao
 
                         $filterParameters[] = $filterCriterion["lower_bound"];
                         $filterParameters[] = $filterCriterion["upper_bound"];
+
+                        break;
+
+                    case "IN":
+                        $valueList = $filterCriterion["value_list"];
+
+                        if ( ! empty($valueList)) {
+                            $placeholders = implode(", ", array_fill(0, count($valueList), "?"));
+
+                            $subCondition     = "{$column} IN ({$placeholders})"          ;
+
+                            $queryParameters  = array_merge($queryParameters , $valueList);
+                            $filterParameters = array_merge($filterParameters, $valueList);
+                        }
 
                         break;
                 }
