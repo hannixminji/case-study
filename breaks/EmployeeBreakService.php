@@ -1,8 +1,7 @@
 <?php
 
-require_once __DIR__ . '/EmployeeBreak.php'                     ;
-
 require_once __DIR__ . '/EmployeeBreakRepository.php'           ;
+
 require_once __DIR__ . '/../employees/EmployeeRepository.php'   ;
 require_once __DIR__ . '/../attendance/AttendanceRepository.php';
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/OvertimeRateAssignment.php"      ;
+
 require_once __DIR__ . "/OvertimeRateDao.php"             ;
 
 require_once __DIR__ . "/../departments/DepartmentDao.php";

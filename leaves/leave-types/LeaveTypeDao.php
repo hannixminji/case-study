@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/LeaveType.php"                        ;
+
 require_once __DIR__ . "/../../includes/Helper.php"            ;
 require_once __DIR__ . "/../../includes/enums/ActionResult.php";
 

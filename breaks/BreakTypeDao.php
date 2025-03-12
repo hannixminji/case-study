@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__ . "/BreakType.php"                     ;
+require_once __DIR__ . "/BreakTypeSnapshot.php"             ;
+
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/Department.php"                    ;
+
 require_once __DIR__ . "/../includes/Helper.php"            ;
 require_once __DIR__ . "/../includes/enums/ActionResult.php";
 

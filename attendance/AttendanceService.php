@@ -1,15 +1,5 @@
 <?php
 
-require_once __DIR__ . '/Attendance.php'                              ;
-
-require_once __DIR__ . '/../work-schedules/WorkSchedule.php'          ;
-require_once __DIR__ . '/../breaks/BreakSchedule.php'                 ;
-require_once __DIR__ . '/../breaks/EmployeeBreak.php'                 ;
-
-require_once __DIR__ . '/../work-schedules/WorkScheduleSnapshot.php'  ;
-require_once __DIR__ . '/../breaks/BreakScheduleSnapshot.php'         ;
-require_once __DIR__ . '/../breaks/BreakTypeSnapshot.php'             ;
-
 require_once __DIR__ . '/AttendanceRepository.php'                    ;
 
 require_once __DIR__ . '/../employees/EmployeeRepository.php'         ;
