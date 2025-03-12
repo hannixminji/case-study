@@ -1721,6 +1721,7 @@ class AttendanceService
             'is_overtime_approved'                                    ,
             'remarks'                                                 ,
 
+            'work_schedule_snapshot_work_schedule_id'                 ,
             'work_schedule_snapshot_employee_id'                      ,
             'work_schedule_snapshot_start_time'                       ,
             'work_schedule_snapshot_end_time'                         ,
@@ -1893,37 +1894,37 @@ class AttendanceService
 
         if (empty($checkInDateTime) || empty($checkOutDateTime)) {
             return [
-                'status'  => 'invalid',
-                'message' => ''
+                'status'  => 'invalid_input',
+                'message' => 'Check-in and check-out times must not be empty.'
             ];
         }
 
         if ($checkOutDateTime < $checkInDateTime) {
             return [
-                'status'  => 'invalid',
-                'message' => ''
+                'status'  => 'invalid_input',
+                'message' => 'Check-out time cannot be earlier than check-in time.'
             ];
         }
 
         if ($checkInDateTime < $adjustedWorkScheduleStartDateTime) {
             return [
-                'status'  => 'invalid',
-                'message' => ''
+                'status'  => 'invalid_input',
+                'message' => 'Check-in time is earlier than the allowed start time of the work schedule.'
             ];
         }
 
         if ($checkInDateTime >= $workScheduleEndDateTime) {
             return [
-                'status'  => 'invalid',
-                'message' => ''
+                'status'  => 'invalid_input',
+                'message' => 'Check-in time is later than or equal to the end of the work schedule.'
             ];
         }
 
         $now = new DateTime();
         if ($checkInDateTime > $now || $checkOutDateTime > $now) {
             return [
-                'status'  => 'invalid',
-                'message' => ''
+                'status'  => 'invalid_input',
+                'message' => 'Check-in or check-out time cannot be in the future.'
             ];
         }
 

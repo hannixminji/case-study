@@ -139,7 +139,7 @@ class LeaveTypeDao
             }
         }
 
-        if (in_array(trim(end($whereClauses)), ['AND', 'OR'], true)) {
+        if (in_array(trim(end($whereClauses)), ["AND", "OR"], true)) {
             array_pop($whereClauses);
         }
 
