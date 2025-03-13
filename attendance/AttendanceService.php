@@ -1812,6 +1812,13 @@ class AttendanceService
             ];
         }
 
+        if ($checkOutDateTime > (clone $workScheduleEndDateTime)->modify('+1 day')) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => ''
+            ];
+        }
+
         $holidayColumns = [
             'is_paid'
         ];
@@ -1974,7 +1981,9 @@ class AttendanceService
         }
 
         $attendanceRecordColumns = [
-            'id'
+            'id'            ,
+            'check_in_time' ,
+            'check_out_time'
         ];
 
         $attendanceRecordFilterCriteria = [
@@ -2027,6 +2036,9 @@ class AttendanceService
 
         $employeeBreakRecordColumns = [
             'id'                                ,
+            'start_time'                        ,
+            'end_time'                          ,
+
             'break_schedule_snapshot_start_time',
             'break_schedule_snapshot_end_time'
         ];
@@ -2066,7 +2078,20 @@ class AttendanceService
             ! empty($employeeBreakRecords['result_set'])
                 ? $employeeBreakRecords['result_set']
                 : [];
-        $a = 1;
+
+        foreach ($attendanceRecords as $record) {
+            $existingCheckInDateTime  = new DateTime($record['check_in_time' ]);
+            $existingCheckOutDateTime = new DateTime($record['check_out_time']);
+
+            if ($checkInDateTime >= $existingCheckInDateTime && $checkInDateTime < $existingCheckOutDateTime) {
+            }
+
+            if ($checkOutDateTime > $existingCheckInDateTime && $checkOutDateTime <= $existingCheckOutDateTime) {
+            }
+
+            if ($checkInDateTime <= $existingCheckInDateTime && $checkOutDateTime >= $existingCheckOutDateTime) {
+            }
+        }
 
         return [];
     }

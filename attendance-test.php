@@ -70,9 +70,9 @@ $currentDateTime = '2025-01-01 17:00:00';
 //$attendanceResponse = $attendanceService->handleRfidTap($employeeRfidUid, $currentDateTime);
 
 $attendanceResponse = $attendanceService->updateAttendance(
-    attendanceId    : 1                    ,
-    checkInDateTime : '2025-03-10 08:00:00',
-    checkOutDateTime: '2025-03-10 17:00:00'
+    attendanceId    : 9                    ,
+    checkInDateTime : '2025-03-12 08:00:00',
+    checkOutDateTime: '2025-03-12 17:00:00'
 );
 
 print_r($attendanceResponse);
