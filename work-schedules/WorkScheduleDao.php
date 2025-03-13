@@ -383,7 +383,15 @@ class WorkScheduleDao
                     filterParameters: $filterParameters
                 );
 
-                $subConditions[] = "($nestedConditions)";
+                $nestedConditions = "($nestedConditions)";
+
+                $boolean = $filterCriterion[count($filterCriterion) - 1]["boolean"] ?? "AND";
+
+                if ($index < $totalNumberOfConditions - 1) {
+                    $nestedConditions .= " {$boolean}";
+                }
+
+                $subConditions[] = $nestedConditions;
 
             } else {
                 $column   = $filterCriterion["column"  ]         ;
