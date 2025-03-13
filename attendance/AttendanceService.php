@@ -1805,7 +1805,7 @@ class AttendanceService
 
         $isOnLeave = [];
 
-        if ($isPaidHoliday) {
+        if ( ! $isPaidHoliday) {
             $leaveRequestColumns = [
                 'is_half_day'  ,
                 'half_day_part'

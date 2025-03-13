@@ -228,7 +228,7 @@ class DeductionDao
             $isNestedCondition = false;
 
             foreach ($filterCriterion as $condition) {
-                if (is_array($condition)) {
+                if (is_array($condition) && $filterCriterion["operator"] !== "IN") {
                     $isNestedCondition = true;
 
                     break;
