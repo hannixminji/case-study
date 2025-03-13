@@ -363,6 +363,8 @@ class LeaveEntitlementDao
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case ">"   :
+                    case "<"   :
                     case ">="  :
                     case "<="  :
                     case "LIKE":

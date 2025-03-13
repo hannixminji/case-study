@@ -247,6 +247,8 @@ class LeaveRequestAttachmentDao
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case ">"   :
+                    case "<"   :
                     case ">="  :
                     case "<="  :
                     case "LIKE":

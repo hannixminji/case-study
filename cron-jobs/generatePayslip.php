@@ -89,7 +89,7 @@ $payrollGroupDao        = new PayrollGroupDao       ($pdo                   );
 $payrollGroupRepository = new PayrollGroupRepository($payrollGroupDao       );
 $payrollGroupService    = new PayrollGroupService   ($payrollGroupRepository);
 
-$originalCurrentDateTime = new DateTime('2025-03-16');
+$originalCurrentDateTime = new DateTime();
 
 $currentDateTime   =  clone $originalCurrentDateTime                             ;
 $currentDateTime   = (clone $currentDateTime)->modify('-1 day')                  ;
@@ -310,6 +310,9 @@ try {
                 }
 
                 if ( ! isset($workSchedule['is_recorded'])) {
+                    $recordedWorkSchedules[$date][$index]['start_time'] = $currentWorkScheduleStartDateTime->format('Y-m-d H:i:s');
+                    $recordedWorkSchedules[$date][$index]['end_time'  ] = $currentWorkScheduleEndDateTime  ->format('Y-m-d H:i:s');
+
                     $recordedWorkSchedules[$date][$index]['early_check_in_window'] = $adjustedEarlyCheckInWindow;
                 }
 
@@ -472,12 +475,12 @@ try {
                         }
 
                         $emptyBreakRecord = new EmployeeBreak(
-                            id                     : null                                           ,
-                            breakScheduleSnapshotId: $breakScheduleSnapshotId                       ,
-                            startTime              : null                                           ,
-                            endTime                : null                                           ,
-                            breakDurationInMinutes : 0                                              ,
-                            createdAt              : $originalCurrentDateTime->format('Y-m-d H:i:s')
+                            id                     : null                       ,
+                            breakScheduleSnapshotId: $breakScheduleSnapshotId   ,
+                            startTime              : null                       ,
+                            endTime                : null                       ,
+                            breakDurationInMinutes : 0                          ,
+                            createdAt              : $workSchedule['start_time']
                         );
 
                         $createEmptyBreakRecordResult = $employeeBreakRepository

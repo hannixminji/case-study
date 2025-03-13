@@ -252,7 +252,7 @@ class LeaveRequestDao
             {$limitClause}
             {$offsetClause}
         ";
-echo $query;
+
         try {
             $statement = $this->pdo->prepare($query);
 
@@ -349,6 +349,8 @@ echo $query;
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case ">"   :
+                    case "<"   :
                     case ">="  :
                     case "<="  :
                     case "LIKE":

@@ -348,6 +348,10 @@ class AttendanceDao
             );
         }
 
+        if (in_array(trim(end($whereClauses)), ["AND", "OR"], true)) {
+            array_pop($whereClauses);
+        }
+
         $orderByClauses = [];
 
         if ( ! empty($sortCriteria)) {
@@ -494,6 +498,8 @@ class AttendanceDao
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case ">"   :
+                    case "<"   :
                     case ">="  :
                     case "<="  :
                     case "LIKE":

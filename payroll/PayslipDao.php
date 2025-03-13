@@ -401,6 +401,8 @@ class PayslipDao
                 switch ($operator) {
                     case "="   :
                     case "!="  :
+                    case ">"   :
+                    case "<"   :
                     case ">="  :
                     case "<="  :
                     case "LIKE":
