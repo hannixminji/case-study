@@ -958,9 +958,8 @@ class AttendanceService
                                     if ($halfDayEndDateTime > $breakStartDateTime &&
                                         $halfDayEndDateTime < $breakEndDateTime  ) {
 
-                                        $overlapTimeInMinutes =
-                                            ($breakStartDateTime->diff($halfDayEndDateTime))->h * 60 +
-                                            ($breakStartDateTime->diff($halfDayEndDateTime))->i;
+                                        $overlapTimeDuration  = $breakStartDateTime->diff($halfDayEndDateTime)        ;
+                                        $overlapTimeInMinutes = $overlapTimeDuration->h * 60 + $overlapTimeDuration->i;
 
                                         $halfDayEndDateTime = (clone $breakEndDateTime)
                                             ->modify('+' . $overlapTimeInMinutes . ' minutes');
@@ -975,9 +974,8 @@ class AttendanceService
                                     if ($halfDayStartDateTime > $breakStartDateTime &&
                                         $halfDayStartDateTime < $breakEndDateTime  ) {
 
-                                        $overlapTimeInMinutes =
-                                            ($breakEndDateTime->diff($halfDayStartDateTime))->h * 60 +
-                                            ($breakEndDateTime->diff($halfDayStartDateTime))->i;
+                                        $overlapTimeDuration  = $breakEndDateTime->diff($halfDayStartDateTime)        ;
+                                        $overlapTimeInMinutes = $overlapTimeDuration->h * 60 + $overlapTimeDuration->i;
 
                                         $halfDayStartDateTime = (clone $breakStartDateTime)
                                             ->modify('-' . $overlapTimeInMinutes . ' minutes');
@@ -2187,9 +2185,8 @@ class AttendanceService
                                 if ($halfDayEndDateTime > $breakStartDateTime &&
                                     $halfDayEndDateTime < $breakEndDateTime  ) {
 
-                                    $overlapTimeInMinutes =
-                                        ($breakStartDateTime->diff($halfDayEndDateTime))->h * 60 +
-                                        ($breakStartDateTime->diff($halfDayEndDateTime))->i;
+                                    $overlapTimeDuration  = $breakStartDateTime->diff($halfDayEndDateTime)        ;
+                                    $overlapTimeInMinutes = $overlapTimeDuration->h * 60 + $overlapTimeDuration->i;
 
                                     $halfDayEndDateTime = (clone $breakEndDateTime)
                                         ->modify('+' . $overlapTimeInMinutes . ' minutes');
@@ -2204,9 +2201,8 @@ class AttendanceService
                                 if ($halfDayStartDateTime > $breakStartDateTime &&
                                     $halfDayStartDateTime < $breakEndDateTime  ) {
 
-                                    $overlapTimeInMinutes =
-                                        ($breakEndDateTime->diff($halfDayStartDateTime))->h * 60 +
-                                        ($breakEndDateTime->diff($halfDayStartDateTime))->i;
+                                    $overlapTimeDuration  = $breakEndDateTime->diff($halfDayStartDateTime)        ;
+                                    $overlapTimeInMinutes = $overlapTimeDuration->h * 60 + $overlapTimeDuration->i;
 
                                     $halfDayStartDateTime = (clone $breakStartDateTime)
                                         ->modify('-' . $overlapTimeInMinutes . ' minutes');
@@ -2250,8 +2246,8 @@ class AttendanceService
                 if ($checkInDateTime  < $existingCheckOutDateTime &&
                     $checkOutDateTime > $existingCheckInDateTime) {
 
-                    $earliestCheckInDateTime = min($existingCheckInDateTime , $checkInDateTime );
-                    $latestCheckOutDateTime  = max($existingCheckOutDateTime, $checkOutDateTime);
+                    $earliestCheckInDateTime = clone (min($existingCheckInDateTime , $checkInDateTime ));
+                    $latestCheckOutDateTime  = clone (max($existingCheckOutDateTime, $checkOutDateTime));
 
                     $deleteAttendanceRecordResult = $this->attendanceRepository
                         ->deleteAttendance($record['id']);
@@ -2268,6 +2264,36 @@ class AttendanceService
             }
 
             foreach ($employeeBreakRecords as $breakRecord) {
+                $breakRecordStartDateTime =
+                    $breakRecord['start_time'] !== null
+                        ? new DateTime($breakRecord['start_time'])
+                        : null;
+
+                $breakRecordEndDateTime =
+                    $breakRecord['end_time'] !== null
+                        ? new DateTime($breakRecord['end_time'])
+                        : null;
+
+                $adjustedBreakRecordStartDateTime = null;
+                $adjustedBreakRecordEndDateTime   = null;
+
+                if ($breakRecordStartDateTime !== null &&
+                    $breakRecordStartDateTime < $earliestCheckInDateTime) {
+
+                    $breakRecordStartDateTime = clone $earliestCheckInDateTime;
+                }
+
+                if ($breakRecordEndDateTime !== null &&
+                    $breakRecordEndDateTime > $latestCheckOutDateTime) {
+                        
+                    $breakRecordEndDateTime = clone $latestCheckOutDateTime;
+                }
+
+                if ($adjustedBreakRecordStartDateTime !== $breakRecordStartDateTime ||
+                    $adjustedBreakRecordEndDateTime   !== $breakRecordEndDateTime  ) {
+
+                    $updateBreakRecordResult = '';
+                }
             }
 
             $this->pdo->commit();
