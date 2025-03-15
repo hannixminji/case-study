@@ -1946,11 +1946,6 @@ class AttendanceService
                 'value'    => $workScheduleDate
             ],
             [
-                'column'   => 'attendance.work_schedule_snapshot_id'        ,
-                'operator' => '!='                                          ,
-                'value'    => $attendanceRecord['work_schedule_snapshot_id']
-            ],
-            [
                 'column'   => 'attendance.check_in_time',
                 'operator' => '<'                       ,
                 'value'    => $formattedCheckOutDateTime
@@ -2247,12 +2242,12 @@ class AttendanceService
         try {
             $this->pdo->beginTransaction();
 
-            foreach ($attendanceRecords as $record) {
+            foreach ($attendanceRecords as $key => $record) {
                 $existingCheckInDateTime  = new DateTime($record['check_in_time' ]);
                 $existingCheckOutDateTime = new DateTime($record['check_out_time']);
 
-                if ($checkInDateTime  < $existingCheckOutDateTime &&
-                    $checkOutDateTime > $existingCheckInDateTime) {
+                if ($earliestCheckInDateTime < $existingCheckOutDateTime &&
+                    $latestCheckOutDateTime  > $existingCheckInDateTime) {
 
                     $earliestCheckInDateTime = clone (min($existingCheckInDateTime , $checkInDateTime ));
                     $latestCheckOutDateTime  = clone (max($existingCheckOutDateTime, $checkOutDateTime));
@@ -2268,6 +2263,8 @@ class AttendanceService
                             'message' => 'An unexpected error occurred while checking in. Please try again later.'
                         ];
                     }
+
+                    $attendanceRecords[$key]['is_deleted'] = true;
                 }
             }
 
