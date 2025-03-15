@@ -1427,14 +1427,25 @@ class AttendanceService
                         $breakScheduleStartDateTime = clone $previousBreakRecordEndDateTime;
                     }
 
-                    if ($checkOutDateTime >= $breakScheduleStartDateTime) {
+                    if ($checkOutDateTime > $breakScheduleStartDateTime) {
                         $breakRecordEndDateTime =
                             $breakRecord['end_time'] !== null
                                 ? new DateTime($breakRecord['end_time'])
                                 : null;
 
+                        if ($checkOutDateTime < $breakRecordEndDateTime) {
+                            $breakRecordEndDateTime = clone $checkOutDateTime;
+                        }
+
                         if ($breakRecordEndDateTime !== null &&
                             $breakRecordEndDateTime >   $breakScheduleEndDateTime) {
+
+                            if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
+                                $breakScheduleEndDateTime = clone $breakScheduleStartDateTime;
+                            }
+
+                            $breakScheduleDuration          = $breakScheduleStartDateTime->diff($breakScheduleEndDateTime);
+                            $breakScheduleDurationInMinutes = $breakScheduleDuration->h * 60 + $breakScheduleDuration->i  ;
 
                             $breakDuration          = $breakScheduleStartDateTime->diff($breakRecordEndDateTime);
                             $breakDurationInMinutes = $breakDuration->h * 60 + $breakDuration->i                ;
@@ -1443,15 +1454,14 @@ class AttendanceService
                             $overtimeBreakDurationInMinutes = $overtimeBreakDuration->h * 60 + $overtimeBreakDuration->i;
 
                             if ($isPaid) {
-                                $paidBreakInMinutes   += $breakRecord['break_type_snapshot_duration_in_minutes'];
+                                $paidBreakInMinutes   += $breakScheduleDurationInMinutes        ;
                                 $unpaidBreakInMinutes += max(0, $overtimeBreakDurationInMinutes);
 
                             } else {
                                 $unpaidBreakInMinutes += max(0, $breakDurationInMinutes);
                             }
 
-                            $breakScheduleEndDateTime = clone $breakRecordEndDateTime;
-
+                            $breakScheduleEndDateTime       = clone $breakRecordEndDateTime  ;
                             $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
 
                         } else {
@@ -1462,8 +1472,6 @@ class AttendanceService
 
                             if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
                                 $breakScheduleStartDateTime = clone $breakScheduleEndDateTime;
-
-                                $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
                             }
 
                             $breakDuration          = $breakScheduleStartDateTime->diff($breakScheduleEndDateTime);
@@ -2285,7 +2293,7 @@ class AttendanceService
 
                 if ($breakRecordEndDateTime !== null &&
                     $breakRecordEndDateTime > $latestCheckOutDateTime) {
-                        
+
                     $breakRecordEndDateTime = clone $latestCheckOutDateTime;
                 }
 

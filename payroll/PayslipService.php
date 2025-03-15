@@ -978,17 +978,24 @@ class PayslipService
                                         $breakScheduleStartDateTime = clone $previousBreakRecordEndDateTime;
                                     }
 
-                                    if ($checkOutDateTime >= $breakScheduleStartDateTime) {
+                                    if ($checkOutDateTime > $breakScheduleStartDateTime) {
                                         $breakRecordEndDateTime =
                                             $breakRecord['end_time'] !== null
                                                 ? new DateTime($breakRecord['end_time'])
                                                 : null;
 
+                                        if ($checkOutDateTime < $breakRecordEndDateTime) {
+                                            $breakRecordEndDateTime = clone $checkOutDateTime;
+                                        }
+
                                         if ($breakRecordEndDateTime !== null &&
                                             $breakRecordEndDateTime >   $breakScheduleEndDateTime) {
 
-                                            $breakScheduleEndDateTime = $breakRecordEndDateTime;
+                                            if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
+                                                $breakScheduleEndDateTime = clone $breakScheduleStartDateTime;
+                                            }
 
+                                            $breakScheduleEndDateTime       = clone $breakRecordEndDateTime  ;
                                             $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
 
                                         } else {
@@ -999,8 +1006,6 @@ class PayslipService
 
                                             if ($breakScheduleStartDateTime > $breakScheduleEndDateTime) {
                                                 $breakScheduleStartDateTime = clone $breakScheduleEndDateTime;
-
-                                                $previousBreakRecordEndDateTime = clone $breakScheduleEndDateTime;
                                             }
                                         }
 
