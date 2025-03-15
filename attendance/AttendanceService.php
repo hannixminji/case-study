@@ -870,9 +870,11 @@ class AttendanceService
                     if ($breakScheduleStartTimeA === null && $breakScheduleStartTimeB === null) {
                         return 0;
                     }
+
                     if ($breakScheduleStartTimeA === null) {
                         return 1;
                     }
+
                     if ($breakScheduleStartTimeB === null) {
                         return -1;
                     }
@@ -1765,6 +1767,14 @@ class AttendanceService
                 ? $attendanceRecord['result_set'][0]
                 : [];
 
+        if (empty($attendanceRecord)) {
+            return [
+                'status'  => 'error',
+                'message' => 'Attendance record not found. The record may have been deleted. ' .
+                             'Please verify the attendance ID and try again.'
+            ];
+        }
+
         $workScheduleDate = $attendanceRecord['date'];
 
         $workScheduleStartTime = $attendanceRecord['work_schedule_snapshot_start_time'];
@@ -1778,7 +1788,6 @@ class AttendanceService
         }
 
         $earlyCheckInWindow = $attendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
-
         $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
             ->modify('-' . $earlyCheckInWindow . ' minutes');
 
@@ -1807,14 +1816,6 @@ class AttendanceService
             return [
                 'status'  => 'invalid_input',
                 'message' => 'Check-in time is later than or equal to the end of the work schedule.'
-            ];
-        }
-
-        $now = new DateTime();
-        if ($checkInDateTime > $now || $checkOutDateTime > $now) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in or check-out time cannot be in the future.'
             ];
         }
 
@@ -1946,14 +1947,35 @@ class AttendanceService
                 'value'    => $workScheduleDate
             ],
             [
-                'column'   => 'attendance.check_in_time',
-                'operator' => '<'                       ,
-                'value'    => $formattedCheckOutDateTime
-            ],
-            [
-                'column'   => 'attendance.check_out_time',
-                'operator' => '>'                        ,
-                'value'    => $formattedCheckInDateTime
+                [
+                    [
+                        'column'   => 'attendance.check_in_time',
+                        'operator' => '<'                       ,
+                        'value'    => $formattedCheckOutDateTime
+                    ],
+                    [
+                        'column'   => 'attendance.check_out_time',
+                        'operator' => '>'                        ,
+                        'value'    => $formattedCheckInDateTime  ,
+                        'boolean'  => 'OR'
+                    ]
+                ],
+                [
+                    [
+                        'column'   => 'attendance.check_out_time',
+                        'operator' => 'IS NULL'
+                    ],
+                    [
+                        'column'   => 'attendance.check_in_time',
+                        'operator' => '>'                       ,
+                        'value'    => $formattedCheckInDateTime
+                    ],
+                    [
+                        'column'   => 'attendance.check_in_time',
+                        'operator' => '>'                       ,
+                        'value'    => $formattedCheckOutDateTime
+                    ]
+                ]
             ]
         ];
 
@@ -1963,7 +1985,7 @@ class AttendanceService
             limit               : 1                              ,
             includeTotalRowCount: false
         );
-
+return [];
         if ($isOverlapped === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
@@ -2091,9 +2113,11 @@ class AttendanceService
             if ($breakStartTimeA === null && $breakStartTimeB === null) {
                 return 0;
             }
+
             if ($breakStartTimeA === null) {
                 return 1;
             }
+
             if ($breakStartTimeB === null) {
                 return -1;
             }
@@ -2246,6 +2270,9 @@ class AttendanceService
                 $existingCheckInDateTime  = new DateTime($record['check_in_time' ]);
                 $existingCheckOutDateTime = new DateTime($record['check_out_time']);
 
+                $attendanceRecords[$key]['check_in_time' ] = $existingCheckInDateTime ->format('Y-m-d H:i:s');
+                $attendanceRecords[$key]['check_out_time'] = $existingCheckOutDateTime->format('Y-m-d H:i:s');
+
                 if ($earliestCheckInDateTime < $existingCheckOutDateTime &&
                     $latestCheckOutDateTime  > $existingCheckInDateTime) {
 
@@ -2274,30 +2301,11 @@ class AttendanceService
                         ? new DateTime($breakRecord['start_time'])
                         : null;
 
-                $breakRecordEndDateTime =
-                    $breakRecord['end_time'] !== null
-                        ? new DateTime($breakRecord['end_time'])
-                        : null;
+                if ($breakRecordStartDateTime instanceof DateTime) {
+                    $formattedBreakRecordStartDateTime = $breakRecordStartDateTime->format('Y-m-d H:i:s');
 
-                $adjustedBreakRecordStartDateTime = null;
-                $adjustedBreakRecordEndDateTime   = null;
-
-                if ($breakRecordStartDateTime !== null &&
-                    $breakRecordStartDateTime < $earliestCheckInDateTime) {
-
-                    $breakRecordStartDateTime = clone $earliestCheckInDateTime;
-                }
-
-                if ($breakRecordEndDateTime !== null &&
-                    $breakRecordEndDateTime > $latestCheckOutDateTime) {
-
-                    $breakRecordEndDateTime = clone $latestCheckOutDateTime;
-                }
-
-                if ($adjustedBreakRecordStartDateTime !== $breakRecordStartDateTime ||
-                    $adjustedBreakRecordEndDateTime   !== $breakRecordEndDateTime  ) {
-
-                    $updateBreakRecordResult = '';
+                    foreach ($attendanceRecords as $record) {
+                    }
                 }
             }
 
