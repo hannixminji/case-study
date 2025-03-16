@@ -1702,16 +1702,73 @@ class AttendanceService
     }
 
     public function updateAttendance(
-        int|string $attendanceId    ,
-        string     $checkInDateTime ,
-        string     $checkOutDateTime
+        int|string $attendanceId   ,
+        string     $checkInTime    ,
+        string     $checkOutTime
     ): array {
 
-        $checkInDateTime  = new DateTime($checkInDateTime );
-        $checkOutDateTime = new DateTime($checkOutDateTime);
+        if (empty($checkInTime)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-in time must not be empty.'
+            ];
+        }
 
-        $formattedCheckInDateTime  = $checkInDateTime ->format('Y-m-d H:i:s');
+        $checkInTime = htmlspecialchars(strip_tags(trim($checkInTime)), ENT_QUOTES, 'UTF-8');
+
+        $checkInDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkInTime);
+
+        if ( ! $checkInDateTime) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-in time is not a valid date.'
+            ];
+        }
+
+        $formattedCheckInDateTime = $checkInDateTime->format('Y-m-d H:i:s');
+
+        if ($formattedCheckInDateTime !== $checkInTime) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-in time is not a valid format. ' .
+                             'Expected format: YYYY-MM-DD HH:MM:SS.'
+            ];
+        }
+
+        if (empty($checkOutTime)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-out time must not be empty.'
+            ];
+        }
+
+        $checkOutTime = htmlspecialchars(strip_tags(trim($checkOutTime)), ENT_QUOTES, 'UTF-8');
+
+        $checkOutDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkOutTime);
+
+        if ( ! $checkOutDateTime) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-out time is not a valid date.'
+            ];
+        }
+
         $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
+
+        if ($formattedCheckOutDateTime !== $checkOutTime) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-out time is not a valid format. ' .
+                             'Expected format: YYYY-MM-DD HH:MM:SS.'
+            ];
+        }
+
+        if ($checkOutDateTime < $checkInDateTime) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'Check-out time cannot be earlier than check-in time.'
+            ];
+        }
 
         $attendanceRecordColumns = [
             'work_schedule_snapshot_id'                               ,
@@ -1729,22 +1786,25 @@ class AttendanceService
             'work_schedule_snapshot_minutes_can_check_in_before_shift'
         ];
 
-        if (preg_match('/^[1-9]\d*$/', $attendanceId)) {
-            $attendanceRecordFilterCriteria = [
-                [
-                    'column'   => 'attendance.id',
-                    'operator' => '='            ,
-                    'value'    => $attendanceId
-                ]
+        $attendanceRecordFilterCriteria = [
+            [
+                'column'   => 'attendance.deleted_at',
+                'operator' => 'IS NULL'
+            ]
+        ];
+
+        if (is_int($attendanceId)) {
+            $attendanceRecordFilterCriteria[] = [
+                'column'   => 'attendance.id',
+                'operator' => '='            ,
+                'value'    => $attendanceId
             ];
 
         } else {
-            $attendanceRecordFilterCriteria = [
-                [
-                    'column'   => 'SHA2(attendance.id, 256)',
-                    'operator' => '='                       ,
-                    'value'    => $attendanceId
-                ]
+            $attendanceRecordFilterCriteria[] = [
+                'column'   => 'SHA2(attendance.id, 256)',
+                'operator' => '='                       ,
+                'value'    => $attendanceId
             ];
         }
 
@@ -1790,20 +1850,6 @@ class AttendanceService
         $earlyCheckInWindow = $attendanceRecord['work_schedule_snapshot_minutes_can_check_in_before_shift'];
         $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
             ->modify('-' . $earlyCheckInWindow . ' minutes');
-
-        if (empty($checkInDateTime) || empty($checkOutDateTime)) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in and check-out times must not be empty.'
-            ];
-        }
-
-        if ($checkOutDateTime < $checkInDateTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-out time cannot be earlier than check-in time.'
-            ];
-        }
 
         if ($checkInDateTime < $adjustedWorkScheduleStartDateTime) {
             return [
@@ -1967,12 +2013,13 @@ class AttendanceService
                     ],
                     [
                         'column'   => 'attendance.check_in_time',
-                        'operator' => '>'                       ,
-                        'value'    => $formattedCheckInDateTime
+                        'operator' => '<'                       ,
+                        'value'    => $formattedCheckInDateTime ,
+                        'boolean'  => 'OR'
                     ],
                     [
                         'column'   => 'attendance.check_in_time',
-                        'operator' => '>'                       ,
+                        'operator' => '<'                       ,
                         'value'    => $formattedCheckOutDateTime
                     ]
                 ]
@@ -1985,7 +2032,7 @@ class AttendanceService
             limit               : 1                              ,
             includeTotalRowCount: false
         );
-return [];
+
         if ($isOverlapped === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
@@ -2267,44 +2314,49 @@ return [];
             $this->pdo->beginTransaction();
 
             foreach ($attendanceRecords as $key => $record) {
-                $existingCheckInDateTime  = new DateTime($record['check_in_time' ]);
-                $existingCheckOutDateTime = new DateTime($record['check_out_time']);
-
-                $attendanceRecords[$key]['check_in_time' ] = $existingCheckInDateTime ->format('Y-m-d H:i:s');
-                $attendanceRecords[$key]['check_out_time'] = $existingCheckOutDateTime->format('Y-m-d H:i:s');
-
-                if ($earliestCheckInDateTime < $existingCheckOutDateTime &&
-                    $latestCheckOutDateTime  > $existingCheckInDateTime) {
-
-                    $earliestCheckInDateTime = clone (min($existingCheckInDateTime , $checkInDateTime ));
-                    $latestCheckOutDateTime  = clone (max($existingCheckOutDateTime, $checkOutDateTime));
-
-                    $deleteAttendanceRecordResult = $this->attendanceRepository
-                        ->deleteAttendance($record['id']);
-
-                    if ($deleteAttendanceRecordResult === ActionResult::FAILURE) {
-                        $this->pdo->rollback();
-
-                        return [
-                            'status'  => 'error',
-                            'message' => 'An unexpected error occurred while checking in. Please try again later.'
-                        ];
-                    }
-
-                    $attendanceRecords[$key]['is_deleted'] = true;
-                }
-            }
-
-            foreach ($employeeBreakRecords as $breakRecord) {
-                $breakRecordStartDateTime =
-                    $breakRecord['start_time'] !== null
-                        ? new DateTime($breakRecord['start_time'])
+                $existingCheckInDateTime =
+                    $record['check_in_time'] !== null
+                        ? new DateTime($record['check_in_time'])
                         : null;
 
-                if ($breakRecordStartDateTime instanceof DateTime) {
-                    $formattedBreakRecordStartDateTime = $breakRecordStartDateTime->format('Y-m-d H:i:s');
+                $existingCheckOutDateTime =
+                    $record['check_out_time'] !== null
+                        ? new DateTime($record['check_out_time'])
+                        : null;
 
-                    foreach ($attendanceRecords as $record) {
+                if ($existingCheckInDateTime !== null) {
+                    $attendanceRecords[$key]['check_in_time'] = $existingCheckInDateTime->format('Y-m-d H:i:s');
+                }
+
+                if ($existingCheckOutDateTime !== null) {
+                    $attendanceRecords[$key]['check_out_time'] = $existingCheckOutDateTime->format('Y-m-d H:i:s');
+                }
+
+                if ($existingCheckInDateTime !== null) {
+                    if (($existingCheckOutDateTime === null &&
+
+                        ($existingCheckInDateTime < $earliestCheckInDateTime  ||
+                         $existingCheckInDateTime < $latestCheckOutDateTime)) ||
+
+                        ($earliestCheckInDateTime < $existingCheckOutDateTime &&
+                         $latestCheckOutDateTime  > $existingCheckInDateTime)) {
+
+                        $earliestCheckInDateTime = clone (min($existingCheckInDateTime , $checkInDateTime ));
+                        $latestCheckOutDateTime  = clone (max($existingCheckOutDateTime, $checkOutDateTime));
+
+                        $deleteAttendanceRecordResult = $this->attendanceRepository
+                            ->deleteAttendance($record['id']);
+
+                        if ($deleteAttendanceRecordResult === ActionResult::FAILURE) {
+                            $this->pdo->rollback();
+
+                            return [
+                                'status'  => 'error',
+                                'message' => 'An unexpected error occurred while checking in. Please try again later.'
+                            ];
+                        }
+
+                        $attendanceRecords[$key]['is_deleted'] = true;
                     }
                 }
             }
