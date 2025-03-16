@@ -10,6 +10,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "rlanvin/php-rrule": "^2.5"
+        "rlanvin/php-rrule": "^2.5",
+        "symfony/validator": "^7.2"
     }
 }

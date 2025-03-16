@@ -1701,6 +1701,7 @@ class AttendanceService
         }
     }
 
+    /*
     public function updateAttendance(
         int|string $attendanceId   ,
         string     $checkInTime    ,
@@ -2374,6 +2375,7 @@ class AttendanceService
 
         return [];
     }
+    */
 
     private function getCurrentWorkSchedule(
         array  $assignedWorkSchedules,
