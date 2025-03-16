@@ -5,7 +5,11 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "App\\": "./"
+            "App\\": "./",
+            "App\\Validator\\CustomConstraints\\": [
+                "validators/custom-constraints/",
+                "validators/custom-constraint-validators/"
+            ]
         }
     },
     "minimum-stability": "stable",

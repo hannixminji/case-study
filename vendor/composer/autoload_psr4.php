@@ -12,5 +12,6 @@ return array(
     'Symfony\\Contracts\\Translation\\' => array($vendorDir . '/symfony/translation-contracts'),
     'Symfony\\Component\\Validator\\' => array($vendorDir . '/symfony/validator'),
     'RRule\\' => array($vendorDir . '/rlanvin/php-rrule/src'),
+    'App\\Validator\\CustomConstraints\\' => array($baseDir . '/validators/custom-constraints', $baseDir . '/validators/custom-constraint-validators'),
     'App\\' => array($baseDir . '/'),
 );

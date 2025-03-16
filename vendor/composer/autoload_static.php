@@ -28,6 +28,7 @@ class ComposerStaticInitb63ff609444cd58ad13eb298b4774efa
         ),
         'A' => 
         array (
+            'App\\Validator\\CustomConstraints\\' => 32,
             'App\\' => 4,
         ),
     );
@@ -56,6 +57,11 @@ class ComposerStaticInitb63ff609444cd58ad13eb298b4774efa
         'RRule\\' => 
         array (
             0 => __DIR__ . '/..' . '/rlanvin/php-rrule/src',
+        ),
+        'App\\Validator\\CustomConstraints\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/validators/custom-constraints',
+            1 => __DIR__ . '/../..' . '/validators/custom-constraint-validators',
         ),
         'App\\' => 
         array (
