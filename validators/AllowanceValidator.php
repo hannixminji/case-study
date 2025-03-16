@@ -16,14 +16,11 @@ class AllowanceValidator extends BaseValidator
 
     private array $fieldConstraints = [
         'id' => [
-            new NotBlank(),
-            new Type('integer'),
-            new GreaterThanOrEqual(1)
         ],
 
         'name' => [
             new NotBlank(),
-            new Length(['min' => 2, 'max' => 100]),
+            new Length(['min' => 3, 'max' => 50]),
             new Regex([
                 'pattern' => '/^[A-Za-z0-9._-]+$/',
                 'message' => 'The name can only contain letters, numbers, hyphens, underscores, and dots.',
@@ -42,13 +39,12 @@ class AllowanceValidator extends BaseValidator
         ],
 
         'description' => [
-            new NotBlank(),
-            new Length(['min' => 5, 'max' => 255])
+            new Length(['min' => 0, 'max' => 255])
         ],
 
         'status' => [
             new NotBlank(),
-            new Choice(['choices' => ['Active', 'Inactive', 'Archived']])
+            new Choice(['choices' => ['active', 'inactive', 'archived']])
         ]
     ];
 
