@@ -6,12 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Symfony\\Polyfill\\Php83\\' => array($vendorDir . '/symfony/polyfill-php83'),
-    'Symfony\\Polyfill\\Mbstring\\' => array($vendorDir . '/symfony/polyfill-mbstring'),
-    'Symfony\\Polyfill\\Ctype\\' => array($vendorDir . '/symfony/polyfill-ctype'),
-    'Symfony\\Contracts\\Translation\\' => array($vendorDir . '/symfony/translation-contracts'),
-    'Symfony\\Component\\Validator\\' => array($vendorDir . '/symfony/validator'),
     'RRule\\' => array($vendorDir . '/rlanvin/php-rrule/src'),
-    'App\\Validator\\CustomConstraints\\' => array($baseDir . '/validators/custom-constraints', $baseDir . '/validators/custom-constraint-validators'),
     'App\\' => array($baseDir . '/'),
 );
