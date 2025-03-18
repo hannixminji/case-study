@@ -2,12 +2,9 @@
 
 abstract class BaseValidator
 {
-    protected array  $errors = [];
     protected string $group      ;
-
-    public function __construct()
-    {
-    }
+    protected array  $data   = [];
+    protected array  $errors = [];
 
     abstract protected function validate(array $fieldsToValidate): void;
 
@@ -58,6 +55,11 @@ abstract class BaseValidator
     public function setGroup(string $group): void
     {
         $this->group = $group;
+    }
+
+    public function setData(array $data): void
+    {
+        $this->data = $data;
     }
 
     protected function isValidHash(string $value): bool

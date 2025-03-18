@@ -2,13 +2,13 @@
 
 require_once __DIR__ . '/../includes/BaseValidator.php';
 
-class AllowanceValidator extends BaseValidator
+class DeductionValidator extends BaseValidator
 {
-    private AllowanceRepository $allowanceRepository;
+    private DeductionRepository $deductionRepository;
 
-    public function __construct(AllowanceRepository $allowanceRepository)
+    public function __construct(DeductionRepository $deductionRepository)
     {
-        $this->allowanceRepository = $allowanceRepository;
+        $this->deductionRepository = $deductionRepository;
     }
 
     public function validate(array $fieldsToValidate): void
@@ -187,12 +187,12 @@ class AllowanceValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'allowance.status',
+                    'column'   => 'deduction.status',
                     'operator' => '='               ,
                     'value'    => 'Active'
                 ],
                 [
-                    'column'   => 'allowance.' . $field,
+                    'column'   => 'deduction.' . $field,
                     'operator' => '='                  ,
                     'value'    => $value
                 ]
@@ -200,20 +200,20 @@ class AllowanceValidator extends BaseValidator
 
             if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
                 $filterCriteria[] = [
-                    'column'   => 'allowance.id',
+                    'column'   => 'deduction.id',
                     'operator' => '!='          ,
                     'value'    => $id
                 ];
 
             } elseif (is_string($id) && ! $this->isValidHash($id)) {
                 $filterCriteria[] = [
-                    'column'   => 'SHA2(allowance.id, 256)',
+                    'column'   => 'SHA2(deduction.id, 256)',
                     'operator' => '!='                     ,
                     'value'    => $id
                 ];
             }
 
-            $isUnique = $this->allowanceRepository->fetchAllAllowances(
+            $isUnique = $this->deductionRepository->fetchAllDeductions(
                 columns             : $columns       ,
                 filterCriteria      : $filterCriteria,
                 limit               : 1              ,

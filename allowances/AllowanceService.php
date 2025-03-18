@@ -17,9 +17,11 @@ class AllowanceService
         $this->allowanceValidator = new AllowanceValidator($allowanceRepository);
     }
 
-    public function createAllowance(Allowance $allowance): array
+    public function createAllowance(array $allowance): array
     {
         $this->allowanceValidator->setGroup('create');
+
+        $this->allowanceValidator->setData($allowance);
 
         $this->allowanceValidator->validate([
             'name'       ,
@@ -38,6 +40,15 @@ class AllowanceService
                 'errors'  => $validationErrors
             ];
         }
+
+        $allowance = new Allowance(
+            id         :         $allowance['id'         ],
+            name       :         $allowance['name'       ],
+            amount     : (float) $allowance['amount'     ],
+            frequency  :         $allowance['frequency'  ],
+            description:         $allowance['description'],
+            status     :         $allowance['status'     ]
+        );
 
         $createAllowanceTypeResult = $this->allowanceRepository->createAllowance($allowance);
 
@@ -73,9 +84,11 @@ class AllowanceService
         );
     }
 
-    public function updateAllowance(Allowance $allowance): array
+    public function updateAllowance(array $allowance): array
     {
         $this->allowanceValidator->setGroup('update');
+
+        $this->allowanceValidator->setData($allowance);
 
         $this->allowanceValidator->validate([
             'id'         ,
@@ -96,6 +109,15 @@ class AllowanceService
             ];
         }
 
+        $allowance = new Allowance(
+            id         :         $allowance['id'         ],
+            name       :         $allowance['name'       ],
+            amount     : (float) $allowance['amount'     ],
+            frequency  :         $allowance['frequency'  ],
+            description:         $allowance['description'],
+            status     :         $allowance['status'     ]
+        );
+
         $updateAllowanceTypeResult = $this->allowanceRepository->updateAllowance($allowance);
 
         if ($updateAllowanceTypeResult === ActionResult::FAILURE) {
@@ -114,6 +136,10 @@ class AllowanceService
     public function deleteAllowance(int|string $allowanceId): array
     {
         $this->allowanceValidator->setGroup('delete');
+
+        $this->allowanceValidator->setData([
+            'id' => $allowanceId
+        ]);
 
         $this->allowanceValidator->validate([
             'id'

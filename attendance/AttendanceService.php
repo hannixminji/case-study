@@ -131,8 +131,9 @@ class AttendanceService
 
         $holidayFilterCriteria = [
             [
-                'column'   => 'holiday.deleted_at',
-                'operator' => 'IS NULL'
+                'column'   => 'holiday.status',
+                'operator' => '='             ,
+                'value'    => 'Active'
             ],
             [
                 'column'   => 'holiday.start_date' ,
@@ -626,8 +627,9 @@ class AttendanceService
 
             $holidayFilterCriteria = [
                 [
-                    'column'   => 'holiday.deleted_at',
-                    'operator' => 'IS NULL'
+                    'column'   => 'holiday.status',
+                    'operator' => '='             ,
+                    'value'    => 'Active'
                 ],
                 [
                     'column'   => 'holiday.start_date'  ,

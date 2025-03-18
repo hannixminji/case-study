@@ -75,16 +75,27 @@ class DepartmentDao
     ): array|ActionResult {
 
         $tableColumns = [
-            "id"                        => "department.id                 AS id"                       ,
-            "name"                      => "department.name               AS name"                     ,
-            "department_head_id"        => "department.department_head_id AS department_head_id"       ,
-            "description"               => "department.description        AS description"              ,
-            "status"                    => "department.status             AS status"                   ,
-            "created_at"                => "department.created_at         AS created_at"               ,
-            "updated_at"                => "department.updated_at         AS updated_at"               ,
-            "deleted_at"                => "department.deleted_at         AS deleted_at"               ,
+            "id"                            => "department.id                 AS id"                           ,
+            "name"                          => "department.name               AS name"                         ,
+            "department_head_id"            => "department.department_head_id AS department_head_id"           ,
+            "description"                   => "department.description        AS description"                  ,
+            "status"                        => "department.status             AS status"                       ,
+            "created_at"                    => "department.created_at         AS created_at"                   ,
+            "updated_at"                    => "department.updated_at         AS updated_at"                   ,
+            "deleted_at"                    => "department.deleted_at         AS deleted_at"                   ,
 
-            "department_head_full_name" => "department_head.full_name     AS department_head_full_name"
+            "department_head_full_name"     => "department_head.full_name     AS department_head_full_name"    ,
+
+            "job_title_id"                  => "job_title.id                  AS job_title_id"                 ,
+            "job_title"                     => "job_title.title               AS job_title"                    ,
+            "job_title_status"              => "job_title.status              AS job_title_status"             ,
+
+            "employee_id"                   => "employee.id                   AS employee_id"                  ,
+            "employee_full_name"            => "employee.full_name            AS employee_full_name"           ,
+            "employee_code"                 => "employee.employee_code        AS employee_code"                ,
+            "employee_deleted_at"           => "employee.deleted_at           AS employee_deleted_at"          ,
+
+            "employee_supervisor_full_name" => "supervisor.full_name          AS employee_supervisor_full_name"
         ];
 
         $selectedColumns =
@@ -97,12 +108,50 @@ class DepartmentDao
 
         $joinClauses = "";
 
-        if (array_key_exists("department_head_full_name" , $selectedColumns)) {
+        if (array_key_exists("department_head_full_name", $selectedColumns)) {
             $joinClauses .= "
                 LEFT JOIN
                     employees AS department_head
                 ON
                     department.department_head_id = department_head.id
+            ";
+        }
+
+        if (array_key_exists("job_title_id"    , $selectedColumns) ||
+            array_key_exists("job_title"       , $selectedColumns) ||
+            array_key_exists("job_title_status", $selectedColumns)) {
+
+            $joinClauses .= "
+                LEFT JOIN
+                    job_titles AS job_title
+                ON
+                    department.id = job_title.department_id
+            ";
+        }
+
+        if (array_key_exists("employee_id"             , $selectedColumns) ||
+            array_key_exists("employee_full_name"      , $selectedColumns) ||
+            array_key_exists("employee_code"           , $selectedColumns) ||
+            array_key_exists("employee_deleted_at"     , $selectedColumns) ||
+
+            array_key_exists("employee_supervisor_name", $selectedColumns)) {
+
+            $joinClauses .= "
+                LEFT JOIN
+                    employees AS employee
+                ON
+                    department.id = employee.department_id
+                AND
+                    job_title.id = employee.job_title_id
+            ";
+        }
+
+        if (array_key_exists("employee_supervisor_full_name", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    employees AS supervisor
+                ON
+                    employee.supervisor_id = supervisor.id
             ";
         }
 
