@@ -129,12 +129,12 @@ class DepartmentDao
             ";
         }
 
-        if (array_key_exists("employee_id"             , $selectedColumns) ||
-            array_key_exists("employee_full_name"      , $selectedColumns) ||
-            array_key_exists("employee_code"           , $selectedColumns) ||
-            array_key_exists("employee_deleted_at"     , $selectedColumns) ||
+        if (array_key_exists("employee_id"                  , $selectedColumns) ||
+            array_key_exists("employee_full_name"           , $selectedColumns) ||
+            array_key_exists("employee_code"                , $selectedColumns) ||
+            array_key_exists("employee_deleted_at"          , $selectedColumns) ||
 
-            array_key_exists("employee_supervisor_name", $selectedColumns)) {
+            array_key_exists("employee_supervisor_full_name", $selectedColumns)) {
 
             $joinClauses .= "
                 LEFT JOIN

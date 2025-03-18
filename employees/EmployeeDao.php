@@ -254,14 +254,18 @@ class EmployeeDao
             "updated_at"                      => "employee.updated_at                      AS updated_at"                     ,
             "deleted_at"                      => "employee.deleted_at                      AS deleted_at"                     ,
 
-            "job_title_title"                 => "job_title.title                          AS job_title_title"                ,
-
             "department_name"                 => "department.name                          AS department_name"                ,
             "department_head_id"              => "department.department_head_id            AS department_head_id"             ,
+
+            "department_head_full_name"       => "department_head.full_name                AS department_head_full_name"      ,
+
+            "job_title"                       => "job_title.title                          AS job_title"                      ,
+            "job_title_status"                => "job_title.status                         AS job_title_status"               ,
 
             "supervisor_first_name"           => "supervisor.first_name                    AS supervisor_first_name"          ,
             "supervisor_middle_name"          => "supervisor.middle_name                   AS supervisor_middle_name"         ,
             "supervisor_last_name"            => "supervisor.last_name                     AS supervisor_last_name"           ,
+            "supervisor_full_name"            => "supervisor.full_name                     AS supervisor_full_name"           ,
 
             "payroll_group_deleted_at"        => "payroll_group.deleted_at                 AS payroll_group_deleted_at"       ,
         ];
@@ -296,9 +300,30 @@ class EmployeeDao
             ";
         }
 
+        if (array_key_exists("department_head_full_name", $selectedColumns)) {
+            $joinClauses .= "
+                LEFT JOIN
+                    employees AS department_head
+                ON
+                    department.department_head_id = department_head.id
+            ";
+        }
+
+        if (array_key_exists("job_title"       , $selectedColumns) ||
+            array_key_exists("job_title_status", $selectedColumns)) {
+
+            $joinClauses .= "
+                LEFT JOIN
+                    job_titles AS job_title
+                ON
+                    department.id = job_title.department_id
+            ";
+        }
+
         if (array_key_exists("supervisor_first_name" , $selectedColumns) ||
             array_key_exists("supervisor_middle_name", $selectedColumns) ||
-            array_key_exists("supervisor_last_name"  , $selectedColumns)) {
+            array_key_exists("supervisor_last_name"  , $selectedColumns) ||
+            array_key_exists("supervisor_full_name"  , $selectedColumns)) {
 
             $joinClauses .= "
                 LEFT JOIN
