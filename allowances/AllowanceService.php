@@ -42,7 +42,7 @@ class AllowanceService
         }
 
         $allowance = new Allowance(
-            id         :         $allowance['id'         ],
+            id         :         null                     ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
             frequency  :         $allowance['frequency'  ],
@@ -109,8 +109,14 @@ class AllowanceService
             ];
         }
 
+        $allowanceId = $allowance['id'];
+
+        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+            $allowanceId = (int) $allowanceId;
+        }
+
         $allowance = new Allowance(
-            id         :         $allowance['id'         ],
+            id         :         $allowanceId             ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
             frequency  :         $allowance['frequency'  ],
@@ -133,7 +139,7 @@ class AllowanceService
         ];
     }
 
-    public function deleteAllowance(int|string $allowanceId): array
+    public function deleteAllowance(mixed $allowanceId): array
     {
         $this->allowanceValidator->setGroup('delete');
 
@@ -153,6 +159,10 @@ class AllowanceService
                 'message' => 'There are validation errors. Please check the input values.',
                 'errors'  => $validationErrors
             ];
+        }
+
+        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+            $allowanceId = (int) $allowanceId;
         }
 
         $deleteAllowanceTypeResult = $this->allowanceRepository->deleteAllowance($allowanceId);
