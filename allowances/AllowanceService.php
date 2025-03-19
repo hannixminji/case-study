@@ -8,7 +8,7 @@ class AllowanceService
 {
     private readonly AllowanceRepository $allowanceRepository;
 
-    private AllowanceValidator $allowanceValidator;
+    private readonly AllowanceValidator $allowanceValidator;
 
     public function __construct(AllowanceRepository $allowanceRepository)
     {

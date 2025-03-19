@@ -8,7 +8,7 @@ class DeductionService
 {
     private readonly DeductionRepository $deductionRepository;
 
-    private DeductionValidator $deductionValidator;
+    private readonly DeductionValidator $deductionValidator;
 
     public function __construct(DeductionRepository $deductionRepository)
     {

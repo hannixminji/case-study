@@ -47,6 +47,56 @@ abstract class BaseValidator
         return true;
     }
 
+    public function isValidDescription(mixed $description): bool
+    {
+        if (is_string($description)) {
+            $description = trim($description);
+
+            if (strlen($description) > 255) {
+                $this->errors['description'] = 'The description cannot exceed 255 characters long.';
+
+                return false;
+            }
+
+            if ($description !== htmlspecialchars(strip_tags($description), ENT_QUOTES, 'UTF-8')) {
+                $this->errors['description'] = 'The description contains invalid characters.';
+
+                return false;
+            }
+        }
+
+        if ( ! is_string($description) && ($description !== null || $description !== '')) {
+            $this->errors['description'] = 'The description must be a valid string.';
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isValidStatus(mixed $status): bool
+    {
+        if ( ! is_string($status)) {
+            $this->errors['status'] = 'The status must be a string.';
+
+            return false;
+        }
+
+        if (trim($status) === '') {
+            $this->errors['status'] = 'The status cannot be empty.';
+
+            return false;
+        }
+
+        if ( ! in_array(strtolower($status), ['active', 'inactive', 'archived'])) {
+            $this->errors['status'] = 'The status must be active, inactive, or archived.';
+
+            return false;
+        }
+
+        return true;
+    }
+
     public function getErrors(): array
     {
         return $this->errors;
