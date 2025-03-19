@@ -133,12 +133,19 @@ class PayslipService
             $basicSalary  = $employee['basic_salary' ];
 
             $attendanceRecordColumns = [
+                'id'                                                      ,
                 'work_schedule_snapshot_id'                               ,
                 'date'                                                    ,
                 'check_in_time'                                           ,
                 'check_out_time'                                          ,
+                'total_break_duration_in_minutes'                         ,
+                'total_hours_worked'                                      ,
+                'late_check_in'                                           ,
+                'early_check_out'                                         ,
+                'overtime_hours'                                          ,
                 'is_overtime_approved'                                    ,
                 'attendance_status'                                       ,
+                'remarks'                                                 ,
 
                 'work_schedule_snapshot_start_time'                       ,
                 'work_schedule_snapshot_end_time'                         ,
@@ -718,11 +725,19 @@ class PayslipService
             }
 
             $attendanceRecords[$date][$workScheduleSnapshotId]['attendance_records'][] = [
-                'date'                          => $attendanceRecord['date'                        ] ,
-                'check_in_time'                 => $attendanceRecord['check_in_time'               ] ,
-                'check_out_time'                => $attendanceRecord['check_out_time'              ] ,
-                'is_overtime_approved'          => $attendanceRecord['is_overtime_approved'        ] ,
-                'attendance_status'             => strtolower($attendanceRecord['attendance_status'])
+                'id'                              => $attendanceRecord['id'                             ] ,
+                'work_schedule_snapshot_id'       => $attendanceRecord['work_schedule_snapshot_id'      ] ,
+                'date'                            => $attendanceRecord['date'                           ] ,
+                'check_in_time'                   => $attendanceRecord['check_in_time'                  ] ,
+                'check_out_time'                  => $attendanceRecord['check_out_time'                 ] ,
+                'total_break_duration_in_minutes' => $attendanceRecord['total_break_duration_in_minutes'] ,
+                'total_hours_worked'              => $attendanceRecord['total_hours_worked'             ] ,
+                'late_check_in'                   => $attendanceRecord['late_check_in'                  ] ,
+                'early_check_out'                 => $attendanceRecord['early_check_out'                ] ,
+                'overtime_hours'                  => $attendanceRecord['overtime_hours'                 ] ,
+                'is_overtime_approved'            => $attendanceRecord['is_overtime_approved'           ] ,
+                'attendance_status'               => strtolower($attendanceRecord['attendance_status'])   ,
+                'remarks'                         => $attendanceRecord['remarks'                        ]
             ];
         }
 
@@ -929,6 +944,26 @@ class PayslipService
                                 $attendanceRecord['check_out_time'] !== null
                                     ? new DateTime($attendanceRecord['check_out_time'])
                                     : $workScheduleEndDateTime;
+
+                            if ($attendanceRecord['check_out_time'] === null) {
+                                $attendanceRecord = new Attendance(
+                                    id                          : $attendanceRecord['id'                             ],
+                                    workScheduleSnapshotId      : $attendanceRecord['work_schedule_snapshot_id'      ],
+                                    date                        : $attendanceRecord['date'                           ],
+                                    checkInTime                 : $attendanceRecord['check_in_time'                  ],
+                                    checkOutTime                : $checkOutDateTime->format('Y-m-d H:i:s')            ,
+                                    totalBreakDurationInMinutes : $attendanceRecord['total_break_duration_in_minutes'],
+                                    totalHoursWorked            : $attendanceRecord['total_hours_worked'             ],
+                                    lateCheckIn                 : $attendanceRecord['late_check_in'                  ],
+                                    earlyCheckOut               : $attendanceRecord['early_check_out'                ],
+                                    overtimeHours               : $attendanceRecord['overtime_hours'                 ],
+                                    isOvertimeApproved          : $attendanceRecord['is_overtime_approved'           ],
+                                    attendanceStatus            : $attendanceRecord['attendance_status'              ],
+                                    remarks                     : $attendanceRecord['remarks'                        ]
+                                );
+
+                                $attendanceCheckOutResult = $this->attendanceRepository->checkOut($attendanceRecord);
+                            }
 
                             if ( ! $isFlextime && $isFirstAttendanceRecord) {
                                 if ($checkInDateTime < $workScheduleStartDateTime) {
