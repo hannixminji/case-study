@@ -11,6 +11,8 @@ require_once __DIR__ . '/../breaks/BreakScheduleRepository.php'       ;
 require_once __DIR__ . '/../breaks/EmployeeBreakRepository.php'       ;
 require_once __DIR__ . '/../breaks/BreakTypeRepository.php'           ;
 
+require_once __DIR__ . '/AttendanceValidator.php'                     ;
+
 class AttendanceService
 {
     private readonly PDO                     $pdo                    ;
@@ -23,6 +25,8 @@ class AttendanceService
     private readonly BreakScheduleRepository $breakScheduleRepository;
     private readonly EmployeeBreakRepository $employeeBreakRepository;
     private readonly BreakTypeRepository     $breakTypeRepository    ;
+
+    private readonly AttendanceValidator $attendanceValidator;
 
     public function __construct(
         PDO                     $pdo                    ,
@@ -46,6 +50,8 @@ class AttendanceService
         $this->breakScheduleRepository = $breakScheduleRepository;
         $this->employeeBreakRepository = $employeeBreakRepository;
         $this->breakTypeRepository     = $breakTypeRepository    ;
+
+        $this->attendanceValidator = new AttendanceValidator();
     }
 
     public function fetchAllAttendance(
@@ -67,13 +73,67 @@ class AttendanceService
         );
     }
 
-    public function approveOvertime(mixed $attendanceId): ActionResult
+    public function approveOvertime(mixed $attendanceId): array
     {
-        return $this->attendanceRepository->approveOvertime($attendanceId);
+        $this->attendanceValidator->setData([
+            'id' => $attendanceId
+        ]);
+
+        $this->attendanceValidator->validate([
+            'id'
+        ]);
+
+        $validationErrors = $this->attendanceValidator->getErrors();
+
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
+        }
+
+        if (is_string($attendanceId) && preg_match('/^[1-9]\d*$/', $attendanceId)) {
+            $attendanceId = (int) $attendanceId;
+        }
+
+        $approveOvertimeResult = $this->attendanceRepository->approveOvertime($attendanceId);
+
+        if ($approveOvertimeResult === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred while processing the overtime approval. Please try again later.'
+            ];
+        }
+
+        return [
+            'status'  => 'success',
+            'message' => 'Overtime approval was successful.'
+        ];
     }
 
     public function handleRfidTap(mixed $rfidUid, mixed $currentDateTime): array
     {
+        $this->attendanceValidator->setData([
+            'rfid_uid'     => $rfidUid        ,
+            'current_time' => $currentDateTime
+        ]);
+
+        $this->attendanceValidator->validate([
+            'rfid_uid'    ,
+            'current_time'
+        ]);
+
+        $validationErrors = $this->attendanceValidator->getErrors();
+
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
+        }
+
         $employeeColumns = [
 			'id'
 		];

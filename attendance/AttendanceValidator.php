@@ -17,6 +17,11 @@ class AttendanceValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
+                    case 'id'            : $this->isValidId      ($this->data['id'            ]                                    ); break;
+                    case 'rfid_uid'      : $this->isValidRfidUid ($this->data['rfid_uid'      ]                                    ); break;
+                    case 'current_time'  : $this->isValidDateTime($this->data['current_time'  ], 'current_time'  , 'current time'  ); break;
+                    case 'check_in_time' : $this->isValidDateTime($this->data['check_in_time' ], 'check_in_time' , 'check in time' ); break;
+                    case 'check_out_time': $this->isValidDateTime($this->data['check_out_time'], 'check_out_time', 'check out time'); break;
                 }
             }
         }
@@ -59,8 +64,37 @@ class AttendanceValidator extends BaseValidator
         return true;
     }
 
-    public function isValidDateTime(): bool
-    {
+    public function isValidDateTime(mixed $dateTime, string $keyName, string $fieldName): bool {
+        if ($dateTime === null) {
+            $this->errors[$keyName] = 'The ' . $fieldName . ' cannot be null.';
+
+            return false;
+        }
+
+        if ( ! is_string($dateTime)) {
+            $this->errors[$keyName] = 'The ' . $fieldName . ' must be a string.';
+
+            return false;
+        }
+
+        if (is_string($dateTime)) {
+            $dateTime = trim($dateTime);
+
+            if ($dateTime === '') {
+                $this->errors[$keyName] = 'The ' . $fieldName . ' cannot be empty.';
+
+                return false;
+            }
+
+            $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
+
+            if ( ! $dateTime) {
+                $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the format "Y-m-d H:i:s".';
+
+                return false;
+            }
+        }
+
         return true;
     }
 }
