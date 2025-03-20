@@ -72,7 +72,7 @@ class AttendanceService
         return $this->attendanceRepository->approveOvertime($attendanceId);
     }
 
-    public function handleRfidTap(string $rfidUid, string $currentDateTime): array
+    public function handleRfidTap(mixed $rfidUid, mixed $currentDateTime): array
     {
         $employeeColumns = [
 			'id'
@@ -117,9 +117,12 @@ class AttendanceService
             ];
         }
 
-        $currentDateTime = new DateTime($currentDateTime                 );
-        $currentDate     = new DateTime($currentDateTime->format('Y-m-d'));
-        $previousDate    = (clone $currentDate)->modify('-1 day'         );
+        if ( ! ($currentDateTime instanceof DateTime)) {
+            $currentDateTime = new DateTime($currentDateTime);
+        }
+
+        $currentDate  = (clone $currentDateTime)->setTime(0, 0    );
+        $previousDate = (clone $currentDate    )->modify ('-1 day');
 
         $formattedCurrentDateTime = $currentDateTime->format('Y-m-d H:i:s');
         $formattedCurrentDate     = $currentDate    ->format('Y-m-d'      );
