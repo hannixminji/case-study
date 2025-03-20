@@ -45,7 +45,7 @@ class HolidayValidator extends BaseValidator
             return false;
         }
 
-        if (strlen($name) < 3 || strlen($name) > 50) {
+        if (mb_strlen($name) < 3 || mb_strlen($name) > 50) {
             $this->errors['name'] = 'The name must be between 3 and 50 characters long.';
 
             return false;

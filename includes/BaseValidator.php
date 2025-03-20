@@ -52,7 +52,7 @@ abstract class BaseValidator
         if (is_string($description)) {
             $description = trim($description);
 
-            if (strlen($description) > 255) {
+            if (mb_strlen($description) > 255) {
                 $this->errors['description'] = 'The description cannot exceed 255 characters long.';
 
                 return false;

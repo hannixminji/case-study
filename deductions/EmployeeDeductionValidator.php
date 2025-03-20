@@ -28,6 +28,12 @@ class EmployeeDeductionValidator extends BaseValidator
 
     public function isValidEmployeeId(mixed $id): bool
     {
+        if ($id === null) {
+            $this->errors['employee_id'] = 'The employee ID cannot be null.';
+
+            return false;
+        }
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['employee_id'] = 'The employee ID must be greater than 0.';
@@ -61,6 +67,12 @@ class EmployeeDeductionValidator extends BaseValidator
 
     public function isValidDeductionId(mixed $id): bool
     {
+        if ($id === null) {
+            $this->errors['deduction_id'] = 'The deduction ID cannot be null';
+
+            return false;
+        }
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['deduction_id'] = 'The deduction ID must be greater than 0.';
@@ -94,6 +106,12 @@ class EmployeeDeductionValidator extends BaseValidator
 
     public function isValidAmount(mixed $amount): bool
     {
+        if ($amount === null) {
+            $this->errors['amount'] = 'The amount cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_numeric($amount)) {
             $this->errors['amount'] = 'The amount must be a number.';
 

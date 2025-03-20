@@ -33,6 +33,12 @@ class DeductionValidator extends BaseValidator
 
     public function isValidName(mixed $name, mixed $id): bool
     {
+        if ($name === null) {
+            $this->errors['name'] = 'The name cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_string($name)) {
             $this->errors['name'] = 'The name must be a string.';
 
@@ -47,7 +53,7 @@ class DeductionValidator extends BaseValidator
             return false;
         }
 
-        if (strlen($name) < 3 || strlen($name) > 50) {
+        if (mb_strlen($name) < 3 || mb_strlen($name) > 50) {
             $this->errors['name'] = 'The name must be between 3 and 50 characters long.';
 
             return false;
@@ -84,6 +90,12 @@ class DeductionValidator extends BaseValidator
 
     public function isValidAmount(mixed $amount): bool
     {
+        if ($amount === null) {
+            $this->errors['amount'] = 'The amount cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_numeric($amount)) {
             $this->errors['amount'] = 'The amount must be a number.';
 
@@ -107,13 +119,21 @@ class DeductionValidator extends BaseValidator
 
     public function isValidFrequency(mixed $frequency): bool
     {
+        if ($frequency === null) {
+            $this->errors['frequency'] = 'The frequency cannot be null.';
+
+            return false;
+        }
+        
         if ( ! is_string($frequency)) {
             $this->errors['frequency'] = 'The frequency must be a string.';
 
             return false;
         }
 
-        if (trim($frequency) === '') {
+        $frequency = trim($frequency);
+
+        if ($frequency === '') {
             $this->errors['frequency'] = 'The frequency cannot be empty.';
 
             return false;

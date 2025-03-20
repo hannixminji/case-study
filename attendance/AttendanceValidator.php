@@ -29,6 +29,12 @@ class AttendanceValidator extends BaseValidator
 
     public function isValidRfidUid(mixed $rfidUid): bool
     {
+        if ($rfidUid === null) {
+            $this->errors['rfid_uid'] = 'The RFID UID cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_string($rfidUid)) {
             $this->errors['rfid_uid'] = 'The RFID UID must be a string.';
 
@@ -43,7 +49,7 @@ class AttendanceValidator extends BaseValidator
             return false;
         }
 
-        if (strlen($rfidUid) < 8 || strlen($rfidUid) > 32) {
+        if (mb_strlen($rfidUid) < 8 || mb_strlen($rfidUid) > 32) {
             $this->errors['rfid_uid'] = 'The RFID UID must be between 8 and 32 characters long.';
 
             return false;
@@ -80,10 +86,10 @@ class AttendanceValidator extends BaseValidator
                 return false;
             }
 
-            $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
+            $time = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
 
-            if ( ! $dateTime) {
-                $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the format "Y-m-d H:i:s".';
+            if ( ! $dateTime || $time->format('Y-m-d H:i:s') !== $dateTime) {
+                $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the Y-m-d format and be a valid date.';
 
                 return false;
             }

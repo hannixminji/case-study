@@ -32,6 +32,12 @@ class DepartmentValidator extends BaseValidator
 
     public function isValidName(mixed $name, mixed $id): bool
     {
+        if ($name === null) {
+            $this->errors['name'] = 'The name cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_string($name)) {
             $this->errors['name'] = 'The name must be a string.';
 
@@ -46,7 +52,7 @@ class DepartmentValidator extends BaseValidator
             return false;
         }
 
-        if (strlen($name) < 3 || strlen($name) > 50) {
+        if (mb_strlen($name) < 3 || mb_strlen($name) > 50) {
             $this->errors['name'] = 'The name must be between 3 and 50 characters long.';
 
             return false;
@@ -81,31 +87,31 @@ class DepartmentValidator extends BaseValidator
         return true;
     }
 
-    public function isValidDepartmentHeadId(mixed $departmentHeadId): bool
+    public function isValidDepartmentHeadId(mixed $id): bool
     {
-        if (is_int($departmentHeadId) || (is_string($departmentHeadId) && preg_match('/^[1-9]\d*$/', $departmentHeadId))) {
-            if ($departmentHeadId < 1) {
+        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+            if ($id < 1) {
                 $this->errors['department_head_id'] = 'The department head ID must be greater than 0.';
 
                 return false;
             }
 
-            if ($departmentHeadId > PHP_INT_MAX) {
+            if ($id > PHP_INT_MAX) {
                 $this->errors['department_head_id'] = 'The department head ID exceeds the maximum allowable integer size.';
 
                 return false;
             }
 
-            $departmentHeadId = (int) $departmentHeadId;
+            $id = (int) $id;
         }
 
-        if (is_string($departmentHeadId) && ! $this->isValidHash($departmentHeadId)) {
+        if (is_string($id) && ! $this->isValidHash($id)) {
             $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
 
             return false;
         }
 
-        if ($departmentHeadId !== null && ! is_int($departmentHeadId) && ! is_string($departmentHeadId)) {
+        if ($id !== null && ! is_int($id) && ! is_string($id)) {
             $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
 
             return false;
