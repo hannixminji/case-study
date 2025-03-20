@@ -87,7 +87,7 @@ class HolidayValidator extends BaseValidator
 
     private function isUnique(string $field, mixed $value, mixed $id): ?bool
     {
-        if ($this->isValidId($id)) {
+        if ( ! isset($this->errors['id'])) {
             $columns = [
                 'id'
             ];
