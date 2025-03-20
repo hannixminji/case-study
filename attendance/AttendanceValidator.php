@@ -55,12 +55,6 @@ class AttendanceValidator extends BaseValidator
             return false;
         }
 
-        if ($rfidUid !== htmlspecialchars(strip_tags($rfidUid), ENT_QUOTES, 'UTF-8')) {
-            $this->errors['rfid_uid'] = 'The RFID UID contains invalid characters.';
-
-            return false;
-        }
-
         return true;
     }
 
