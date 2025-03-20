@@ -280,15 +280,6 @@ class EmployeeDao
 
         $joinClauses = "";
 
-        if (array_key_exists("job_title_title", $selectedColumns)) {
-            $joinClauses .= "
-                LEFT JOIN
-                    job_titles AS job_title
-                ON
-                    employee.job_title_id = job_title.id
-            ";
-        }
-
         if (array_key_exists("department_name"   , $selectedColumns) ||
             array_key_exists("department_head_id", $selectedColumns)) {
 
@@ -316,7 +307,7 @@ class EmployeeDao
                 LEFT JOIN
                     job_titles AS job_title
                 ON
-                    department.id = job_title.department_id
+                    employee.job_title_id = job_title.id
             ";
         }
 

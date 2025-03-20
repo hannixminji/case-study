@@ -67,7 +67,7 @@ class AttendanceService
         );
     }
 
-    public function approveOvertime(int|string $attendanceId): ActionResult
+    public function approveOvertime(mixed $attendanceId): ActionResult
     {
         return $this->attendanceRepository->approveOvertime($attendanceId);
     }
