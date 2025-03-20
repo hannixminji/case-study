@@ -92,7 +92,7 @@ class EmployeeAllowanceService
         return [
             'status'  => 'success',
             'message' =>
-                (count($employeeAllowance) > 1)
+                count($employeeAllowance) > 1
                     ? 'Allowances assigned successfully.'
                     : 'Allowance assigned successfully.'
         ];
