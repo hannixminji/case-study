@@ -202,6 +202,7 @@ class EmployeeDao
 
         $tableColumns = [
             "id"                              => "employee.id                              AS id"                             ,
+            "hashed_id"                       => "employee.hashed_id                       AS hashed_id"                      ,
             "rfid_uid"                        => "employee.rfid_uid                        AS rfid_uid"                       ,
 
             "first_name"                      => "employee.first_name                      AS first_name"                     ,
@@ -615,7 +616,7 @@ class EmployeeDao
         if (preg_match("/^[1-9]\d*$/", $employee->getId())) {
             $query .= "id = :employee_id";
         } else {
-            $query .= "SHA2(id, 256) = :employee_id";
+            $query .= "hashed_id = :employee_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -708,7 +709,7 @@ class EmployeeDao
         if (preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "id = :employee_id";
         } else {
-            $query .= "SHA2(id, 256) = :employee_id";
+            $query .= "hashed_id = :employee_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -787,7 +788,7 @@ class EmployeeDao
         if (preg_match("/^[1-9]\d*$/", $employeeId)) {
             $query .= "id = :employee_id";
         } else {
-            $query .= "SHA2(id, 256) = :employee_id";
+            $query .= "hashed_id = :employee_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

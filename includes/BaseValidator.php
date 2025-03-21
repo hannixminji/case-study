@@ -125,11 +125,11 @@ abstract class BaseValidator
     protected function isValidHash(string $value): bool
     {
         $patterns = [
-            '/^[a-f0-9]{32}$/i'                       ,
-            '/^[a-f0-9]{40}$/i'                       ,
-            '/^[a-f0-9]{64}$/i'                       ,
-            '/^[a-f0-9]{128}$/i'                      ,
-            '/^\$2[ayb]\$\d{2}\$[.\/A-Za-z0-9]{53}$/i'
+            '/^[a-f0-9]{32}$/'                       ,
+            '/^[a-f0-9]{40}$/'                       ,
+            '/^[a-f0-9]{64}$/'                       ,
+            '/^[a-f0-9]{128}$/'                      ,
+            '/^\$2[ayb]\$\d{2}\$[.\/A-Za-z0-9]{53}$/'
         ];
 
         foreach ($patterns as $pattern) {
