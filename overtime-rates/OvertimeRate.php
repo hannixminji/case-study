@@ -3,8 +3,8 @@
 class OvertimeRate
 {
     public function __construct(
-        private readonly   int|string|null $id                              ,
-        private            int|string|null $overtimeRateAssignmentId        ,
+        private readonly   null|int|string $id                              ,
+        private            null|int|string $overtimeRateAssignmentId        ,
         private readonly   string          $dayType                         ,
         private readonly   string          $holidayType                     ,
         private readonly   float           $regularTimeRate                 ,
@@ -14,12 +14,12 @@ class OvertimeRate
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
 
-    public function getOvertimeRateAssignmentId(): int|string|null
+    public function getOvertimeRateAssignmentId(): null|int|string
     {
         return $this->overtimeRateAssignmentId;
     }

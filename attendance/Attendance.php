@@ -3,7 +3,7 @@
 class Attendance
 {
     public function __construct(
-        private readonly   int|string|null $id                         ,
+        private readonly   null|int|string $id                         ,
         private readonly   int|string      $workScheduleSnapshotId     ,
         private readonly   string          $date                       ,
         private readonly ? string          $checkInTime                ,
@@ -19,7 +19,7 @@ class Attendance
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }

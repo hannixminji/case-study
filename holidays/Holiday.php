@@ -3,7 +3,7 @@
 class Holiday
 {
     public function __construct(
-        private readonly   int|string|null $id                 ,
+        private readonly   null|int|string $id                 ,
         private readonly   string          $name               ,
         private readonly   string          $startDate          ,
         private readonly   string          $endDate            ,
@@ -14,7 +14,7 @@ class Holiday
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }

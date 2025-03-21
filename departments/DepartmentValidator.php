@@ -121,7 +121,7 @@ class DepartmentValidator extends BaseValidator
     private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
-            $id  = $this->data['id'] ?? null;
+            $id = $this->data['id'] ?? null;
 
             $columns = [
                 'id'

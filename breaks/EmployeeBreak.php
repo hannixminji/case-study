@@ -3,7 +3,7 @@
 class EmployeeBreak
 {
     public function __construct(
-        private readonly   int|string|null $id                     ,
+        private readonly   null|int|string $id                     ,
         private readonly   int|string      $breakScheduleSnapshotId,
         private readonly ? string          $startTime              ,
         private readonly ? string          $endTime                ,
@@ -12,7 +12,7 @@ class EmployeeBreak
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }

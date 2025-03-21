@@ -3,15 +3,15 @@
 class Department
 {
     public function __construct(
-        private readonly   int|string|null $id              ,
+        private readonly   null|int|string $id              ,
         private readonly   string          $name            ,
-        private readonly   int|string|null $departmentHeadId,
+        private readonly   null|int|string $departmentHeadId,
         private readonly ? string          $description     ,
         private readonly   string          $status
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
@@ -21,7 +21,7 @@ class Department
         return $this->name;
     }
 
-    public function getDepartmentHeadId(): int|string|null
+    public function getDepartmentHeadId(): null|int|string
     {
         return $this->departmentHeadId;
     }

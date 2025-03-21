@@ -3,29 +3,29 @@
 class OvertimeRateAssignment
 {
     public function __construct(
-        private readonly int|string|null $id          ,
-        private readonly int|string|null $departmentId,
-        private readonly int|string|null $jobTitleId  ,
-        private readonly int|string|null $employeeId
+        private readonly null|int|string $id          ,
+        private readonly null|int|string $departmentId,
+        private readonly null|int|string $jobTitleId  ,
+        private readonly null|int|string $employeeId
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
 
-    public function getDepartmentId(): int|string|null
+    public function getDepartmentId(): null|int|string
     {
         return $this->departmentId;
     }
 
-    public function getJobTitleId(): int|string|null
+    public function getJobTitleId(): null|int|string
     {
         return $this->jobTitleId;
     }
 
-    public function getEmployeeId(): int|string|null
+    public function getEmployeeId(): null|int|string
     {
         return $this->employeeId;
     }

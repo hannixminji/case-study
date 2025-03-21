@@ -3,7 +3,7 @@
 class LeaveRequest
 {
     public function __construct(
-        private readonly int|string|null $id         ,
+        private readonly null|int|string $id         ,
         private readonly int|string      $employeeId ,
         private readonly int|string      $leaveTypeId,
         private readonly string          $startDate  ,
@@ -15,7 +15,7 @@ class LeaveRequest
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }

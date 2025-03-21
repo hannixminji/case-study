@@ -3,7 +3,7 @@
 class WorkSchedule
 {
     public function __construct(
-        private readonly   int|string|null $id               ,
+        private readonly   null|int|string $id               ,
         private readonly   int|string      $employeeId       ,
         private readonly   string          $startTime        ,
         private readonly   string          $endTime          ,
@@ -15,7 +15,7 @@ class WorkSchedule
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }

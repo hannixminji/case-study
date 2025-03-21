@@ -3,7 +3,7 @@
 class Employee
 {
     public function __construct(
-        private readonly   int|string|null $id                          ,
+        private readonly   null|int|string $id                          ,
         private readonly   string          $rfidUid                     ,
 
         private readonly   string          $firstName                   ,
@@ -30,7 +30,7 @@ class Employee
         private readonly   int|string      $departmentId                ,
         private readonly   string          $employmentType              ,
         private readonly   string          $dateOfHire                  ,
-        private readonly   int|string|null $supervisorId                ,
+        private readonly   null|int|string $supervisorId                ,
         private readonly   string          $accessRole                  ,
 
         private readonly   int|string      $payrollGroupId              ,
@@ -53,7 +53,7 @@ class Employee
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
@@ -173,7 +173,7 @@ class Employee
         return $this->dateOfHire;
     }
 
-    public function getSupervisorId(): int|string|null
+    public function getSupervisorId(): null|int|string
     {
         return $this->supervisorId;
     }

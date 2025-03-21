@@ -3,15 +3,15 @@
 class EmploymentTypeBenefit
 {
     public function __construct(
-        private readonly int|string|null $id            ,
+        private readonly null|int|string $id            ,
         private readonly string          $employmentType,
-        private readonly int|string|null $leaveTypeId   ,
-        private readonly int|string|null $allowanceId   ,
-        private readonly int|string|null $deductionId
+        private readonly null|int|string $leaveTypeId   ,
+        private readonly null|int|string $allowanceId   ,
+        private readonly null|int|string $deductionId
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
@@ -21,17 +21,17 @@ class EmploymentTypeBenefit
         return $this->employmentType;
     }
 
-    public function getLeaveTypeId(): int|string|null
+    public function getLeaveTypeId(): null|int|string
     {
         return $this->leaveTypeId;
     }
 
-    public function getAllowanceId(): int|string|null
+    public function getAllowanceId(): null|int|string
     {
         return $this->allowanceId;
     }
 
-    public function getDeductionId(): int|string|null
+    public function getDeductionId(): null|int|string
     {
         return $this->deductionId;
     }

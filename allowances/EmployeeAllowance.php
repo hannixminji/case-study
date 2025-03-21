@@ -3,14 +3,14 @@
 class EmployeeAllowance
 {
     public function __construct(
-        private readonly int|string|null $id         ,
+        private readonly null|int|string $id         ,
         private readonly int|string      $employeeId ,
         private readonly int|string      $allowanceId,
         private readonly float           $amount
     ) {
     }
 
-    public function getId(): int|string|null
+    public function getId(): null|int|string
     {
         return $this->id;
     }
