@@ -2,18 +2,26 @@
 
 require_once __DIR__ . '/EmployeeRepository.php';
 
+require_once __DIR__ . '/EmployeeValidator.php' ;
+
 class EmployeeService
 {
     private readonly EmployeeRepository $employeeRepository;
 
+    private readonly EmployeeValidator $employeeValidator;
+
     public function __construct(EmployeeRepository $employeeRepository)
     {
         $this->employeeRepository = $employeeRepository;
+
+        $this->employeeValidator = new EmployeeValidator($employeeRepository);
     }
 
-    public function createEmployee(Employee $employee): ActionResult
+    public function createEmployee(Employee $employee): array
     {
-        return $this->employeeRepository->createEmployee($employee);
+        //$this->employeeRepository->createEmployee($employee);
+
+        return [];
     }
 
     public function fetchAllEmployees(
@@ -40,14 +48,18 @@ class EmployeeService
         return $this->employeeRepository->fetchLastEmployeeId();
     }
 
-    public function updateEmployee(Employee $employee): ActionResult
+    public function updateEmployee(Employee $employee): array
     {
-        return $this->employeeRepository->updateEmployee($employee);
+        //$this->employeeRepository->updateEmployee($employee);
+
+        return [];
     }
 
-    public function changePassword(int|string $employeeId, string $newHashedPassword): ActionResult
+    public function changePassword(int|string $employeeId, string $newHashedPassword): array
     {
-        return $this->employeeRepository->changePassword($employeeId, $newHashedPassword);
+        //$this->employeeRepository->changePassword($employeeId, $newHashedPassword);
+
+        return [];
     }
 
     public function countTotalRecords(): int|ActionResult
@@ -55,8 +67,10 @@ class EmployeeService
         return $this->employeeRepository->countTotalRecords();
     }
 
-    public function deleteEmployee(int|string $employeeId): ActionResult
+    public function deleteEmployee(int|string $employeeId): array
     {
-        return $this->employeeRepository->deleteEmployee($employeeId);
+        //$this->employeeRepository->deleteEmployee($employeeId);
+
+        return [];
     }
 }

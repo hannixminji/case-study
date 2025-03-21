@@ -45,9 +45,7 @@ class DeductionValidator extends BaseValidator
             return false;
         }
 
-        $name = trim($name);
-
-        if ($name === '') {
+        if (trim($name) === '') {
             $this->errors['name'] = 'The name cannot be empty.';
 
             return false;
@@ -124,16 +122,14 @@ class DeductionValidator extends BaseValidator
 
             return false;
         }
-        
+
         if ( ! is_string($frequency)) {
             $this->errors['frequency'] = 'The frequency must be a string.';
 
             return false;
         }
 
-        $frequency = trim($frequency);
-
-        if ($frequency === '') {
+        if (trim($frequency) === '') {
             $this->errors['frequency'] = 'The frequency cannot be empty.';
 
             return false;
@@ -175,7 +171,7 @@ class DeductionValidator extends BaseValidator
                     'value'    => $id
                 ];
 
-            } elseif (is_string($id) && ! $this->isValidHash($id)) {
+            } elseif (is_string($id) && $this->isValidHash($id)) {
                 $filterCriteria[] = [
                     'column'   => 'SHA2(deduction.id, 256)',
                     'operator' => '!='                     ,

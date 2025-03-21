@@ -49,9 +49,7 @@ abstract class BaseValidator
 
     public function isValidDescription(mixed $description): bool
     {
-        if (is_string($description)) {
-            $description = trim($description);
-
+        if (is_string($description) && trim($description) !== '') {
             if (mb_strlen($description) > 255) {
                 $this->errors['description'] = 'The description cannot exceed 255 characters long.';
 

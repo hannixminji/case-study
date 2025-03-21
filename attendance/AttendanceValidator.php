@@ -41,9 +41,7 @@ class AttendanceValidator extends BaseValidator
             return false;
         }
 
-        $rfidUid = trim($rfidUid);
-
-        if ($rfidUid === '') {
+        if (trim($rfidUid) === '') {
             $this->errors['rfid_uid'] = 'The RFID UID cannot be empty.';
 
             return false;
@@ -77,22 +75,18 @@ class AttendanceValidator extends BaseValidator
             return false;
         }
 
-        if (is_string($dateTime)) {
-            $dateTime = trim($dateTime);
+        if (trim($dateTime) === '') {
+            $this->errors[$keyName] = 'The ' . $fieldName . ' cannot be empty.';
 
-            if ($dateTime === '') {
-                $this->errors[$keyName] = 'The ' . $fieldName . ' cannot be empty.';
+            return false;
+        }
 
-                return false;
-            }
+        $time = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
 
-            $time = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
+        if ($dateTime === false || $time->format('Y-m-d H:i:s') !== $dateTime) {
+            $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the Y-m-d format and be a valid date.';
 
-            if ( ! $dateTime || $time->format('Y-m-d H:i:s') !== $dateTime) {
-                $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the Y-m-d format and be a valid date.';
-
-                return false;
-            }
+            return false;
         }
 
         return true;

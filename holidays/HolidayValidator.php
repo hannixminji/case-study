@@ -37,9 +37,7 @@ class HolidayValidator extends BaseValidator
             return false;
         }
 
-        $name = trim($name);
-
-        if ($name === '') {
+        if (trim($name) === '') {
             $this->errors['name'] = 'The name cannot be empty.';
 
             return false;
@@ -112,7 +110,7 @@ class HolidayValidator extends BaseValidator
                     'value'    => $id
                 ];
 
-            } elseif (is_string($id) && ! $this->isValidHash($id)) {
+            } elseif (is_string($id) && $this->isValidHash($id)) {
                 $filterCriteria[] = [
                     'column'   => 'SHA2(holiday.id, 256)',
                     'operator' => '!='                   ,

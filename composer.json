@@ -10,6 +10,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "rlanvin/php-rrule": "^2.5"
+        "rlanvin/php-rrule": "^2.5",
+        "bjeavons/zxcvbn-php": "^1.4"
     }
 }
