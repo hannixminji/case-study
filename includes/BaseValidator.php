@@ -74,6 +74,12 @@ abstract class BaseValidator
 
     public function isValidStatus(mixed $status): bool
     {
+        if ($status === null) {
+            $this->errors['status'] = 'The status cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_string($status)) {
             $this->errors['status'] = 'The status must be a string.';
 
@@ -86,7 +92,13 @@ abstract class BaseValidator
             return false;
         }
 
-        if ( ! in_array(strtolower($status), ['active', 'inactive', 'archived'])) {
+        $validStatuses = [
+            'active'  ,
+            'inactive',
+            'archived'
+        ];
+
+        if ( ! in_array(strtolower($status), $validStatuses)) {
             $this->errors['status'] = 'The status must be active, inactive, or archived.';
 
             return false;

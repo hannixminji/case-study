@@ -79,6 +79,7 @@ class AllowanceDao
 
         $tableColumns = [
             "id"          => "allowance.id          AS id"         ,
+            "hashed_id"   => "allowance.hashed_id   AS hashed_id"  ,
             "name"        => "allowance.name        AS name"       ,
             "amount"      => "allowance.amount      AS amount"     ,
             "frequency"   => "allowance.frequency   AS frequency"  ,
@@ -331,7 +332,7 @@ class AllowanceDao
         if (preg_match("/^[1-9]\d*$/", $allowance->getId())) {
             $query .= "id = :allowance_id";
         } else {
-            $query .= "SHA2(id, 256) = :allowance_id";
+            $query .= "hashed_id = :allowance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
@@ -389,7 +390,7 @@ class AllowanceDao
         if (preg_match("/^[1-9]\d*$/", $allowanceId)) {
             $query .= "id = :allowance_id";
         } else {
-            $query .= "SHA2(id, 256) = :allowance_id";
+            $query .= "hashed_id = :allowance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();

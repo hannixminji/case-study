@@ -73,12 +73,14 @@ class EmployeeAllowanceDao
 
         $tableColumns = [
             "id"                  => "employee_allowance.id           AS id"                 ,
+            "hashed_id"           => "employee_allowance.hashed_id    AS hashed_id"          ,
             "employee_id"         => "employee_allowance.employee_id  AS employee_id"        ,
             "allowance_id"        => "employee_allowance.allowance_id AS allowance_id"       ,
             "amount"              => "employee_allowance.amount       AS amount"             ,
             "created_at"          => "employee_allowance.created_at   AS created_at"         ,
             "deleted_at"          => "employee_allowance.deleted_at   AS employee_deleted_at",
 
+            "allowance_hashed_id" => "allowance.hashed_id             AS allowance_hashed_id",
             "allowance_name"      => "allowance.name                  AS allowance_name"     ,
             "allowance_frequency" => "allowance.frequency             AS allowance_frequency",
             "allowance_status"    => "allowance.status                AS allowance_status"
@@ -94,7 +96,8 @@ class EmployeeAllowanceDao
 
         $joinClauses = "";
 
-        if (array_key_exists("allowance_name"     , $selectedColumns) ||
+        if (array_key_exists("allowance_hashed_id", $selectedColumns) ||
+            array_key_exists("allowance_name"     , $selectedColumns) ||
             array_key_exists("allowance_frequency", $selectedColumns) ||
             array_key_exists("allowance_status"   , $selectedColumns)) {
 
@@ -343,7 +346,7 @@ class EmployeeAllowanceDao
         if (preg_match("/^[1-9]\d*$/", $employeeAllowanceId)) {
             $query .= "id = :employee_allowance_id";
         } else {
-            $query .= "SHA2(id, 256) = :employee_allowance_id";
+            $query .= "hashed_id = :employee_allowance_id";
         }
 
         $isLocalTransaction = ! $this->pdo->inTransaction();
