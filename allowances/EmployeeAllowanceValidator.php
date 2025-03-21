@@ -125,7 +125,7 @@ class EmployeeAllowanceValidator extends BaseValidator
         }
 
         if ($amount > 50_000) {
-            $this->errors['amount'] = 'The amount cannot exceed PHP 50,000.';
+            $this->errors['amount'] = 'The amount cannot exceed ₱50,000.';
 
             return false;
         }

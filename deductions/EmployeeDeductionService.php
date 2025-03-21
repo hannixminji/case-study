@@ -49,13 +49,12 @@ class EmployeeDeductionService
 
         try {
             foreach($employeeDeductions as $employeeDeduction) {
-                $employeeId = $employeeDeduction['employee_id'];
+                $employeeId  = $employeeDeduction['employee_id' ];
+                $deductionId = $employeeDeduction['deduction_id'];
 
                 if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
                     $employeeId = (int) $employeeId;
                 }
-
-                $deductionId = $employeeDeduction['deduction_id'];
 
                 if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
                     $deductionId = (int) $deductionId;

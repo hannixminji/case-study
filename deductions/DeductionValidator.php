@@ -20,18 +20,18 @@ class DeductionValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'         : $this->isValidId         ($this->data['id'         ]                           ); break;
-                    case 'name'       : $this->isValidName       ($this->data['name'       ], $this->data['id'] ?? null); break;
-                    case 'amount'     : $this->isValidAmount     ($this->data['amount'     ]                           ); break;
-                    case 'frequency'  : $this->isValidFrequency  ($this->data['frequency'  ]                           ); break;
-                    case 'description': $this->isValidDescription($this->data['description']                           ); break;
-                    case 'status'     : $this->isValidStatus     ($this->data['status'     ]                           ); break;
+                    case 'id'         : $this->isValidId         ($this->data['id'         ]); break;
+                    case 'name'       : $this->isValidName       ($this->data['name'       ]); break;
+                    case 'amount'     : $this->isValidAmount     ($this->data['amount'     ]); break;
+                    case 'frequency'  : $this->isValidFrequency  ($this->data['frequency'  ]); break;
+                    case 'description': $this->isValidDescription($this->data['description']); break;
+                    case 'status'     : $this->isValidStatus     ($this->data['status'     ]); break;
                 }
             }
         }
     }
 
-    public function isValidName(mixed $name, mixed $id): bool
+    public function isValidName(mixed $name): bool
     {
         if ($name === null) {
             $this->errors['name'] = 'The name cannot be null.';
@@ -58,27 +58,27 @@ class DeductionValidator extends BaseValidator
         }
 
         if ( ! preg_match('/^[A-Za-z0-9._\- ]+$/', $name)) {
-            $this->errors['name'] = 'The name can only contain letters, numbers, periods, hyphens, underscores, and spaces.';
+            $this->errors['name'] = 'The name contains invalid characters. Only letters, numbers, spaces, and the following characters are allowed: - . _';
 
             return false;
         }
 
         if ($name !== htmlspecialchars(strip_tags($name), ENT_QUOTES, 'UTF-8')) {
-            $this->errors['name'] = 'The name contains invalid characters.';
+            $this->errors['name'] = 'The name contains HTML tags or special characters that are not allowed.';
 
             return false;
         }
 
-        $isUnique = $this->isUnique('name', $name, $id);
+        $isUnique = $this->isUnique('name', $name);
 
         if ($isUnique === null) {
-            $this->errors['name'] = 'An unexpected error occurred while checking for uniqueness.';
+            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided employee ID may be missing or invalid. Please try again later.';
 
             return false;
         }
 
         if ($isUnique === false) {
-            $this->errors['name'] = 'The name must be unique, another entry already exists with this name.';
+            $this->errors['name'] = 'This name already exists. Please provide a different one.';
 
             return false;
         }
@@ -107,7 +107,7 @@ class DeductionValidator extends BaseValidator
         }
 
         if ($amount > 50_000) {
-            $this->errors['amount'] = 'The amount cannot exceed PHP 50,000.';
+            $this->errors['amount'] = 'The amount cannot exceed ₱50,000.';
 
             return false;
         }
@@ -135,8 +135,15 @@ class DeductionValidator extends BaseValidator
             return false;
         }
 
-        if ( ! in_array(strtolower($frequency), ['weekly', 'bi-weekly', 'semi-monthly', 'monthly'])) {
-            $this->errors['frequency'] = 'The frequency must be weekly, bi-weekly, semi-monthly, or monthly.';
+        $validFrequencies = [
+            'weekly'      ,
+            'bi-weekly'   ,
+            'semi-monthly',
+            'monthly'
+        ];
+
+        if ( ! in_array(strtolower($frequency), $validFrequencies)) {
+            $this->errors['frequency'] = 'The frequency must be one of the following: Weekly, Bi-weekly, Semi-monthly, or Monthly.';
 
             return false;
         }
@@ -144,9 +151,11 @@ class DeductionValidator extends BaseValidator
         return true;
     }
 
-    private function isUnique(string $field, mixed $value, mixed $id): ?bool
+    private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
+            $id = $this->data['id'] ?? null;
+            
             $columns = [
                 'id'
             ];

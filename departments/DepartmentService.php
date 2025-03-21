@@ -122,13 +122,12 @@ class DepartmentService
             ];
         }
 
-        $departmentId = $department['id'];
+        $departmentId     = $department['id'                ];
+        $departmentHeadId = $department['department_head_id'];
 
         if (is_string($departmentId) && preg_match('/^[1-9]\d*$/', $departmentId)) {
             $departmentId = (int) $departmentId;
         }
-
-        $departmentHeadId = $department['department_head_id'];
 
         if (is_string($departmentHeadId) && preg_match('/^[1-9]\d*$/', $departmentHeadId)) {
             $departmentHeadId = (int) $departmentHeadId;

@@ -54,7 +54,7 @@ class AttendanceValidator extends BaseValidator
         }
 
         if ( ! preg_match('/^[A-Fa-f0-9]+$/', $rfidUid)) {
-            $this->errors['rfid_uid'] = 'The RFID UID must contain only hexadecimal characters (0-9, A-F).';
+            $this->errors['rfid_uid'] = 'The RFID UID contains invalid characters. Only hexadecimal characters from 0 to 9 and A to F are allowed.';
 
             return false;
         }
@@ -84,7 +84,7 @@ class AttendanceValidator extends BaseValidator
         $time = DateTime::createFromFormat('Y-m-d H:i:s', $dateTime);
 
         if ($dateTime === false || $time->format('Y-m-d H:i:s') !== $dateTime) {
-            $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the Y-m-d format and be a valid date.';
+            $this->errors[$keyName] = 'The ' . $fieldName . ' must be in the Y-m-d H:i:s format and be a valid date and time, e.g., 2025-01-01 14:30:00.';
 
             return false;
         }

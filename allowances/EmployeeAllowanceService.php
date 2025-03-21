@@ -49,13 +49,12 @@ class EmployeeAllowanceService
 
         try {
             foreach($employeeAllowances as $employeeAllowance) {
-                $employeeId = $employeeAllowance['employee_id'];
+                $employeeId  = $employeeAllowance['employee_id' ];
+                $allowanceId = $employeeAllowance['allowance_id'];
 
                 if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
                     $employeeId = (int) $employeeId;
                 }
-
-                $allowanceId = $employeeAllowance['allowance_id'];
 
                 if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
                     $allowanceId = (int) $allowanceId;

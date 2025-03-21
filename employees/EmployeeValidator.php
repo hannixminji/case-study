@@ -906,7 +906,7 @@ class EmployeeValidator extends BaseValidator
         $date = DateTime::createFromFormat('Y-m-d', $dateOfHire);
 
         if ($date === false || $date->format('Y-m-d') !== $dateOfHire) {
-            $this->errors['date_of_hire'] = 'The hire date must be a valid date in the format YYYY-MM-DD (e.g., 2025-01-01).';
+            $this->errors['date_of_hire'] = 'The hire date must be in the Y-m-d format and be a valid date, e.g., 2025-01-01.';
 
             return false;
         }
