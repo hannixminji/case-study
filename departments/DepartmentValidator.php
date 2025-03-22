@@ -89,7 +89,11 @@ class DepartmentValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if ($id === null || $isEmpty) {
+            return true;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['department_head_id'] = 'The department head ID must be greater than 0.';
 
@@ -102,28 +106,24 @@ class DepartmentValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
-            $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
+        $this->errors['department_head_id'] = 'Invalid department head ID. Please ensure the department head ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
-            $id = $this->data['id'] ?? null;
+            $id = array_key_exists('id', $this->data)
+                ? $this->data['id']
+                : null;
 
             $columns = [
                 'id'
@@ -144,9 +144,9 @@ class DepartmentValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'department.id'                     ,
-                    'operator' => '!='                                ,
-                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
+                    'column'   => 'department.id',
+                    'operator' => '!='           ,
+                    'value'    => (int) $id
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

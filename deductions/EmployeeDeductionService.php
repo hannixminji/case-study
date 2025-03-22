@@ -52,11 +52,11 @@ class EmployeeDeductionService
                 $employeeId  = $employeeDeduction['employee_id' ];
                 $deductionId = $employeeDeduction['deduction_id'];
 
-                if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
+                if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
                     $employeeId = (int) $employeeId;
                 }
 
-                if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
+                if (filter_var($deductionId, FILTER_VALIDATE_INT) !== false) {
                     $deductionId = (int) $deductionId;
                 }
 
@@ -138,7 +138,7 @@ class EmployeeDeductionService
             ];
         }
 
-        if (is_string($employeeDeductionId) && preg_match('/^[1-9]\d*$/', $employeeDeductionId)) {
+        if (filter_var($employeeDeductionId, FILTER_VALIDATE_INT) !== false) {
             $employeeDeductionId = (int) $employeeDeductionId;
         }
 

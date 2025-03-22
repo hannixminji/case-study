@@ -1,33 +1,22 @@
 <?php
 
-require_once __DIR__ . '/EmployeeAllowanceRepository.php'    ;
-require_once __DIR__ . '/../employees/EmployeeRepository.php';
-require_once __DIR__ . '/AllowanceRepository.php'            ;
+require_once __DIR__ . '/EmployeeAllowanceRepository.php';
 
-require_once __DIR__ . '/EmployeeAllowanceValidator.php'     ;
+require_once __DIR__ . '/EmployeeAllowanceValidator.php' ;
 
 class EmployeeAllowanceService
 {
     private readonly PDO $pdo;
 
     private readonly EmployeeAllowanceRepository $employeeAllowanceRepository;
-    private readonly EmployeeRepository          $employeeRepository         ;
-    private readonly AllowanceRepository         $allowanceRepository        ;
 
     private readonly EmployeeAllowanceValidator $employeeAllowanceValidator;
 
-    public function __construct(
-        PDO                         $pdo                        ,
-        EmployeeAllowanceRepository $employeeAllowanceRepository,
-        EmployeeRepository          $employeeRepository         ,
-        AllowanceRepository         $allowanceRepository
-    ) {
-
+    public function __construct(PDO $pdo, EmployeeAllowanceRepository $employeeAllowanceRepository)
+    {
         $this->pdo = $pdo;
 
         $this->employeeAllowanceRepository = $employeeAllowanceRepository;
-        $this->employeeRepository          = $employeeRepository         ;
-        $this->allowanceRepository         = $allowanceRepository        ;
 
         $this->employeeAllowanceValidator = new EmployeeAllowanceValidator();
     }
@@ -63,34 +52,12 @@ class EmployeeAllowanceService
                 $employeeId  = $employeeAllowance['employee_id' ];
                 $allowanceId = $employeeAllowance['allowance_id'];
 
-                if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
+                if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
                     $employeeId = (int) $employeeId;
-                } else {
-                    $employeeId = $this->fetchEmployeeIdByHashedId($employeeId);
-
-                    if ($employeeId === ActionResult::FAILURE) {
-                        $this->pdo->rollBack();
-
-                        return [
-                            'status'  => 'error',
-                            'message' => 'An unexpected error occurred while assigning the allowance to an employee. Please try again later.'
-                        ];
-                    }
                 }
 
-                if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+                if (filter_var($allowanceId, FILTER_VALIDATE_INT) !== false) {
                     $allowanceId = (int) $allowanceId;
-                } else {
-                    $allowanceId = $this->fetchAllowanceIdByHashedId($allowanceId);
-
-                    if ($allowanceId === ActionResult::FAILURE) {
-                        $this->pdo->rollBack();
-
-                        return [
-                            'status'  => 'error',
-                            'message' => 'An unexpected error occurred while assigning the allowance to an employee. Please try again later.'
-                        ];
-                    }
                 }
 
                 $newEmployeeAllowance = new EmployeeAllowance(
@@ -171,7 +138,7 @@ class EmployeeAllowanceService
             ];
         }
 
-        if (is_string($employeeAllowanceId) && preg_match('/^[1-9]\d*$/', $employeeAllowanceId)) {
+        if (filter_var($employeeAllowanceId, FILTER_VALIDATE_INT) !== false) {
             $employeeAllowanceId = (int) $employeeAllowanceId;
         }
 
@@ -188,61 +155,5 @@ class EmployeeAllowanceService
             'status'  => 'success',
             'message' => 'Assigned allowance deleted successfully.'
         ];
-    }
-
-    private function fetchEmployeeIdByHashedId(string $hashedEmployeeId): int|ActionResult
-    {
-        $employeeColumns = [
-            'id'
-        ];
-
-        $employeeFilterCriteria = [
-            [
-                'column'   => 'employee.hashed_id',
-                'operator' => '='                 ,
-                'value'    => $hashedEmployeeId
-            ]
-        ];
-
-        $employeeId = $this->employeeRepository->fetchAllEmployees(
-            columns             : $employeeColumns       ,
-            filterCriteria      : $employeeFilterCriteria,
-            limit               : 1                      ,
-            includeTotalRowCount: false
-        );
-
-        if ($employeeId === ActionResult::FAILURE || empty($employeeId['result_set'])) {
-            return ActionResult::FAILURE;
-        }
-
-        return $employeeId['result_set'][0]['id'];
-    }
-
-    private function fetchAllowanceIdByHashedId(string $hashedAllowanceId): int|ActionResult
-    {
-        $allowanceColumns = [
-            'id'
-        ];
-
-        $allowanceFilterCriteria = [
-            [
-                'column'   => 'allowance.hashed_id',
-                'operator' => '='                  ,
-                'value'    => $hashedAllowanceId
-            ]
-        ];
-
-        $allowanceId = $this->allowanceRepository->fetchAllAllowances(
-            columns             : $allowanceColumns       ,
-            filterCriteria      : $allowanceFilterCriteria,
-            limit               : 1                       ,
-            includeTotalRowCount: false
-        );
-
-        if ($allowanceId === ActionResult::FAILURE || empty($allowanceId['result_set'])) {
-            return ActionResult::FAILURE;
-        }
-
-        return $allowanceId['result_set'][0]['id'];
     }
 }

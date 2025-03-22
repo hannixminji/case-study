@@ -81,104 +81,98 @@ class EmploymentTypeBenefitValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if ($id === null || $isEmpty) {
+            return true;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
-                $this->errors['leave_type_id'] = 'The Leave Type ID must be greater than 0.';
+                $this->errors['leave_type_id'] = 'The leave type ID must be greater than 0.';
 
                 return false;
             }
 
             if ($id > PHP_INT_MAX) {
-                $this->errors['leave_type_id'] = 'The Leave Type ID exceeds the maximum allowable integer size.';
+                $this->errors['leave_type_id'] = 'The leave type ID exceeds the maximum allowable integer size.';
 
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
-            $this->errors['leave_type_id'] = 'The Leave Type ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['leave_type_id'] = 'The Leave Type ID is an invalid type.';
+        $this->errors['leave_type_id'] = 'Invalid leave type ID. Please ensure the leave type ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidAllowanceId(mixed $id): bool
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if ($id === null || $isEmpty) {
+            return true;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
-                $this->errors['allowance_id'] = 'The Allowance ID must be greater than 0.';
+                $this->errors['allowance_id'] = 'The allowance ID must be greater than 0.';
 
                 return false;
             }
 
             if ($id > PHP_INT_MAX) {
-                $this->errors['allowance_id'] = 'The Allowance ID exceeds the maximum allowable integer size.';
+                $this->errors['allowance_id'] = 'The allowance ID exceeds the maximum allowable integer size.';
 
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
-            $this->errors['allowance_id'] = 'The Allowance ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['allowance_id'] = 'The Allowance ID is an invalid type.';
+        $this->errors['allowance_id'] = 'Invalid allowance ID. Please ensure the allowance ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidDeductionId(mixed $id): bool
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if ($id === null || $isEmpty) {
+            return true;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
-                $this->errors['deduction_id'] = 'The Deduction ID must be greater than 0.';
+                $this->errors['deduction_id'] = 'The deduction ID must be greater than 0.';
 
                 return false;
             }
 
             if ($id > PHP_INT_MAX) {
-                $this->errors['deduction_id'] = 'The Deduction ID exceeds the maximum allowable integer size.';
+                $this->errors['deduction_id'] = 'The deduction ID exceeds the maximum allowable integer size.';
 
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
-            $this->errors['deduction_id'] = 'The Deduction ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['deduction_id'] = 'The Deduction ID is an invalid type.';
+        $this->errors['deduction_id'] = 'Invalid deduction ID. Please ensure the deduction ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 }

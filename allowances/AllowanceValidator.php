@@ -154,7 +154,9 @@ class AllowanceValidator extends BaseValidator
     private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
-            $id = $this->data['id'] ?? null;
+            $id = array_key_exists('id', $this->data)
+                ? $this->data['id']
+                : null;
 
             $columns = [
                 'id'
@@ -175,9 +177,9 @@ class AllowanceValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'allowance.id'                      ,
-                    'operator' => '!='                                ,
-                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
+                    'column'   => 'allowance.id',
+                    'operator' => '!='          ,
+                    'value'    => (int) $id
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

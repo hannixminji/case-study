@@ -79,19 +79,21 @@ class EmployeeService
         $supervisorId   = $employee['supervisor_id'   ];
         $payrollGroupId = $employee['payroll_group_id'];
 
-        if (is_string($jobTitleId) && preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if (filter_var($jobTitleId, FILTER_VALIDATE_INT) !== false) {
             $jobTitleId = (int) $jobTitleId;
         }
 
-        if (is_string($departmentId) && preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if (filter_var($departmentId, FILTER_VALIDATE_INT) !== false) {
             $departmentId = (int) $departmentId;
         }
 
-        if (is_string($supervisorId) && preg_match('/^[1-9]\d*$/', $supervisorId)) {
+        if (filter_var($supervisorId, FILTER_VALIDATE_INT) !== false) {
             $supervisorId = (int) $supervisorId;
+        } elseif (is_string($supervisorId) && trim($supervisorId) === '') {
+            $supervisorId = null;
         }
 
-        if (is_string($payrollGroupId) && preg_match('/^[1-9]\d*$/', $payrollGroupId)) {
+        if (filter_var($payrollGroupId, FILTER_VALIDATE_INT) !== false) {
             $payrollGroupId = (int) $payrollGroupId;
         }
 
@@ -239,23 +241,25 @@ class EmployeeService
         $supervisorId   = $employee['supervisor_id'   ];
         $payrollGroupId = $employee['payroll_group_id'];
 
-        if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
             $employeeId = (int) $employeeId;
         }
 
-        if (is_string($jobTitleId) && preg_match('/^[1-9]\d*$/', $jobTitleId)) {
+        if (filter_var($jobTitleId, FILTER_VALIDATE_INT) !== false) {
             $jobTitleId = (int) $jobTitleId;
         }
 
-        if (is_string($departmentId) && preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if (filter_var($departmentId, FILTER_VALIDATE_INT) !== false) {
             $departmentId = (int) $departmentId;
         }
 
-        if (is_string($supervisorId) && preg_match('/^[1-9]\d*$/', $supervisorId)) {
+        if (filter_var($supervisorId, FILTER_VALIDATE_INT) !== false) {
             $supervisorId = (int) $supervisorId;
+        } elseif (is_string($supervisorId) && trim($supervisorId) === '') {
+            $supervisorId = null;
         }
 
-        if (is_string($payrollGroupId) && preg_match('/^[1-9]\d*$/', $payrollGroupId)) {
+        if (filter_var($payrollGroupId, FILTER_VALIDATE_INT) !== false) {
             $payrollGroupId = (int) $payrollGroupId;
         }
 
@@ -340,7 +344,7 @@ class EmployeeService
             ];
         }
 
-        if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
             $employeeId = (int) $employeeId;
         }
 
@@ -386,7 +390,7 @@ class EmployeeService
             ];
         }
 
-        if (is_string($employeeId) && preg_match('/^[1-9]\d*$/', $employeeId)) {
+        if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
             $employeeId = (int) $employeeId;
         }
 

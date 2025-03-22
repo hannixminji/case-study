@@ -111,7 +111,7 @@ class AllowanceService
 
         $allowanceId = $allowance['id'];
 
-        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+        if (filter_var($allowanceId, FILTER_VALIDATE_INT) !== false) {
             $allowanceId = (int) $allowanceId;
         }
 
@@ -161,7 +161,7 @@ class AllowanceService
             ];
         }
 
-        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+        if (filter_var($allowanceId, FILTER_VALIDATE_INT) !== false) {
             $allowanceId = (int) $allowanceId;
         }
 

@@ -111,7 +111,7 @@ class DeductionService
 
         $deductionId = $deduction['id'];
 
-        if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
+        if (filter_var($deductionId, FILTER_VALIDATE_INT) !== false) {
             $deductionId = (int) $deductionId;
         }
 
@@ -161,7 +161,7 @@ class DeductionService
             ];
         }
 
-        if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
+        if (filter_var($deductionId, FILTER_VALIDATE_INT) !== false) {
             $deductionId = (int) $deductionId;
         }
 

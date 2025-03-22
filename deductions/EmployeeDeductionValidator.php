@@ -36,7 +36,7 @@ class EmployeeDeductionValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['employee_id'] = 'The employee ID must be greater than 0.';
 
@@ -49,22 +49,16 @@ class EmployeeDeductionValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['employee_id'] = 'The employee ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ( ! is_int($id) && ! is_string($id)) {
-            $this->errors['employee_id'] = 'The employee ID is an invalid type.';
+        $this->errors['employee_id'] = 'Invalid employee ID. Please ensure the employee ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidDeductionId(mixed $id): bool
@@ -77,7 +71,7 @@ class EmployeeDeductionValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['deduction_id'] = 'The deduction ID must be greater than 0.';
 
@@ -90,22 +84,16 @@ class EmployeeDeductionValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['deduction_id'] = 'The deduction ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ( ! is_int($id) && ! is_string($id)) {
-            $this->errors['deduction_id'] = 'The deduction ID is an invalid type.';
+        $this->errors['deduction_id'] = 'Invalid deduction ID. Please ensure the deduction ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidAmount(mixed $amount): bool

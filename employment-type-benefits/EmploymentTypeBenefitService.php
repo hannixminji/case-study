@@ -44,16 +44,22 @@ class EmploymentTypeBenefitService
         $allowanceId = $employmentTypeBenefit['allowance_id' ];
         $deductionId = $employmentTypeBenefit['deduction_id' ];
 
-        if (is_string($leaveTypeId) && preg_match('/^[1-9]\d*$/', $leaveTypeId)) {
+        if (filter_var($leaveTypeId, FILTER_VALIDATE_INT) !== false) {
             $leaveTypeId = (int) $leaveTypeId;
+        } elseif (is_string($leaveTypeId) && trim($leaveTypeId) === '') {
+            $leaveTypeId = null;
         }
 
-        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+        if (filter_var($allowanceId, FILTER_VALIDATE_INT) !== false) {
             $allowanceId = (int) $allowanceId;
+        } elseif (is_string($allowanceId) && trim($allowanceId) === '') {
+            $allowanceId = null;
         }
 
-        if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
+        if (filter_var($deductionId, FILTER_VALIDATE_INT) !== false) {
             $deductionId = (int) $deductionId;
+        } elseif (is_string($deductionId) && trim($deductionId) === '') {
+            $deductionId = null;
         }
 
         $newEmploymentTypeBenefit = new EmploymentTypeBenefit(
@@ -120,7 +126,7 @@ class EmploymentTypeBenefitService
             ];
         }
 
-        if (is_string($employmentTypeBenefitId) && preg_match('/^[1-9]\d*$/', $employmentTypeBenefitId)) {
+        if (filter_var($employmentTypeBenefitId, FILTER_VALIDATE_INT) !== false) {
             $employmentTypeBenefitId = (int) $employmentTypeBenefitId;
         }
 

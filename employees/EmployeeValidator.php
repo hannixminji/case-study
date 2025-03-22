@@ -773,7 +773,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['job_title_id'] = 'The job title ID must be greater than 0.';
 
@@ -786,22 +786,16 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['job_title_id'] = 'The job title ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ( ! is_int($id) && ! is_string($id)) {
-            $this->errors['job_title_id'] = 'The job title ID is an invalid type.';
+        $this->errors['job_title_id'] = 'Invalid job title ID. Please ensure the job title ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidDepartmentId(mixed $id): bool
@@ -814,7 +808,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['department_id'] = 'The department ID must be greater than 0.';
 
@@ -827,22 +821,16 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['department_id'] = 'The department ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ( ! is_int($id) && ! is_string($id)) {
-            $this->errors['department_id'] = 'The department ID is an invalid type.';
+        $this->errors['department_id'] = 'Invalid department ID. Please ensure the department ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidEmploymentType(mixed $employmentType): bool
@@ -936,7 +924,11 @@ class EmployeeValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if ($id === null || $isEmpty) {
+            return true;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['supervisor_id'] = 'The supervisor ID must be greater than 0.';
 
@@ -949,22 +941,16 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
-            $this->errors['supervisor_id'] = 'The supervisor ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['supervisor_id'] = 'The supervisor ID is an invalid type.';
+        $this->errors['supervisor_id'] = 'Invalid supervisor ID. Please ensure the supervisor ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidAccessRole(mixed $accessRole): bool
@@ -1013,7 +999,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
             if ($id < 1) {
                 $this->errors['payroll_group_id'] = 'The payroll group ID must be greater than 0.';
 
@@ -1026,22 +1012,16 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = filter_var($id, FILTER_VALIDATE_INT);
+            return true;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['payroll_group_id'] = 'The payroll group ID is an invalid type.';
-
-            return false;
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
         }
 
-        if ( ! is_int($id) && ! is_string($id)) {
-            $this->errors['payroll_group_id'] = 'The payroll group ID is an invalid type.';
+        $this->errors['payroll_group_id'] = 'Invalid payroll group ID. Please ensure the payroll group ID is correct and try again.';
 
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     public function isValidBasicSalary(mixed $basicSalary): bool
@@ -1518,7 +1498,9 @@ class EmployeeValidator extends BaseValidator
     private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
-            $id = $this->data['id'] ?? null;
+            $id = array_key_exists('id', $this->data)
+                ? $this->data['id']
+                : null;
 
             $columns = [
                 'id'
@@ -1538,9 +1520,9 @@ class EmployeeValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'employee.id'                       ,
-                    'operator' => '!='                                ,
-                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
+                    'column'   => 'employee.id',
+                    'operator' => '!='         ,
+                    'value'    => (int) $id
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

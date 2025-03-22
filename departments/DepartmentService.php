@@ -42,8 +42,10 @@ class DepartmentService
 
         $departmentHeadId = $department['department_head_id'];
 
-        if (is_string($departmentHeadId) && preg_match('/^[1-9]\d*$/', $departmentHeadId)) {
+        if (filter_var($departmentHeadId, FILTER_VALIDATE_INT) !== false) {
             $departmentHeadId = (int) $departmentHeadId;
+        } elseif (is_string($departmentHeadId) && trim($departmentHeadId) === '') {
+            $departmentHeadId = null;
         }
 
         $newDepartment = new Department(
@@ -125,12 +127,14 @@ class DepartmentService
         $departmentId     = $department['id'                ];
         $departmentHeadId = $department['department_head_id'];
 
-        if (is_string($departmentId) && preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if (filter_var($departmentId, FILTER_VALIDATE_INT) !== false) {
             $departmentId = (int) $departmentId;
         }
 
-        if (is_string($departmentHeadId) && preg_match('/^[1-9]\d*$/', $departmentHeadId)) {
+        if (filter_var($departmentHeadId, FILTER_VALIDATE_INT) !== false) {
             $departmentHeadId = (int) $departmentHeadId;
+        } elseif (is_string($departmentHeadId) && trim($departmentHeadId) === '') {
+            $departmentHeadId = null;
         }
 
         $newDepartment = new Department(
@@ -178,7 +182,7 @@ class DepartmentService
             ];
         }
 
-        if (is_string($departmentId) && preg_match('/^[1-9]\d*$/', $departmentId)) {
+        if (filter_var($departmentId, FILTER_VALIDATE_INT) !== false) {
             $departmentId = (int) $departmentId;
         }
 
