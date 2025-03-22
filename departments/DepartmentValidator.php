@@ -102,7 +102,7 @@ class DepartmentValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if ( ! $isEmpty && ! $this->isValidHash($id)) {
@@ -144,9 +144,9 @@ class DepartmentValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'department.id',
-                    'operator' => '!='           ,
-                    'value'    => $id
+                    'column'   => 'department.id'                     ,
+                    'operator' => '!='                                ,
+                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

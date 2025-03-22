@@ -94,7 +94,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if ( ! $isEmpty && ! $this->isValidHash($id)) {
@@ -129,7 +129,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if ( ! $isEmpty && ! $this->isValidHash($id)) {
@@ -164,7 +164,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if ( ! $isEmpty && ! $this->isValidHash($id)) {

@@ -786,7 +786,7 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if (is_string($id) && ! $this->isValidHash($id)) {
@@ -827,7 +827,7 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if (is_string($id) && ! $this->isValidHash($id)) {
@@ -949,7 +949,7 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if ( ! $isEmpty && ! $this->isValidHash($id)) {
@@ -1026,7 +1026,7 @@ class EmployeeValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if (is_string($id) && ! $this->isValidHash($id)) {
@@ -1538,9 +1538,9 @@ class EmployeeValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'employee.id',
-                    'operator' => '!='         ,
-                    'value'    => $id
+                    'column'   => 'employee.id'                       ,
+                    'operator' => '!='                                ,
+                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

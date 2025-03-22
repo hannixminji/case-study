@@ -25,10 +25,10 @@ abstract class BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
-        if ( ! $isEmpty && ! $this->isValidHash($id)) {
+        if (is_string($id) && trim($id) !== '' && ! $this->isValidHash($id)) {
             $this->errors['id'] = 'The ID is an invalid type.';
 
             return false;

@@ -139,9 +139,9 @@ class BreakTypeValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'break_type.id',
-                    'operator' => '!='          ,
-                    'value'    => $id
+                    'column'   => 'break_type.id'                     ,
+                    'operator' => '!='                                ,
+                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

@@ -4,8 +4,11 @@ require_once __DIR__ . '/../includes/BaseValidator.php';
 
 class JobTitleValidator extends BaseValidator
 {
-    public function __construct()
+    private readonly JobTitleRepository $jobTitleRepository;
+
+    public function __construct(JobTitleRepository $jobTitleRepository)
     {
+        $this->jobTitleRepository = $jobTitleRepository;
     }
 
     public function validate(array $fieldsToValidate): void
@@ -65,5 +68,59 @@ class JobTitleValidator extends BaseValidator
         }
 
         return true;
+    }
+
+    private function isUnique(string $field, mixed $value): ?bool
+    {
+        if ( ! isset($this->errors['id'])) {
+            $id = $this->data['id'] ?? null;
+
+            $columns = [
+                'id'
+            ];
+
+            $filterCriteria = [
+                [
+                    'column'   => 'job_title.status',
+                    'operator' => '='               ,
+                    'value'    => 'Active'
+                ],
+                [
+                    'column'   => 'job_title.' . $field,
+                    'operator' => '='                  ,
+                    'value'    => $value
+                ]
+            ];
+
+            if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
+                $filterCriteria[] = [
+                    'column'   => 'job_title.id'                      ,
+                    'operator' => '!='                                ,
+                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
+                ];
+
+            } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {
+                $filterCriteria[] = [
+                    'column'   => 'SHA2(job_title.id, 256)',
+                    'operator' => '!='                     ,
+                    'value'    => $id
+                ];
+            }
+
+            $isUnique = $this->jobTitleRepository->fetchAllJobTitles(
+                columns             : $columns       ,
+                filterCriteria      : $filterCriteria,
+                limit               : 1              ,
+                includeTotalRowCount: false
+            );
+
+            if ($isUnique === ActionResult::FAILURE) {
+                return null;
+            }
+
+            return empty($isUnique['result_set']);
+        }
+
+        return null;
     }
 }

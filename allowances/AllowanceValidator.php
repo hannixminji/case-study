@@ -175,9 +175,9 @@ class AllowanceValidator extends BaseValidator
 
             if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
-                    'column'   => 'allowance.id',
-                    'operator' => '!='          ,
-                    'value'    => $id
+                    'column'   => 'allowance.id'                      ,
+                    'operator' => '!='                                ,
+                    'value'    => filter_var($id, FILTER_VALIDATE_INT)
                 ];
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {

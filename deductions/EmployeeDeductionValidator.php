@@ -49,7 +49,7 @@ class EmployeeDeductionValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if (is_string($id) && ! $this->isValidHash($id)) {
@@ -90,7 +90,7 @@ class EmployeeDeductionValidator extends BaseValidator
                 return false;
             }
 
-            $id = (int) $id;
+            $id = filter_var($id, FILTER_VALIDATE_INT);
         }
 
         if (is_string($id) && ! $this->isValidHash($id)) {
