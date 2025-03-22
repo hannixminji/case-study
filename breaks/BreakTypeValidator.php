@@ -88,8 +88,18 @@ class BreakTypeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($durationInMinutes) || (is_string($durationInMinutes) && preg_match('/^[1-9]\d*$/', $durationInMinutes))) {
+        $durationInMinutes = filter_var($durationInMinutes, FILTER_VALIDATE_INT);
 
+        if ($durationInMinutes === false) {
+            $this->errors['duration_in_minutes'] = '';
+
+            return false;
+        }
+
+        if ($durationInMinutes < 10 || $durationInMinutes > 60) {
+            $this->errors['duration_in_minutes'] = '';
+
+            return false;
         }
 
         return true;
@@ -127,14 +137,14 @@ class BreakTypeValidator extends BaseValidator
                 ]
             ];
 
-            if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+            if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
                     'column'   => 'break_type.id',
                     'operator' => '!='          ,
                     'value'    => $id
                 ];
 
-            } elseif (is_string($id) && $this->isValidHash($id)) {
+            } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {
                 $filterCriteria[] = [
                     'column'   => 'SHA2(break_type.id, 256)',
                     'operator' => '!='                      ,

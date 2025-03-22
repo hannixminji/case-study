@@ -142,14 +142,14 @@ class DepartmentValidator extends BaseValidator
                 ]
             ];
 
-            if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+            if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
                 $filterCriteria[] = [
                     'column'   => 'department.id',
                     'operator' => '!='           ,
                     'value'    => $id
                 ];
 
-            } elseif (is_string($id) && $this->isValidHash($id)) {
+            } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {
                 $filterCriteria[] = [
                     'column'   => 'SHA2(department.id, 256)',
                     'operator' => '!='                      ,
