@@ -41,7 +41,7 @@ class DeductionService
             ];
         }
 
-        $deduction = new Deduction(
+        $newDeduction = new Deduction(
             id         :         null                     ,
             name       :         $deduction['name'       ],
             amount     : (float) $deduction['amount'     ],
@@ -50,7 +50,7 @@ class DeductionService
             status     :         $deduction['status'     ]
         );
 
-        $createDeductionResult = $this->deductionRepository->createDeduction($deduction);
+        $createDeductionResult = $this->deductionRepository->createDeduction($newDeduction);
 
         if ($createDeductionResult === ActionResult::FAILURE) {
             return [
@@ -115,7 +115,7 @@ class DeductionService
             $deductionId = (int) $deductionId;
         }
 
-        $deduction = new Deduction(
+        $newDeduction = new Deduction(
             id         :         $deductionId             ,
             name       :         $deduction['name'       ],
             amount     : (float) $deduction['amount'     ],
@@ -124,7 +124,7 @@ class DeductionService
             status     :         $deduction['status'     ]
         );
 
-        $updateDeductionResult = $this->deductionRepository->updateDeduction($deduction);
+        $updateDeductionResult = $this->deductionRepository->updateDeduction($newDeduction);
 
         if ($updateDeductionResult === ActionResult::FAILURE) {
             return [

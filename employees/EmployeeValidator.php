@@ -45,7 +45,6 @@ class EmployeeValidator extends BaseValidator
                     case 'employment_type'                : $this->isValidEmploymentType              ($this->data['employment_type'                ]); break;
                     case 'date_of_hire'                   : $this->isValidDateOfHire                  ($this->data['date_of_hire'                   ]); break;
                     case 'supervisor_id'                  : $this->isValidSupervisorId                ($this->data['supervisor_id'                  ]); break;
-                    case 'manager_id'                     : $this->isValidManagerId                   ($this->data['manager_id'                     ]); break;
                     case 'access_role'                    : $this->isValidAccessRole                  ($this->data['access_role'                    ]); break;
                     case 'payroll_group_id'               : $this->isValidPayrollGroupId              ($this->data['payroll_group_id'               ]); break;
                     case 'basic_salary'                   : $this->isValidBasicSalary                 ($this->data['basic_salary'                   ]); break;
@@ -267,6 +266,12 @@ class EmployeeValidator extends BaseValidator
 
         if ($date === false || $date->format('Y-m-d') !== $dateOfBirth) {
             $this->errors['date_of_birth'] = 'The date of birth must be in the Y-m-d format and be a valid date, e.g., 1990-12-31.';
+
+            return false;
+        }
+
+        if ($date > new DateTime()) {
+            $this->errors['date_of_birth'] = 'The date of birth cannot be in the future.';
 
             return false;
         }
@@ -857,7 +862,8 @@ class EmployeeValidator extends BaseValidator
         }
 
         $validEmploymentTypes = [
-            'regular / permanent',
+            'regular'            ,
+            'regular permanent'  ,
             'casual'             ,
             'contractual'        ,
             'project-based'      ,
@@ -865,6 +871,8 @@ class EmployeeValidator extends BaseValidator
             'fixed-term'         ,
             'probationary'       ,
             'part-time'          ,
+            'regular part-time'  ,
+            'part-time permanent',
             'self-employment'    ,
             'freelance'          ,
             'internship'         ,
@@ -906,7 +914,13 @@ class EmployeeValidator extends BaseValidator
         $date = DateTime::createFromFormat('Y-m-d', $dateOfHire);
 
         if ($date === false || $date->format('Y-m-d') !== $dateOfHire) {
-            $this->errors['date_of_hire'] = 'The hire date must be in the Y-m-d format and be a valid date, e.g., 2025-01-01.';
+            $this->errors['date_of_hire'] = 'The date of hire must be in the Y-m-d format and be a valid date, e.g., 2025-01-01.';
+
+            return false;
+        }
+
+        if ($date > new DateTime()) {
+            $this->errors['date_of_hire'] = 'The date of hire cannot be in the future.';
 
             return false;
         }
@@ -940,39 +954,6 @@ class EmployeeValidator extends BaseValidator
 
         if ($id !== null && ! is_int($id) && ! is_string($id)) {
             $this->errors['supervisor_id'] = 'The supervisor ID is an invalid type.';
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function isValidManagerId(mixed $id): bool
-    {
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
-            if ($id < 1) {
-                $this->errors['manager_id'] = 'The manager ID must be greater than 0.';
-
-                return false;
-            }
-
-            if ($id > PHP_INT_MAX) {
-                $this->errors['manager_id'] = 'The manager ID exceeds the maximum allowable integer size.';
-
-                return false;
-            }
-
-            $id = (int) $id;
-        }
-
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['manager_id'] = 'The manager ID is an invalid type.';
-
-            return false;
-        }
-
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['manager_id'] = 'The manager ID is an invalid type.';
 
             return false;
         }

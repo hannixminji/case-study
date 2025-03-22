@@ -46,7 +46,7 @@ class DepartmentService
             $departmentHeadId = (int) $departmentHeadId;
         }
 
-        $department = new Department(
+        $newDepartment = new Department(
             id              : null                      ,
             name            : $department['name'       ],
             departmentHeadId: $departmentHeadId         ,
@@ -54,7 +54,7 @@ class DepartmentService
             status          : $department['status'     ]
         );
 
-        $createDepartmentResult = $this->departmentRepository->createDepartment($department);
+        $createDepartmentResult = $this->departmentRepository->createDepartment($newDepartment);
 
         if ($createDepartmentResult === ActionResult::FAILURE) {
             return [
@@ -133,7 +133,7 @@ class DepartmentService
             $departmentHeadId = (int) $departmentHeadId;
         }
 
-        $department = new Department(
+        $newDepartment = new Department(
             id              : $departmentId             ,
             name            : $department['name'       ],
             departmentHeadId: $departmentHeadId         ,
@@ -141,7 +141,7 @@ class DepartmentService
             status          : $department['status'     ]
         );
 
-        $updateDepartmentResult = $this->departmentRepository->updateDepartment($department);
+        $updateDepartmentResult = $this->departmentRepository->updateDepartment($newDepartment);
 
         if ($updateDepartmentResult === ActionResult::FAILURE) {
             return [

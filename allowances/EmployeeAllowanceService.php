@@ -93,14 +93,14 @@ class EmployeeAllowanceService
                     }
                 }
 
-                $employeeAllowance = new EmployeeAllowance(
+                $newEmployeeAllowance = new EmployeeAllowance(
                     id         :         null                        ,
                     employeeId :         $employeeId                 ,
                     allowanceId:         $allowanceId                ,
                     amount     : (float) $employeeAllowance['amount']
                 );
 
-                $assignAllowanceToEmployeeResult = $this->employeeAllowanceRepository->createEmployeeAllowance($employeeAllowance);
+                $assignAllowanceToEmployeeResult = $this->employeeAllowanceRepository->createEmployeeAllowance($newEmployeeAllowance);
 
                 if ($assignAllowanceToEmployeeResult === ActionResult::FAILURE) {
                     $this->pdo->rollBack();

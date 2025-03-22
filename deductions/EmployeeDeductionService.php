@@ -60,14 +60,14 @@ class EmployeeDeductionService
                     $deductionId = (int) $deductionId;
                 }
 
-                $employeeDeduction = new EmployeeDeduction(
+                $newEmployeeDeduction = new EmployeeDeduction(
                     id         :         null                        ,
                     employeeId :         $employeeId                 ,
                     deductionId:         $deductionId                ,
                     amount     : (float) $employeeDeduction['amount']
                 );
 
-                $assignDeductionToEmployeeResult = $this->employeeDeductionRepository->createEmployeeDeduction($employeeDeduction);
+                $assignDeductionToEmployeeResult = $this->employeeDeductionRepository->createEmployeeDeduction($newEmployeeDeduction);
 
                 if ($assignDeductionToEmployeeResult === ActionResult::FAILURE) {
                     $this->pdo->rollBack();

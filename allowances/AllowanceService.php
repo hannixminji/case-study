@@ -41,7 +41,7 @@ class AllowanceService
             ];
         }
 
-        $allowance = new Allowance(
+        $newAllowance = new Allowance(
             id         :         null                     ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
@@ -50,7 +50,7 @@ class AllowanceService
             status     :         $allowance['status'     ]
         );
 
-        $createAllowanceTypeResult = $this->allowanceRepository->createAllowance($allowance);
+        $createAllowanceTypeResult = $this->allowanceRepository->createAllowance($newAllowance);
 
         if ($createAllowanceTypeResult === ActionResult::FAILURE) {
             return [
@@ -115,7 +115,7 @@ class AllowanceService
             $allowanceId = (int) $allowanceId;
         }
 
-        $allowance = new Allowance(
+        $newAllowance = new Allowance(
             id         :         $allowanceId             ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
@@ -124,7 +124,7 @@ class AllowanceService
             status     :         $allowance['status'     ]
         );
 
-        $updateAllowanceTypeResult = $this->allowanceRepository->updateAllowance($allowance);
+        $updateAllowanceTypeResult = $this->allowanceRepository->updateAllowance($newAllowance);
 
         if ($updateAllowanceTypeResult === ActionResult::FAILURE) {
             return [

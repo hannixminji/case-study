@@ -95,7 +95,7 @@ class EmployeeService
             $payrollGroupId = (int) $payrollGroupId;
         }
 
-        $employee = new Employee(
+        $newEmployee = new Employee(
             id                          : null                                        ,
             rfidUid                     : $employee['rfid_uid'                       ],
             firstName                   : $employee['first_name'                     ],
@@ -137,7 +137,7 @@ class EmployeeService
             notes                       : null
         );
 
-        $createEmployeeResult = $this->employeeRepository->createEmployee($employee);
+        $createEmployeeResult = $this->employeeRepository->createEmployee($newEmployee);
 
         if ($createEmployeeResult === ActionResult::FAILURE) {
             return [
@@ -259,7 +259,7 @@ class EmployeeService
             $payrollGroupId = (int) $payrollGroupId;
         }
 
-        $employee = new Employee(
+        $newEmployee = new Employee(
             id                          : $employeeId                                 ,
             rfidUid                     : $employee['rfid_uid'                       ],
             firstName                   : $employee['first_name'                     ],
@@ -301,7 +301,7 @@ class EmployeeService
             notes                       : null
         );
 
-        $createEmployeeResult = $this->employeeRepository->createEmployee($employee);
+        $createEmployeeResult = $this->employeeRepository->createEmployee($newEmployee);
 
         if ($createEmployeeResult === ActionResult::FAILURE) {
             return [

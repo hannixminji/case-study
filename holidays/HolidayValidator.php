@@ -20,17 +20,23 @@ class HolidayValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'                : $this->isValidId              ($this->data['id'                ]                           ); break;
-                    case 'name'              : $this->isValidName            ($this->data['name'              ], $this->data['id'] ?? null); break;
-                    case 'description'       : $this->isValidDescription     ($this->data['description'       ]                           ); break;
-                    case 'status'            : $this->isValidStatus          ($this->data['status'            ]                           ); break;
+                    case 'id'                : $this->isValidId              ($this->data['id'                ]); break;
+                    case 'name'              : $this->isValidName            ($this->data['name'              ]); break;
+                    case 'description'       : $this->isValidDescription     ($this->data['description'       ]); break;
+                    case 'status'            : $this->isValidStatus          ($this->data['status'            ]); break;
                 }
             }
         }
     }
 
-    public function isValidName(mixed $name, mixed $id): bool
+    public function isValidName(mixed $name): bool
     {
+        if ($name === null) {
+            $this->errors['name'] = 'The name cannot be null.';
+
+            return false;
+        }
+
         if ( ! is_string($name)) {
             $this->errors['name'] = 'The name must be a string.';
 
@@ -50,27 +56,27 @@ class HolidayValidator extends BaseValidator
         }
 
         if ( ! preg_match('/^[A-Za-z0-9._\- ]+$/', $name)) {
-            $this->errors['name'] = 'The name can only contain letters, numbers, periods, hyphens, underscores, and spaces.';
+            $this->errors['name'] = 'The name contains invalid characters. Only letters, numbers, spaces, and the following characters are allowed: - . _';
 
             return false;
         }
 
         if ($name !== htmlspecialchars(strip_tags($name), ENT_QUOTES, 'UTF-8')) {
-            $this->errors['name'] = 'The name contains invalid characters.';
+            $this->errors['name'] = 'The name contains HTML tags or special characters that are not allowed.';
 
             return false;
         }
 
-        $isUnique = $this->isUnique('name', $name, $id);
+        $isUnique = $this->isUnique('name', $name);
 
         if ($isUnique === null) {
-            $this->errors['name'] = 'An unexpected error occurred while checking for uniqueness.';
+            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided employee ID may be missing or invalid. Please try again later.';
 
             return false;
         }
 
         if ($isUnique === false) {
-            $this->errors['name'] = 'The name must be unique, another entry already exists with this name.';
+            $this->errors['name'] = 'This name already exists. Please provide a different one.';
 
             return false;
         }
@@ -78,14 +84,85 @@ class HolidayValidator extends BaseValidator
         return true;
     }
 
-    public function isValidDate(mixed $date): bool
+    public function isValidStartDate(mixed $startDate): bool
     {
+        if ($startDate === null) {
+            $this->errors['start_date'] = 'The start date cannot be null.';
+
+            return false;
+        }
+
+        if ( ! is_string($startDate)) {
+            $this->errors['start_date'] = 'The start date must be a string.';
+
+            return false;
+        }
+
+        if (trim($startDate) === '') {
+            $this->errors['start_date'] = 'The start date cannot be empty.';
+
+            return false;
+        }
+
+        $date = DateTime::createFromFormat('Y-m-d', $startDate);
+
+        if ($date === false || $date->format('Y-m-d') !== $startDate) {
+            $this->errors['start_date'] = 'The start date must be in the Y-m-d format and be a valid date, e.g., 2025-01-01.';
+
+            return false;
+        }
+
+        if ($date > new DateTime()) {
+            $this->errors['start_date'] = 'The start date cannot be in the future.';
+
+            return false;
+        }
+
         return true;
     }
 
-    private function isUnique(string $field, mixed $value, mixed $id): ?bool
+    public function isValidEndDate(mixed $endDate): bool
+    {
+        if ($endDate === null) {
+            $this->errors['end_date'] = 'The end date cannot be null.';
+
+            return false;
+        }
+
+        if ( ! is_string($endDate)) {
+            $this->errors['end_date'] = 'The end date must be a string.';
+
+            return false;
+        }
+
+        if (trim($endDate) === '') {
+            $this->errors['end_date'] = 'The end date cannot be empty.';
+
+            return false;
+        }
+
+        $date = DateTime::createFromFormat('Y-m-d', $endDate);
+
+        if ($date === false || $date->format('Y-m-d') !== $endDate) {
+            $this->errors['end_date'] = 'The end date must be in the Y-m-d format and be a valid date, e.g., 2025-01-01.';
+
+            return false;
+        }
+
+        if ($date > new DateTime()) {
+            $this->errors['end_date'] = 'The end date cannot be in the future.';
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {
+            $id = $this->data['id'] ?? null;
+
             $columns = [
                 'id'
             ];

@@ -89,6 +89,12 @@ class AttendanceValidator extends BaseValidator
             return false;
         }
 
+        if ($time > new DateTime()) {
+            $this->errors[$keyName] = 'The ' . $fieldName . ' cannot be in the future.';
+
+            return false;
+        }
+
         return true;
     }
 }
