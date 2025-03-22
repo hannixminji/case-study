@@ -325,7 +325,7 @@ class EmployeeDeductionDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $employeeDeductionId)) {
+        if (filter_var($employeeDeductionId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :employee_deduction_id";
         } else {
             $query .= "SHA2(id, 256) = :employee_deduction_id";

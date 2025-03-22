@@ -81,7 +81,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['leave_type_id'] = 'The Leave Type ID must be greater than 0.';
 
@@ -116,7 +116,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['allowance_id'] = 'The Allowance ID must be greater than 0.';
 
@@ -151,7 +151,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['deduction_id'] = 'The Deduction ID must be greater than 0.';
 

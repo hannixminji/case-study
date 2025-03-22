@@ -439,7 +439,7 @@ class EmploymentTypeBenefitDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $employmentTypeBenefitId)) {
+        if (filter_var($employmentTypeBenefitId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :employment_benefit_id";
         } else {
             $query .= "SHA2(id, 256) = :employment_benefit_id";

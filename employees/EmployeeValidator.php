@@ -482,7 +482,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if ( ! filter_var($emailAddress, FILTER_VALIDATE_EMAIL)) {
+        if (filter_var($emailAddress, FILTER_VALIDATE_EMAIL) !== false) {
             $this->errors['email_address'] = 'The email address must be a valid email address.';
 
             return false;
@@ -673,7 +673,7 @@ class EmployeeValidator extends BaseValidator
         }
 
         if (is_string($emergencyContactEmailAddress) && trim($emergencyContactEmailAddress) !== '') {
-            if ( ! filter_var($emergencyContactEmailAddress, FILTER_VALIDATE_EMAIL)) {
+            if (filter_var($emergencyContactEmailAddress, FILTER_VALIDATE_EMAIL) !== false) {
                 $this->errors['emergency_contact_email_address'] = 'The emergency contact email address must be a valid email address.';
 
                 return false;
@@ -773,7 +773,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['job_title_id'] = 'The job title ID must be greater than 0.';
 
@@ -814,7 +814,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['department_id'] = 'The department ID must be greater than 0.';
 
@@ -936,7 +936,7 @@ class EmployeeValidator extends BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['supervisor_id'] = 'The supervisor ID must be greater than 0.';
 
@@ -1013,7 +1013,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['payroll_group_id'] = 'The payroll group ID must be greater than 0.';
 

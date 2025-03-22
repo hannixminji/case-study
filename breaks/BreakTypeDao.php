@@ -415,7 +415,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $breakType->getId())) {
+        if (filter_var($breakType->getId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :break_type_id";
         } else {
             $query .= "SHA2(id, 256) = :break_type_id";
@@ -471,7 +471,7 @@ class BreakTypeDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $breakTypeId)) {
+        if (filter_var($breakTypeId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :break_type_id";
         } else {
             $query .= "SHA2(id, 256) = :break_type_id";

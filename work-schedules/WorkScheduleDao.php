@@ -592,7 +592,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $workSchedule->getId())) {
+        if (filter_var($workSchedule->getId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :work_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :work_schedule_id";
@@ -651,7 +651,7 @@ class WorkScheduleDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $workScheduleId)) {
+        if (filter_var($workScheduleId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :work_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :work_schedule_id";

@@ -441,7 +441,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $breakSchedule->getId())) {
+        if (filter_var($breakSchedule->getId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :break_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :break_schedule_id";
@@ -495,7 +495,7 @@ class BreakScheduleDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $breakScheduleId)) {
+        if (filter_var($breakScheduleId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :break_schedule_id";
         } else {
             $query .= "SHA2(id, 256) = :break_schedule_id";

@@ -698,7 +698,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", (string) $employeeBreak->getId())) {
+        if (filter_var($employeeBreak->getId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :employee_break_id";
         } else {
             $query .= "SHA2(id, 256) = :employee_break_id";
@@ -755,7 +755,7 @@ class EmployeeBreakDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", (string) $employeeBreakId)) {
+        if (filter_var($employeeBreakId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :employee_break_id";
         } else {
             $query .= "SHA2(id, 256) = :employee_break_id";

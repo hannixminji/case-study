@@ -343,7 +343,7 @@ class EmployeeAllowanceDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $employeeAllowanceId)) {
+        if (filter_var($employeeAllowanceId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :employee_allowance_id";
         } else {
             $query .= "hashed_id = :employee_allowance_id";

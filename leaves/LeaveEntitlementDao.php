@@ -24,13 +24,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getEmployeeId())) {
+        if (filter_var($leaveEntitlement->getEmployeeId(), FILTER_VALIDATE_INT) !== false) {
             $isExistingQuery .= "employee_id = :employee_id ";
         } else {
             $isExistingQuery .= "SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getLeaveTypeId())) {
+        if (filter_var($leaveEntitlement->getLeaveTypeId(), FILTER_VALIDATE_INT) !== false) {
             $isExistingQuery .= "AND leave_type_id = :leave_type_id";
         } else {
             $isExistingQuery .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
@@ -66,13 +66,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getEmployeeId())) {
+        if (filter_var($leaveEntitlement->getEmployeeId(), FILTER_VALIDATE_INT) !== false) {
             $updateQuery .= "employee_id = :employee_id ";
         } else {
             $updateQuery .= "SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getLeaveTypeId())) {
+        if (filter_var($leaveEntitlement->getLeaveTypeId(), FILTER_VALIDATE_INT) !== false) {
             $updateQuery .= "AND leave_type_id = :leave_type_id";
         } else {
             $updateQuery .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
@@ -428,13 +428,13 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getEmployeeId())) {
+        if (filter_var($leaveEntitlement->getEmployeeId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "employee_id = :employee_id ";
         } else {
             $query .= "SHA2(employee_id, 256) = :employee_id ";
         }
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlement->getLeaveTypeId())) {
+        if (filter_var($leaveEntitlement->getLeaveTypeId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "AND leave_type_id = :leave_type_id";
         } else {
             $query .= "AND SHA2(leave_type_id, 256) = :leave_type_id";
@@ -485,7 +485,7 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $employeeId)) {
+        if (filter_var($employeeId, FILTER_VALIDATE_INT) !== false) {
             $query .= "employee_id = :employee_id";
         } else {
             $query .= "SHA2(employee_id, 256) = :employee_id";
@@ -536,7 +536,7 @@ class LeaveEntitlementDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $leaveEntitlementId)) {
+        if (filter_var($leaveEntitlementId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :leave_entitlement_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_entitlement_id";

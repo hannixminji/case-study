@@ -328,7 +328,7 @@ class DeductionDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $deduction->getId())) {
+        if (filter_var($deduction->getId(), FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :deduction_id";
         } else {
             $query .= "SHA2(id, 256) = :deduction_id";
@@ -386,7 +386,7 @@ class DeductionDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $deductionId)) {
+        if (filter_var($deductionId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :deduction_id";
         } else {
             $query .= "SHA2(id, 256) = :deduction_id";

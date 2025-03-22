@@ -80,6 +80,31 @@ class BreakTypeValidator extends BaseValidator
         return true;
     }
 
+    public function isValidDurationInMinutes(mixed $durationInMinutes): bool
+    {
+        if ($durationInMinutes === null) {
+            $this->errors['duration_in_minutes'] = 'The duration in minutes cannot be null.';
+
+            return false;
+        }
+
+        if (is_int($durationInMinutes) || (is_string($durationInMinutes) && preg_match('/^[1-9]\d*$/', $durationInMinutes))) {
+
+        }
+
+        return true;
+    }
+
+    public function isValidIsPaid(mixed $isPaid): bool
+    {
+        return true;
+    }
+
+    public function isValidisRequireBreakInAndBreakOut(mixed $isRequireBreakInAndBreakOut): bool
+    {
+        return true;
+    }
+
     private function isUnique(string $field, mixed $value): ?bool
     {
         if ( ! isset($this->errors['id'])) {

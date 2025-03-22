@@ -12,7 +12,7 @@ abstract class BaseValidator
     {
         $isEmpty = is_string($id) && trim($id) === '';
 
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false) {
             if ($id < 1) {
                 $this->errors['id'] = 'The ID must be greater than 0.';
 

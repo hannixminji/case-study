@@ -316,7 +316,7 @@ class LeaveRequestAttachmentDao
             WHERE
         ";
 
-        if (preg_match("/^[1-9]\d*$/", $leaveRequestAttachmentId)) {
+        if (filter_var($leaveRequestAttachmentId, FILTER_VALIDATE_INT) !== false) {
             $query .= "id = :leave_request_attachment_id";
         } else {
             $query .= "SHA2(id, 256) = :leave_request_attachment_id";
