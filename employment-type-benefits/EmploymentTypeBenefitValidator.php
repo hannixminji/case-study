@@ -79,6 +79,8 @@ class EmploymentTypeBenefitValidator extends BaseValidator
 
     public function isValidLeaveTypeId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['leave_type_id'] = 'The Leave Type ID must be greater than 0.';
@@ -95,7 +97,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['leave_type_id'] = 'The Leave Type ID is an invalid type.';
 
             return false;
@@ -112,6 +114,8 @@ class EmploymentTypeBenefitValidator extends BaseValidator
 
     public function isValidAllowanceId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['allowance_id'] = 'The Allowance ID must be greater than 0.';
@@ -128,7 +132,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['allowance_id'] = 'The Allowance ID is an invalid type.';
 
             return false;
@@ -145,6 +149,8 @@ class EmploymentTypeBenefitValidator extends BaseValidator
 
     public function isValidDeductionId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['deduction_id'] = 'The Deduction ID must be greater than 0.';
@@ -161,7 +167,7 @@ class EmploymentTypeBenefitValidator extends BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['deduction_id'] = 'The Deduction ID is an invalid type.';
 
             return false;

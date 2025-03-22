@@ -765,8 +765,10 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidJobTitleId(mixed $id): bool
     {
-        if ($id === null) {
-            $this->errors['job_title_id'] = 'The job title ID cannot be null.';
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['job_title_id'] = 'The job title ID is required.';
 
             return false;
         }
@@ -804,8 +806,10 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidDepartmentId(mixed $id): bool
     {
-        if ($id === null) {
-            $this->errors['department_id'] = 'The department ID cannot be null.';
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['department_id'] = 'The department ID is required.';
 
             return false;
         }
@@ -930,6 +934,8 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidSupervisorId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['supervisor_id'] = 'The supervisor ID must be greater than 0.';
@@ -946,7 +952,7 @@ class EmployeeValidator extends BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['supervisor_id'] = 'The supervisor ID is an invalid type.';
 
             return false;
@@ -999,8 +1005,10 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidPayrollGroupId(mixed $id): bool
     {
-        if ($id === null) {
-            $this->errors['payroll_group_id'] = 'The payroll group ID cannot be null.';
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['payroll_group_id'] = 'The payroll group ID is required.';
 
             return false;
         }

@@ -92,12 +92,12 @@ class BreakTypeValidator extends BaseValidator
             $filterCriteria = [
                 [
                     'column'   => 'break_type.status',
-                    'operator' => '='               ,
+                    'operator' => '='                ,
                     'value'    => 'Active'
                 ],
                 [
                     'column'   => 'break_type.' . $field,
-                    'operator' => '='                  ,
+                    'operator' => '='                   ,
                     'value'    => $value
                 ]
             ];

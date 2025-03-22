@@ -10,6 +10,8 @@ abstract class BaseValidator
 
     public function isValidId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['id'] = 'The ID must be greater than 0.';
@@ -26,14 +28,14 @@ abstract class BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['id'] = 'The ID is an invalid type.';
 
             return false;
         }
 
-        if ($id === null && $this->group !== 'create') {
-            $this->errors['id'] = 'The ID cannot be null.';
+        if (($id === null || $isEmpty) && $this->group !== 'create') {
+            $this->errors['id'] = 'The ID cannot be empty or null.';
 
             return false;
         }

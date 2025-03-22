@@ -87,6 +87,8 @@ class DepartmentValidator extends BaseValidator
 
     public function isValidDepartmentHeadId(mixed $id): bool
     {
+        $isEmpty = is_string($id) && trim($id) === '';
+
         if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
             if ($id < 1) {
                 $this->errors['department_head_id'] = 'The department head ID must be greater than 0.';
@@ -103,7 +105,7 @@ class DepartmentValidator extends BaseValidator
             $id = (int) $id;
         }
 
-        if (is_string($id) && ! $this->isValidHash($id)) {
+        if ( ! $isEmpty && ! $this->isValidHash($id)) {
             $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
 
             return false;

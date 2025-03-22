@@ -28,8 +28,10 @@ class EmployeeAllowanceValidator extends BaseValidator
 
     public function isValidEmployeeId(mixed $id): bool
     {
-        if ($id === null) {
-            $this->errors['employee_id'] = 'The employee ID cannot be null.';
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['employee_id'] = 'The employee ID is required.';
 
             return false;
         }
@@ -67,8 +69,10 @@ class EmployeeAllowanceValidator extends BaseValidator
 
     public function isValidAllowanceId(mixed $id): bool
     {
-        if ($id === null) {
-            $this->errors['allowance_id'] = 'The allowance ID cannot be null.';
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['allowance_id'] = 'The allowance ID is required.';
 
             return false;
         }
