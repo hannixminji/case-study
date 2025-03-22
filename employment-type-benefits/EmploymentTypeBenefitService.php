@@ -6,89 +6,67 @@ require_once __DIR__ . '/EmploymentTypeBenefitValidator.php' ;
 
 class EmploymentTypeBenefitService
 {
-    private readonly PDO $pdo;
-
     private readonly EmploymentTypeBenefitRepository $employmentTypeBenefitRepository;
 
     private readonly EmploymentTypeBenefitValidator $employmentTypeBenefitValidator;
 
-    public function __construct(PDO $pdo, EmploymentTypeBenefitRepository $employmentTypeBenefitRepository)
+    public function __construct(EmploymentTypeBenefitRepository $employmentTypeBenefitRepository)
     {
-        $this->pdo = $pdo;
-
         $this->employmentTypeBenefitRepository = $employmentTypeBenefitRepository;
 
         $this->employmentTypeBenefitValidator = new EmploymentTypeBenefitValidator();
     }
 
-    public function createEmploymentTypeBenefit(array $employmentTypeBenefits): array
+    public function createEmploymentTypeBenefit(array $employmentTypeBenefit): array
     {
         $this->employmentTypeBenefitValidator->setGroup('create');
 
-        foreach ($employmentTypeBenefits as $employmentTypeBenefit) {
-            $this->employmentTypeBenefitValidator->setData($employmentTypeBenefit);
+        $this->employmentTypeBenefitValidator->setData($employmentTypeBenefit);
 
-            $this->employmentTypeBenefitValidator->validate([
-                'employment_type',
-                'leave_type_id'  ,
-                'allowance_id'   ,
-                'deduction_id'
-            ]);
+        $this->employmentTypeBenefitValidator->validate([
+            'employment_type',
+            'leave_type_id'  ,
+            'allowance_id'   ,
+            'deduction_id'
+        ]);
 
-            $validationErrors = $this->employmentTypeBenefitValidator->getErrors();
+        $validationErrors = $this->employmentTypeBenefitValidator->getErrors();
 
-            if ( ! empty($validationErrors)) {
-                return [
-                    'status'  => 'invalid_input',
-                    'message' => 'There are validation errors. Please check the input values.',
-                    'errors'  => $validationErrors
-                ];
-            }
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
         }
 
-        $this->pdo->beginTransaction();
+        $leaveTypeId = $employmentTypeBenefit['leave_type_id'];
+        $allowanceId = $employmentTypeBenefit['allowance_id' ];
+        $deductionId = $employmentTypeBenefit['deduction_id' ];
 
-        try {
-            foreach ($employmentTypeBenefits as $employmentTypeBenefit) {
-                $leaveTypeId = $employmentTypeBenefit['leave_type_id'];
-                $allowanceId = $employmentTypeBenefit['allowance_id' ];
-                $deductionId = $employmentTypeBenefit['deduction_id' ];
+        if (is_string($leaveTypeId) && preg_match('/^[1-9]\d*$/', $leaveTypeId)) {
+            $leaveTypeId = (int) $leaveTypeId;
+        }
 
-                if (is_string($leaveTypeId) && preg_match('/^[1-9]\d*$/', $leaveTypeId)) {
-                    $leaveTypeId = (int) $leaveTypeId;
-                }
+        if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
+            $allowanceId = (int) $allowanceId;
+        }
 
-                if (is_string($allowanceId) && preg_match('/^[1-9]\d*$/', $allowanceId)) {
-                    $allowanceId = (int) $allowanceId;
-                }
+        if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
+            $deductionId = (int) $deductionId;
+        }
 
-                if (is_string($deductionId) && preg_match('/^[1-9]\d*$/', $deductionId)) {
-                    $deductionId = (int) $deductionId;
-                }
+        $newEmploymentTypeBenefit = new EmploymentTypeBenefit(
+            id            : null                                     ,
+            employmentType: $employmentTypeBenefit['employment_type'],
+            leaveTypeId   : $leaveTypeId                             ,
+            allowanceId   : $allowanceId                             ,
+            deductionId   : $deductionId
+        );
 
-                $newEmploymentTypeBenefit = new EmploymentTypeBenefit(
-                    id            : null                                     ,
-                    employmentType: $employmentTypeBenefit['employment_type'],
-                    leaveTypeId   : $leaveTypeId                             ,
-                    allowanceId   : $allowanceId                             ,
-                    deductionId   : $deductionId
-                );
+        $assignBenefitToEmploymentTypeResult = $this->employmentTypeBenefitRepository->createEmploymentTypeBenefit($newEmploymentTypeBenefit);
 
-                $assignBenefitToEmploymentTypeResult = $this->employmentTypeBenefitRepository->createEmploymentTypeBenefit($newEmploymentTypeBenefit);
-
-                if ($assignBenefitToEmploymentTypeResult === ActionResult::FAILURE) {
-                    $this->pdo->rollBack();
-
-                    return [
-                        'status'  => 'error',
-                        'message' => 'An unexpected error occurred while assigning benefit to an employment type. Please try again later.'
-                    ];
-                }
-            }
-
-        } catch (PDOException $exception) {
-            $this->pdo->rollBack();
-
+        if ($assignBenefitToEmploymentTypeResult === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
                 'message' => 'An unexpected error occurred while assigning benefit to an employment type. Please try again later.'
@@ -97,10 +75,7 @@ class EmploymentTypeBenefitService
 
         return [
             'status'  => 'success',
-            'message' =>
-                count($employmentTypeBenefits) > 1
-                    ? 'Benefits assigned successfully.'
-                    : 'Benefit assigned successfully.'
+            'message' => 'Benefit successfully assigned to an employment type.'
         ];
     }
 
@@ -125,7 +100,7 @@ class EmploymentTypeBenefitService
 
     public function deleteEmploymentTypeBenefit(mixed $employmentTypeBenefitId): array
     {
-        $this->employmentTypeBenefitValidator->setGroup('create');
+        $this->employmentTypeBenefitValidator->setGroup('delete');
 
         $this->employmentTypeBenefitValidator->setData([
             'id' => $employmentTypeBenefitId
