@@ -70,7 +70,7 @@ class HolidayValidator extends BaseValidator
         $isUnique = $this->isUnique('name', $name);
 
         if ($isUnique === null) {
-            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided employee ID may be missing or invalid. Please try again later.';
+            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided holiday ID may be missing or invalid. Please try again later.';
 
             return false;
         }

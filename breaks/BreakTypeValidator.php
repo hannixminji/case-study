@@ -2,13 +2,13 @@
 
 require_once __DIR__ . '/../includes/BaseValidator.php';
 
-class DepartmentValidator extends BaseValidator
+class BreakTypeValidator extends BaseValidator
 {
-    private readonly DepartmentRepository $departmentRepository;
+    private readonly BreakTypeRepository $breakTypeRepository;
 
-    public function __construct(DepartmentRepository $departmentRepository)
+    public function __construct(BreakTypeRepository $breakTypeRepository)
     {
-        $this->departmentRepository = $departmentRepository;
+        $this->breakTypeRepository = $breakTypeRepository;
     }
 
     public function validate(array $fieldsToValidate): void
@@ -20,11 +20,6 @@ class DepartmentValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'                : $this->isValidId              ($this->data['id'                ]); break;
-                    case 'name'              : $this->isValidName            ($this->data['name'              ]); break;
-                    case 'department_head_id': $this->isValidDepartmentHeadId($this->data['department_head_id']); break;
-                    case 'description'       : $this->isValidDescription     ($this->data['description'       ]); break;
-                    case 'status'            : $this->isValidStatus          ($this->data['status'            ]); break;
                 }
             }
         }
@@ -71,46 +66,13 @@ class DepartmentValidator extends BaseValidator
         $isUnique = $this->isUnique('name', $name);
 
         if ($isUnique === null) {
-            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided department ID may be missing or invalid. Please try again later.';
+            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided break type ID may be missing or invalid. Please try again later.';
 
             return false;
         }
 
         if ($isUnique === false) {
             $this->errors['name'] = 'This name already exists. Please provide a different one.';
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function isValidDepartmentHeadId(mixed $id): bool
-    {
-        if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
-            if ($id < 1) {
-                $this->errors['department_head_id'] = 'The department head ID must be greater than 0.';
-
-                return false;
-            }
-
-            if ($id > PHP_INT_MAX) {
-                $this->errors['department_head_id'] = 'The department head ID exceeds the maximum allowable integer size.';
-
-                return false;
-            }
-
-            $id = (int) $id;
-        }
-
-        if (is_string($id) && ! $this->isValidHash($id)) {
-            $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
-
-            return false;
-        }
-
-        if ($id !== null && ! is_int($id) && ! is_string($id)) {
-            $this->errors['department_head_id'] = 'The department head ID is an invalid type.';
 
             return false;
         }
@@ -129,33 +91,33 @@ class DepartmentValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'department.status',
-                    'operator' => '='                ,
+                    'column'   => 'break_type.status',
+                    'operator' => '='               ,
                     'value'    => 'Active'
                 ],
                 [
-                    'column'   => 'department.' . $field,
-                    'operator' => '='                   ,
+                    'column'   => 'break_type.' . $field,
+                    'operator' => '='                  ,
                     'value'    => $value
                 ]
             ];
 
             if (is_int($id) || (is_string($id) && preg_match('/^[1-9]\d*$/', $id))) {
                 $filterCriteria[] = [
-                    'column'   => 'department.id',
-                    'operator' => '!='           ,
+                    'column'   => 'break_type.id',
+                    'operator' => '!='          ,
                     'value'    => $id
                 ];
 
             } elseif (is_string($id) && $this->isValidHash($id)) {
                 $filterCriteria[] = [
-                    'column'   => 'SHA2(department.id, 256)',
+                    'column'   => 'SHA2(break_type.id, 256)',
                     'operator' => '!='                      ,
                     'value'    => $id
                 ];
             }
 
-            $isUnique = $this->departmentRepository->fetchAllDepartments(
+            $isUnique = $this->breakTypeRepository->fetchAllBreakTypes(
                 columns             : $columns       ,
                 filterCriteria      : $filterCriteria,
                 limit               : 1              ,
