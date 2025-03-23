@@ -20,10 +20,14 @@ class HolidayValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'                : $this->isValidId              ($this->data['id'                ]); break;
-                    case 'name'              : $this->isValidName            ($this->data['name'              ]); break;
-                    case 'description'       : $this->isValidDescription     ($this->data['description'       ]); break;
-                    case 'status'            : $this->isValidStatus          ($this->data['status'            ]); break;
+                    case 'id'                   : $this->isValidId                 ($this->data['id'                   ]); break;
+                    case 'name'                 : $this->isValidName               ($this->data['name'                 ]); break;
+                    case 'start_date'           : $this->isValidStartDate          ($this->data['start_date'           ]); break;
+                    case 'end_date'             : $this->isValidEndDate            ($this->data['end_date'             ]); break;
+                    case 'is_paid'              : $this->isValidIsPaid             ($this->data['is_paid'              ]); break;
+                    case 'is_recurring_annually': $this->isValidIsRecurringAnnually($this->data['is_recurring_annually']); break;
+                    case 'description'          : $this->isValidDescription        ($this->data['description'          ]); break;
+                    case 'status'               : $this->isValidStatus             ($this->data['status'               ]); break;
                 }
             }
         }
@@ -112,12 +116,6 @@ class HolidayValidator extends BaseValidator
             return false;
         }
 
-        if ($date > new DateTime()) {
-            $this->errors['start_date'] = 'The start date cannot be in the future.';
-
-            return false;
-        }
-
         return true;
     }
 
@@ -149,8 +147,36 @@ class HolidayValidator extends BaseValidator
             return false;
         }
 
-        if ($date > new DateTime()) {
-            $this->errors['end_date'] = 'The end date cannot be in the future.';
+        return true;
+    }
+
+    public function isValidIsPaid(mixed $isPaid): bool
+    {
+        if ($isPaid === null) {
+            $this->errors['is_paid'] = 'The "Is Paid" field cannot be null.';
+
+            return false;
+        }
+
+        if (filter_var($isPaid, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === null) {
+            $this->errors['is_paid'] = 'The "Is Paid" field must be a valid boolean.';
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isValidIsRecurringAnnually(mixed $isRecurringAnnually): bool
+    {
+        if ($isRecurringAnnually === null) {
+            $this->errors['is_recurring_annually'] = 'The "Is Recurring Annually" field cannot be null.';
+
+            return false;
+        }
+
+        if (filter_var($isRecurringAnnually, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === null) {
+            $this->errors['is_recurring_annually'] = 'The "Is Recurring Annually" field must be a valid boolean.';
 
             return false;
         }

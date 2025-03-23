@@ -119,7 +119,7 @@ class BreakTypeValidator extends BaseValidator
         }
 
         if (filter_var($isPaid, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === null) {
-            $this->errors['is_paid'] = 'The "Is Paid" field must be a valid boolean (true/false, 1/0, yes/no, on/off).';
+            $this->errors['is_paid'] = 'The "Is Paid" field must be a valid boolean.';
 
             return false;
         }
@@ -138,7 +138,7 @@ class BreakTypeValidator extends BaseValidator
         $isRequireBreakInAndBreakOut = filter_var($isRequireBreakInAndBreakOut, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
 
         if ($isRequireBreakInAndBreakOut === null) {
-            $this->errors['is_require_break_in_and_break_out'] = 'The "Require Break In and Break Out" field must be a valid boolean (true/false, 1/0, yes/no, on/off).';
+            $this->errors['is_require_break_in_and_break_out'] = 'The "Require Break In and Break Out" field must be a valid boolean.';
 
             return false;
         }
