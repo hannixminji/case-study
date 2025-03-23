@@ -13,6 +13,19 @@ class JobTitleValidator extends BaseValidator
 
     public function validate(array $fieldsToValidate): void
     {
+        foreach ($fieldsToValidate as $field) {
+            if ( ! array_key_exists($field, $this->data)) {
+                $this->errors[$field] = 'The ' . $field . ' field is missing.';
+            } else {
+                switch ($field) {
+                    case 'id'           : $this->isValidId          ($this->data['id'           ]); break;
+                    case 'title'        : $this->isValidTitle       ($this->data['title'        ]); break;
+                    case 'department_id': $this->isValidDepartmentId($this->data['department_id']); break;
+                    case 'description'  : $this->isValidDescription ($this->data['description'  ]); break;
+                    case 'status'       : $this->isValidStatus      ($this->data['status'       ]); break;
+                }
+            }
+        }
     }
 
     public function isValidTitle(mixed $title): bool
@@ -56,7 +69,7 @@ class JobTitleValidator extends BaseValidator
         $isUnique = $this->isUnique('title', $title);
 
         if ($isUnique === null) {
-            $this->errors['title'] = 'Unable to verify the uniqueness of the title. Please try again later.';
+            $this->errors['title'] = 'Unable to verify the uniqueness of the title. The provided job title ID may be missing or invalid. Please try again later.';
 
             return false;
         }
@@ -68,6 +81,41 @@ class JobTitleValidator extends BaseValidator
         }
 
         return true;
+    }
+
+    public function isValidDepartmentId(mixed $id): bool
+    {
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['department_id'] = 'The department ID is required.';
+
+            return false;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
+            if ($id < 1) {
+                $this->errors['department_id'] = 'The department ID must be greater than 0.';
+
+                return false;
+            }
+
+            if ($id > PHP_INT_MAX) {
+                $this->errors['department_id'] = 'The department ID exceeds the maximum allowable integer size.';
+
+                return false;
+            }
+
+            return true;
+        }
+
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
+        }
+
+        $this->errors['department_id'] = 'Invalid department ID. Please ensure the department ID is correct and try again.';
+
+        return false;
     }
 
     private function isUnique(string $field, mixed $value): ?bool
