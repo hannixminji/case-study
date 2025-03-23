@@ -11,7 +11,7 @@ class OvertimeRateRepository
         $this->overtimeRateDao = $overtimeRateDao;
     }
 
-    public function create(OvertimeRate $overtimeRate): ActionResult
+    public function createOvertimeRate(OvertimeRate $overtimeRate): ActionResult
     {
         return $this->overtimeRateDao->create($overtimeRate);
     }
@@ -21,7 +21,7 @@ class OvertimeRateRepository
         return $this->overtimeRateDao->fetchOvertimeRates($overtimeRateAssignmentId);
     }
 
-    public function update(OvertimeRate $overtimeRate): ActionResult
+    public function updateOvertimeRate(OvertimeRate $overtimeRate): ActionResult
     {
         return $this->overtimeRateDao->update($overtimeRate);
     }
