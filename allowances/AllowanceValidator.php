@@ -184,8 +184,8 @@ class AllowanceValidator extends BaseValidator
 
             } elseif (is_string($id) && trim($id) !== '' && $this->isValidHash($id)) {
                 $filterCriteria[] = [
-                    'column'   => 'allowance.hashed_id',
-                    'operator' => '!='                 ,
+                    'column'   => 'SHA2(allowance.id, 256)',
+                    'operator' => '!='                     ,
                     'value'    => $id
                 ];
             }
