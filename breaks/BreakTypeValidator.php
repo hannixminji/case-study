@@ -20,6 +20,11 @@ class BreakTypeValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
+                    case 'id'                               : $this->isValidId                         ($this->data['id'                               ]); break;
+                    case 'name'                             : $this->isValidName                       ($this->data['name'                             ]); break;
+                    case 'duration_in_minutes'              : $this->isValidDurationInMinutes          ($this->data['duration_in_minutes'              ]); break;
+                    case 'is_paid'                          : $this->isValidIsPaid                     ($this->data['is_paid'                          ]); break;
+                    case 'is_require_break_in_and_break_out': $this->isValidisRequireBreakInAndBreakOut($this->data['is_require_break_in_and_break_out']); break;
                 }
             }
         }
@@ -91,13 +96,13 @@ class BreakTypeValidator extends BaseValidator
         $durationInMinutes = filter_var($durationInMinutes, FILTER_VALIDATE_INT);
 
         if ($durationInMinutes === false) {
-            $this->errors['duration_in_minutes'] = '';
+            $this->errors['duration_in_minutes'] = 'The duration in minutes must be a valid integer.';
 
             return false;
         }
 
         if ($durationInMinutes < 10 || $durationInMinutes > 60) {
-            $this->errors['duration_in_minutes'] = '';
+            $this->errors['duration_in_minutes'] = 'The duration in minutes must be between 10 and 60.';
 
             return false;
         }
@@ -107,11 +112,37 @@ class BreakTypeValidator extends BaseValidator
 
     public function isValidIsPaid(mixed $isPaid): bool
     {
+        if ($isPaid === null) {
+            $this->errors['is_paid'] = 'The "Is Paid" field cannot be null.';
+
+            return false;
+        }
+
+        if (filter_var($isPaid, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === null) {
+            $this->errors['is_paid'] = 'The "Is Paid" field must be a valid boolean (true/false, 1/0, yes/no, on/off).';
+
+            return false;
+        }
+
         return true;
     }
 
     public function isValidisRequireBreakInAndBreakOut(mixed $isRequireBreakInAndBreakOut): bool
     {
+        if ($isRequireBreakInAndBreakOut === null) {
+            $this->errors['is_require_break_in_and_break_out'] = 'The "Require Break In and Break Out" field cannot be null.';
+
+            return false;
+        }
+
+        $isRequireBreakInAndBreakOut = filter_var($isRequireBreakInAndBreakOut, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        if ($isRequireBreakInAndBreakOut === null) {
+            $this->errors['is_require_break_in_and_break_out'] = 'The "Require Break In and Break Out" field must be a valid boolean (true/false, 1/0, yes/no, on/off).';
+
+            return false;
+        }
+
         return true;
     }
 

@@ -93,7 +93,7 @@ class AttendanceService
             ];
         }
 
-        if (is_string($attendanceId) && preg_match('/^[1-9]\d*$/', $attendanceId)) {
+        if (filter_var($attendanceId, FILTER_VALIDATE_INT) !== false) {
             $attendanceId = (int) $attendanceId;
         }
 
