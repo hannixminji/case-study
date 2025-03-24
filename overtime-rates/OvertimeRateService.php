@@ -57,8 +57,6 @@ class OvertimeRateService
 
                 if (filter_var($overtimeRateAssignmentId, FILTER_VALIDATE_INT) !== false) {
                     $overtimeRateAssignmentId = (int) $overtimeRateAssignmentId;
-                } elseif (is_string($overtimeRateAssignmentId) && trim($overtimeRateAssignmentId) === '') {
-                    $overtimeRateAssignmentId = null;
                 }
 
                 $newOvertimeRate = new OvertimeRate(
@@ -148,8 +146,6 @@ class OvertimeRateService
 
                 if (filter_var($overtimeRateAssignmentId, FILTER_VALIDATE_INT) !== false) {
                     $overtimeRateAssignmentId = (int) $overtimeRateAssignmentId;
-                } elseif (is_string($overtimeRateAssignmentId) && trim($overtimeRateAssignmentId) === '') {
-                    $overtimeRateAssignmentId = null;
                 }
 
                 $newOvertimeRate = new OvertimeRate(
