@@ -79,6 +79,8 @@ class EmployeeDeductionService
                 }
             }
 
+            $this->pdo->commit();
+
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 

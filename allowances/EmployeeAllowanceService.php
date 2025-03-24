@@ -79,6 +79,8 @@ class EmployeeAllowanceService
                 }
             }
 
+            $this->pdo->commit();
+
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
@@ -157,3 +159,14 @@ class EmployeeAllowanceService
         ];
     }
 }
+
+require_once __DIR__ . '/../database/database.php';
+
+$employeeAllowanceDao = new EmployeeAllowanceDao($pdo);
+$employeeAllowanceRepository = new EmployeeAllowanceRepository($employeeAllowanceDao);
+$employeeAllowanceService = new EmployeeAllowanceService($pdo, $employeeAllowanceRepository);
+
+print_r($employeeAllowanceService->createEmployeeAllowance([
+    'employee_id' => 6,
+    'allowance_id' => ''
+]));

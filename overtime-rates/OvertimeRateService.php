@@ -82,6 +82,8 @@ class OvertimeRateService
                 }
             }
 
+            $this->pdo->commit();
+
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
 
@@ -170,6 +172,8 @@ class OvertimeRateService
                     ];
                 }
             }
+
+            $this->pdo->commit();
 
         } catch (PDOException $exception) {
             $this->pdo->rollBack();
