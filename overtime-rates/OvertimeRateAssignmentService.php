@@ -90,11 +90,12 @@ class OvertimeRateAssignmentService
 
     public function assignOvertimeRateAssignment(array $overtimeRateAssignment, array $overtimeRates): array
     {
-        $this->overtimeRateAssignmentValidator->setGroup('create');
+        $this->overtimeRateAssignmentValidator->setGroup('assign');
 
         $this->overtimeRateAssignmentValidator->setData($overtimeRateAssignment);
 
         $this->overtimeRateAssignmentValidator->validate([
+            'id'           ,
             'department_id',
             'job_title_id' ,
             'employee_id'
@@ -114,6 +115,7 @@ class OvertimeRateAssignmentService
             $this->overtimeRateValidator->setData($overtimeRate);
 
             $this->overtimeRateValidator->validate([
+                'id'                                  ,
                 'overtime_rate_assignment_id'         ,
                 'day_type'                            ,
                 'holiday_type'                        ,
@@ -134,9 +136,14 @@ class OvertimeRateAssignmentService
             }
         }
 
-        $departmentId = $overtimeRateAssignment['department_id'];
-        $jobTitleId   = $overtimeRateAssignment['job_title_id' ];
-        $employeeId   = $overtimeRateAssignment['employee_id'  ];
+        $overtimeRateAssignmentId = $overtimeRateAssignment['id'           ];
+        $departmentId             = $overtimeRateAssignment['department_id'];
+        $jobTitleId               = $overtimeRateAssignment['job_title_id' ];
+        $employeeId               = $overtimeRateAssignment['employee_id'  ];
+
+        if (filter_var($overtimeRateAssignmentId, FILTER_VALIDATE_INT) !== false) {
+            $overtimeRateAssignmentId = (int) $overtimeRateAssignmentId;
+        }
 
         if (filter_var($departmentId, FILTER_VALIDATE_INT) !== false) {
             $departmentId = (int) $departmentId;
@@ -157,13 +164,17 @@ class OvertimeRateAssignmentService
         }
 
         $newOvertimeRateAssignment = new OvertimeRateAssignment(
-            id          : null         ,
-            departmentId: $departmentId,
-            jobTitleId  : $jobTitleId  ,
+            id          : $overtimeRateAssignmentId,
+            departmentId: $departmentId            ,
+            jobTitleId  : $jobTitleId              ,
             employeeId  : $employeeId
         );
 
         foreach ($overtimeRates as $key => $overtimeRate) {
+            if (filter_var($overtimeRate['id'], FILTER_VALIDATE_INT) !== false) {
+                $overtimeRates[$key]['id'] = (int) $overtimeRate['id'];
+            }
+
             $overtimeRates[$key]['regular_time_rate'                   ] = (float) $overtimeRate['regular_time_rate'                   ];
             $overtimeRates[$key]['overtime_rate'                       ] = (float) $overtimeRate['overtime_rate'                       ];
             $overtimeRates[$key]['night_differential_rate'             ] = (float) $overtimeRate['night_differential_rate'             ];

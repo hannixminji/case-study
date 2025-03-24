@@ -548,7 +548,6 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidProfilePicture(mixed $profilePicture): bool
     {
-        /*
         if ($profilePicture === null || (is_string($profilePicture) && trim($profilePicture) === '')) {
             return true;
         }
@@ -602,7 +601,6 @@ class EmployeeValidator extends BaseValidator
 
             return false;
         }
-        */
 
         return true;
     }
