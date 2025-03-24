@@ -163,9 +163,9 @@ class OvertimeRateService
                     nightDifferentialAndOvertimeRate: (float) $overtimeRate['night_differential_and_overtime_rate']
                 );
 
-                $createOvertimeRateResult = $this->overtimeRateRepository->updateOvertimeRate($newOvertimeRate);
+                $updateOvertimeRateResult = $this->overtimeRateRepository->updateOvertimeRate($newOvertimeRate);
 
-                if ($createOvertimeRateResult === ActionResult::FAILURE) {
+                if ($updateOvertimeRateResult === ActionResult::FAILURE) {
                     $this->pdo->rollBack();
 
                     return [

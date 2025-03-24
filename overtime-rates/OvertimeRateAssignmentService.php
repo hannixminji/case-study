@@ -71,9 +71,9 @@ class OvertimeRateAssignmentService
             employeeId  : $employeeId
         );
 
-        $createOvertimeRateAssignmentResult = $this->overtimeRateAssignmentRepository->createOvertimeRateAssignment($newOvertimeRateAssignment);
+        $overtimeRateAssignmentId = $this->overtimeRateAssignmentRepository->createOvertimeRateAssignment($newOvertimeRateAssignment);
 
-        if ($createOvertimeRateAssignmentResult === ActionResult::FAILURE) {
+        if ($overtimeRateAssignmentId === ActionResult::FAILURE) {
             return [
                 'status'                 => 'error',
                 'message'                => 'An unexpected error occurred while creating the pay rate assignment. Please try again later.',
@@ -84,7 +84,7 @@ class OvertimeRateAssignmentService
         return [
             'status'                 => 'success',
             'message'                => 'Pay rate assignment created successfully.',
-            'pay_rate_assignment_id' => $createOvertimeRateAssignmentResult
+            'pay_rate_assignment_id' => $overtimeRateAssignmentId
         ];
     }
 

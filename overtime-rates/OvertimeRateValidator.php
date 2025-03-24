@@ -15,14 +15,14 @@ class OvertimeRateValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'                                  : $this->isValidId                              ($this->data['id'                              ]); break;
-                    case 'overtime_rate_assignment_id'         : $this->isValidOvertimeRateAssignmentId        ($this->data['overtimeRateAssignmentId'        ]); break;
-                    case 'day_type'                            : $this->isValidDayType                         ($this->data['dayType'                         ]); break;
-                    case 'holiday_type'                        : $this->isValidHolidayType                     ($this->data['holidayType'                     ]); break;
-                    case 'regular_time_rate'                   : $this->isValidRegularTimeRate                 ($this->data['regularTimeRate'                 ]); break;
-                    case 'overtime_rate'                       : $this->isValidOvertimeRate                    ($this->data['overtimeRate'                    ]); break;
-                    case 'night_differential_rate'             : $this->isValidNightDifferentialRate           ($this->data['nightDifferentialRate'           ]); break;
-                    case 'night_differential_and_overtime_rate': $this->isValidNightDifferentialAndOvertimeRate($this->data['nightDifferentialAndOvertimeRate']); break;
+                    case 'id'                                  : $this->isValidId                              ($this->data['id'                                  ]); break;
+                    case 'overtime_rate_assignment_id'         : $this->isValidOvertimeRateAssignmentId        ($this->data['overtime_rate_assignment_id'         ]); break;
+                    case 'day_type'                            : $this->isValidDayType                         ($this->data['day_type'                            ]); break;
+                    case 'holiday_type'                        : $this->isValidHolidayType                     ($this->data['holiday_type'                        ]); break;
+                    case 'regular_time_rate'                   : $this->isValidRegularTimeRate                 ($this->data['regular_time_rate'                   ]); break;
+                    case 'overtime_rate'                       : $this->isValidOvertimeRate                    ($this->data['overtime_rate'                       ]); break;
+                    case 'night_differential_rate'             : $this->isValidNightDifferentialRate           ($this->data['night_differential_rate'             ]); break;
+                    case 'night_differential_and_overtime_rate': $this->isValidNightDifferentialAndOvertimeRate($this->data['night_differential_and_overtime_rate']); break;
                 }
             }
         }
