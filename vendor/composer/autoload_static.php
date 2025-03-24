@@ -6,18 +6,9 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitb63ff609444cd58ad13eb298b4774efa
 {
-    public static $files = array (
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-    );
-
     public static $prefixLengthsPsr4 = array (
-        'Z' => 
-        array (
-            'ZxcvbnPhp\\' => 10,
-        ),
         'S' => 
         array (
-            'Symfony\\Polyfill\\Mbstring\\' => 26,
             'Svg\\' => 4,
             'Sabberworm\\CSS\\' => 15,
         ),
@@ -44,14 +35,6 @@ class ComposerStaticInitb63ff609444cd58ad13eb298b4774efa
     );
 
     public static $prefixDirsPsr4 = array (
-        'ZxcvbnPhp\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/bjeavons/zxcvbn-php/src',
-        ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
-        ),
         'Svg\\' => 
         array (
             0 => __DIR__ . '/..' . '/dompdf/php-svg-lib/src/Svg',

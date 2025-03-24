@@ -11,7 +11,6 @@
     "minimum-stability": "stable",
     "require": {
         "rlanvin/php-rrule": "^2.5",
-        "bjeavons/zxcvbn-php": "^1.4",
         "dompdf/dompdf": "^3.1"
     }
 }
