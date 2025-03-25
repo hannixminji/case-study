@@ -157,7 +157,8 @@ try {
             work_schedule.total_hours_per_week AS total_hours_per_week,
             work_schedule.total_work_hours     AS total_work_hours    ,
             work_schedule.start_date           AS start_date          ,
-            work_schedule.recurrence_rule      AS recurrence_rule
+            work_schedule.recurrence_rule      AS recurrence_rule     ,
+            work_schedule.created_at           AS created_at
         FROM
             work_schedules AS work_schedule
         JOIN
