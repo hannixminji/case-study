@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . "/../vendor/autoload.php"       ;
+
 require_once __DIR__ . '/../includes/BaseValidator.php';
 
 class WorkScheduleValidator extends BaseValidator
@@ -56,5 +58,40 @@ class WorkScheduleValidator extends BaseValidator
         $this->errors['employee_id'] = 'Invalid employee ID. Please ensure the employee ID is correct and try again.';
 
         return false;
+    }
+
+    public function isValidStartTime(mixed $startTime): bool
+    {
+        return true;
+    }
+
+    public function isValidEndTime(mixed $endTime): bool
+    {
+        return true;
+    }
+
+    public function isValidIsFlextime(mixed $isFlextime): bool
+    {
+        return true;
+    }
+
+    public function isValidTotalHoursPerWeek(mixed $totalHoursPerWeek): bool
+    {
+        return true;
+    }
+
+    public function isValidTotalWorkHours(mixed $totalWorkHours): bool
+    {
+        return true;
+    }
+
+    public function isValidStartDate(mixed $startDate): bool
+    {
+        return true;
+    }
+
+    public function isValidRecurrenceRule(mixed $recurrenceRule): bool
+    {
+        return true;
     }
 }

@@ -97,6 +97,24 @@ class OvertimeRateDao
             $query .= "SHA2(overtime_rate_assignment_id, 256) = :overtime_rate_assignment_id";
         }
 
+        $query .= "
+            ORDER BY
+                CASE
+                    WHEN day_type = 'Regular Day' THEN 1
+                    WHEN day_type = 'Rest Day'    THEN 2
+                                                  ELSE 3
+                END,
+
+                CASE
+                    WHEN holiday_type = 'Non-holiday'            THEN 1
+                    WHEN holiday_type = 'Special Holiday'        THEN 2
+                    WHEN holiday_type = 'Regular Holiday'        THEN 3
+                    WHEN holiday_type = 'Double Special Holiday' THEN 4
+                    WHEN holiday_type = 'Double Holiday'         THEN 5
+                                                                 ELSE 6
+                END
+        ";
+
         try {
             $statement = $this->pdo->prepare($query);
 
