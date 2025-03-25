@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../includes/BaseValidator.php';
+require_once __DIR__ . '/../../includes/BaseValidator.php';
 
 class LeaveTypeValidator extends BaseValidator
 {

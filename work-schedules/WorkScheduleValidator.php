@@ -22,4 +22,39 @@ class WorkScheduleValidator extends BaseValidator
             }
         }
     }
+
+    public function isValidEmployeeId(mixed $id): bool
+    {
+        $isEmpty = is_string($id) && trim($id) === '';
+
+        if ($id === null || $isEmpty) {
+            $this->errors['employee_id'] = 'The employee ID is required.';
+
+            return false;
+        }
+
+        if (is_int($id) || filter_var($id, FILTER_VALIDATE_INT) !== false || (is_string($id) && preg_match('/^-?(0|[1-9]\d*)$/', $id))) {
+            if ($id < 1) {
+                $this->errors['employee_id'] = 'The employee ID must be greater than 0.';
+
+                return false;
+            }
+
+            if ($id > PHP_INT_MAX) {
+                $this->errors['employee_id'] = 'The employee ID exceeds the maximum allowable integer size.';
+
+                return false;
+            }
+
+            return true;
+        }
+
+        if ( ! $isEmpty && $this->isValidHash($id)) {
+            return true;
+        }
+
+        $this->errors['employee_id'] = 'Invalid employee ID. Please ensure the employee ID is correct and try again.';
+
+        return false;
+    }
 }

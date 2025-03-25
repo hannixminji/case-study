@@ -38,7 +38,7 @@ class EmployeeValidator extends BaseValidator
                     case 'emergency_contact_relationship' : $this->isValidEmergencyContactRelationship($this->data['emergency_contact_relationship' ]); break;
                     case 'emergency_contact_phone_number' : $this->isValidEmergencyContactPhoneNumber ($this->data['emergency_contact_phone_number' ]); break;
                     case 'emergency_contact_email_address': $this->isValidEmergencyContactEmailAddress($this->data['emergency_contact_email_address']); break;
-                    case 'emergency_contact_address'      : $this->isValidEmergencyContactAddress     ($this->data['emergency_contact_address      ']); break;
+                    case 'emergency_contact_address'      : $this->isValidEmergencyContactAddress     ($this->data['emergency_contact_address'      ]); break;
                     case 'employee_code'                  : $this->isValidEmployeeCode                ($this->data['employee_code'                  ]); break;
                     case 'job_title_id'                   : $this->isValidJobTitleId                  ($this->data['job_title_id'                   ]); break;
                     case 'department_id'                  : $this->isValidDepartmentId                ($this->data['department_id'                  ]); break;
@@ -224,7 +224,7 @@ class EmployeeValidator extends BaseValidator
              ! isset($this->errors['first_name']) &&
              ! isset($this->errors['last_name' ])) {
 
-            $isUnique = $this->isUnique('full_name', $this->data['first_name'] + ' ' + $this->data['last_name']);
+            $isUnique = $this->isUnique('full_name', $this->data['first_name'] . ' ' . $this->data['last_name']);
 
             if ($isUnique === null) {
                 $this->errors['full_name'] = 'Unable to verify the uniqueness of the employee name. The provided employee ID may be missing or invalid. Please try again later.';
@@ -482,7 +482,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (filter_var($emailAddress, FILTER_VALIDATE_EMAIL) !== false) {
+        if (filter_var($emailAddress, FILTER_VALIDATE_EMAIL) === false) {
             $this->errors['email_address'] = 'The email address must be a valid email address.';
 
             return false;
@@ -548,60 +548,6 @@ class EmployeeValidator extends BaseValidator
 
     public function isValidProfilePicture(mixed $profilePicture): bool
     {
-        if ($profilePicture === null || (is_string($profilePicture) && trim($profilePicture) === '')) {
-            return true;
-        }
-
-        if (preg_match('/^data:image\/(jpeg|png|gif|bmp|webp);base64,/', $profilePicture)) {
-            $base64String = preg_replace('/^data:image\/(jpeg|png|gif|bmp|webp);base64,/', '', $profilePicture);
-
-            $imageData = base64_decode($base64String, true);
-
-            if ($imageData === false) {
-                $this->errors['profile_picture'] = 'The provided image data is invalid or corrupted. Please upload a valid image.';
-
-                return false;
-            }
-
-        } elseif (is_uploaded_file($profilePicture)) {
-            $imageData = file_get_contents($profilePicture);
-        } else {
-            $this->errors['profile_picture'] = 'No valid image data provided. Please upload a valid image file.';
-
-            return false;
-        }
-
-        if (strlen($imageData) > 10 * 1024 * 1024) {
-            $this->errors['profile_picture'] = 'Image size exceeds the maximum allowed size of 10MB. Please upload a smaller image.';
-
-            return false;
-        }
-
-        $fileInfo = finfo_open  (FILEINFO_MIME_TYPE   );
-        $mimeType = finfo_buffer($fileInfo, $imageData);
-
-        finfo_close($fileInfo);
-
-        $allowedMimeTypes = [
-            'image/jpeg',
-            'image/png' ,
-            'image/gif' ,
-            'image/bmp' ,
-            'image/webp'
-        ];
-
-        if ( ! in_array($mimeType, $allowedMimeTypes)) {
-            $this->errors['profile_picture'] = 'Invalid image format. Only JPEG, PNG, GIF, BMP, and WebP are allowed.';
-
-            return false;
-        }
-
-        if (@getimagesizefromstring($imageData) === false) {
-            $this->errors['profile_picture'] = 'Invalid or corrupted image data. Please upload a valid image file.';
-
-            return false;
-        }
-
         return true;
     }
 
@@ -727,7 +673,7 @@ class EmployeeValidator extends BaseValidator
         }
 
         if (is_string($emergencyContactEmailAddress) && trim($emergencyContactEmailAddress) !== '') {
-            if (filter_var($emergencyContactEmailAddress, FILTER_VALIDATE_EMAIL) !== false) {
+            if (filter_var($emergencyContactEmailAddress, FILTER_VALIDATE_EMAIL) === false) {
                 $this->errors['emergency_contact_email_address'] = 'The emergency contact email address must be a valid email address.';
 
                 return false;
@@ -794,7 +740,7 @@ class EmployeeValidator extends BaseValidator
             return false;
         }
 
-        if (preg_match('/^[A-Za-z0-9\-_\.]+$/', $employeeCode)) {
+        if (!preg_match('/^[A-Za-z0-9]+[-_\.]?[A-Za-z0-9]+$/', $employeeCode)) {
             $this->errors['employee_code'] = 'The employee code contains invalid characters. Only letters, numbers, and the following characters are allowed: - _ .';
 
             return false;

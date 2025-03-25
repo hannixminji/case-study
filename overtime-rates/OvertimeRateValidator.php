@@ -122,11 +122,11 @@ class OvertimeRateValidator extends BaseValidator
             'special holiday'       ,
             'regular holiday'       ,
             'double special holiday',
-            'double regular holiday'
+            'double holiday'
         ];
 
         if ( ! in_array(strtolower($holidayType), $validHolidayTypes)) {
-            $this->errors['holiday_type'] = 'The holiday type must be one of the following: Non-Holiday, Special Holiday, Regular Holiday, Double Special Holiday, or Double Regular Holiday';
+            $this->errors['holiday_type'] = 'The holiday type must be one of the following: Non-Holiday, Special Holiday, Regular Holiday, Double Special Holiday, or Double Holiday';
 
             return false;
         }

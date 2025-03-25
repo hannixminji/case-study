@@ -42,14 +42,17 @@ class LeaveTypeService
             ];
         }
 
+        $isPaid       = filter_var($leaveType['is_paid'      ], FILTER_VALIDATE_BOOLEAN);
+        $isEncashable = filter_var($leaveType['is_encashable'], FILTER_VALIDATE_BOOLEAN);
+
         $newLeaveType = new LeaveType(
-            id                 :        null                                ,
-            name               :        $leaveType['name'                  ],
-            maximumNumberOfDays: (int ) $leaveType['maximum_number_of_days'],
-            isPaid             : (bool) $leaveType['is_paid'               ],
-            isEncashable       : (bool) $leaveType['is_encashable'         ],
-            description        :        $leaveType['description'           ],
-            status             :        $leaveType['status'                ]
+            id                 :       null                                ,
+            name               :       $leaveType['name'                  ],
+            maximumNumberOfDays: (int) $leaveType['maximum_number_of_days'],
+            isPaid             :       $isPaid                             ,
+            isEncashable       :       $isEncashable                       ,
+            description        :       $leaveType['description'           ],
+            status             :       $leaveType['status'                ]
         );
 
         $createLeaveTypeResult = $this->leaveTypeRepository->createLeaveType($newLeaveType);
@@ -118,14 +121,17 @@ class LeaveTypeService
             $leaveTypeId = (int) $leaveTypeId;
         }
 
+        $isPaid       = filter_var($leaveType['is_paid'      ], FILTER_VALIDATE_BOOLEAN);
+        $isEncashable = filter_var($leaveType['is_encashable'], FILTER_VALIDATE_BOOLEAN);
+
         $newLeaveType = new LeaveType(
-            id                 :        $leaveTypeId                        ,
-            name               :        $leaveType['name'                  ],
-            maximumNumberOfDays: (int ) $leaveType['maximum_number_of_days'],
-            isPaid             : (bool) $leaveType['is_paid'               ],
-            isEncashable       : (bool) $leaveType['is_encashable'         ],
-            description        :        $leaveType['description'           ],
-            status             :        $leaveType['status'                ]
+            id                 :       $leaveTypeId                        ,
+            name               :       $leaveType['name'                  ],
+            maximumNumberOfDays: (int) $leaveType['maximum_number_of_days'],
+            isPaid             :       $isPaid                             ,
+            isEncashable       :       $isEncashable                       ,
+            description        :       $leaveType['description'           ],
+            status             :       $leaveType['status'                ]
         );
 
         $updateLeaveTypeResult = $this->leaveTypeRepository->updateLeaveType($newLeaveType);

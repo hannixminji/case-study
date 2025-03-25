@@ -305,18 +305,18 @@ class EmployeeService
             notes                       : null
         );
 
-        $createEmployeeResult = $this->employeeRepository->createEmployee($newEmployee);
+        $updateEmployeeResult = $this->employeeRepository->updateEmployee($newEmployee);
 
-        if ($createEmployeeResult === ActionResult::FAILURE) {
+        if ($updateEmployeeResult === ActionResult::FAILURE) {
             return [
                 'status'  => 'error',
-                'message' => 'An unexpected error occurred while creating the employee. Please try again later.'
+                'message' => 'An unexpected error occurred while updating the employee. Please try again later.'
             ];
         }
 
         return [
             'status'  => 'success',
-            'message' => 'Employee created successfully.'
+            'message' => 'Employee updated successfully.'
         ];
     }
 

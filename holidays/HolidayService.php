@@ -43,15 +43,18 @@ class HolidayService
             ];
         }
 
+        $isPaid              = filter_var($holiday['is_paid'              ], FILTER_VALIDATE_BOOLEAN);
+        $isRecurringAnnually = filter_var($holiday['is_recurring_annually'], FILTER_VALIDATE_BOOLEAN);
+
         $newHoliday = new Holiday(
-            id                 :        null                             ,
-            name               :        $holiday['name'                 ],
-            startDate          :        $holiday['start_date'           ],
-            endDate            :        $holiday['end_date'             ],
-            isPaid             : (bool) $holiday['is_paid'              ],
-            isRecurringAnnually: (bool) $holiday['is_recurring_annually'],
-            description        :        $holiday['description'          ],
-            status             :        $holiday['status'               ]
+            id                 : null                   ,
+            name               : $holiday['name'       ],
+            startDate          : $holiday['start_date' ],
+            endDate            : $holiday['end_date'   ],
+            isPaid             : $isPaid                ,
+            isRecurringAnnually: $isRecurringAnnually   ,
+            description        : $holiday['description'],
+            status             : $holiday['status'     ]
         );
 
         $createHolidayResult = $this->holidayRepository->createHoliday($newHoliday);
@@ -121,15 +124,18 @@ class HolidayService
             $holidayId = (int) $holidayId;
         }
 
+        $isPaid              = filter_var($holiday['is_paid'              ], FILTER_VALIDATE_BOOLEAN);
+        $isRecurringAnnually = filter_var($holiday['is_recurring_annually'], FILTER_VALIDATE_BOOLEAN);
+
         $newHoliday = new Holiday(
-            id                 :        $holidayId                       ,
-            name               :        $holiday['name'                 ],
-            startDate          :        $holiday['start_date'           ],
-            endDate            :        $holiday['end_date'             ],
-            isPaid             : (bool) $holiday['is_paid'              ],
-            isRecurringAnnually: (bool) $holiday['is_recurring_annually'],
-            description        :        $holiday['description'          ],
-            status             :        $holiday['status'               ]
+            id                 : $holidayId             ,
+            name               : $holiday['name'       ],
+            startDate          : $holiday['start_date' ],
+            endDate            : $holiday['end_date'   ],
+            isPaid             : $isPaid                ,
+            isRecurringAnnually: $isRecurringAnnually   ,
+            description        : $holiday['description'],
+            status             : $holiday['status'     ]
         );
 
         $updateHolidayResult = $this->holidayRepository->updateHoliday($newHoliday);

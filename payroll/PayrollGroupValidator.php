@@ -18,16 +18,24 @@ class PayrollGroupValidator extends BaseValidator
                 $this->errors[$field] = 'The ' . $field . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'                        : $this->isValidId                     ($this->data['id'                        ]); break;
-                    case 'name'                      : $this->isValidName                   ($this->data['name'                      ]); break;
-                    case 'payroll_frequency'         : $this->isValidPayrollFrequency       ($this->data['payroll_frequency'         ]); break;
-                    case 'day_of_weekly_cutoff'      : $this->isValidDayOfWeeklyCutoff      ($this->data['day_of_weekly_cutoff'      ]); break;
-                    case 'day_of_biweekly_cutoff'    : $this->isValidDayOfBiweeklyCutoff    ($this->data['day_of_biweekly_cutoff'    ]); break;
-                    case 'semi_monthly_first_cutoff' : $this->isValidSemiMonthlyFirstCutoff ($this->data['semi_monthly_first_cutoff' ]); break;
-                    case 'semi_monthly_second_cutoff': $this->isValidSemiMonthlySecondCutoff($this->data['semi_monthly_second_cutoff']); break;
-                    case 'payday_offset'             : $this->isValidPaydayOffset           ($this->data['payday_offset'             ]); break;
-                    case 'payday_adjustment'         : $this->isValidPaydayAdjustment       ($this->data['payday_adjustment'         ]); break;
-                    case 'status'                    : $this->isValidStatus                 ($this->data['status'                    ]); break;
+                    case 'id'               : $this->isValidId              ($this->data['id'               ]); break;
+                    case 'name'             : $this->isValidName            ($this->data['name'             ]); break;
+                    case 'payroll_frequency': $this->isValidPayrollFrequency($this->data['payroll_frequency']); break;
+                }
+
+                if (array_key_exists('payroll_frequency', $this->data) && ! isset($this->errors['payroll_frequency'])) {
+                    switch ($field) {
+                        case 'day_of_weekly_cutoff'      : if (strtolower($this->data['payroll_frequency']) === 'weekly'      ) $this->isValidDayOfWeeklyCutoff      ($this->data['day_of_weekly_cutoff'      ]); break;
+                        case 'day_of_biweekly_cutoff'    : if (strtolower($this->data['payroll_frequency']) === 'bi-weekly'   ) $this->isValidDayOfBiweeklyCutoff    ($this->data['day_of_biweekly_cutoff'    ]); break;
+                        case 'semi_monthly_first_cutoff' : if (strtolower($this->data['payroll_frequency']) === 'semi-monthly') $this->isValidSemiMonthlyFirstCutoff ($this->data['semi_monthly_first_cutoff' ]); break;
+                        case 'semi_monthly_second_cutoff': if (strtolower($this->data['payroll_frequency']) === 'semi-monthly') $this->isValidSemiMonthlySecondCutoff($this->data['semi_monthly_second_cutoff']); break;
+                    }
+                }
+
+                switch ($field) {
+                    case 'payday_offset'    : $this->isValidPaydayOffset    ($this->data['payday_offset'    ]); break;
+                    case 'payday_adjustment': $this->isValidPaydayAdjustment($this->data['payday_adjustment']); break;
+                    case 'status'           : $this->isValidStatus          ($this->data['status'           ]); break;
                 }
             }
         }

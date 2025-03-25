@@ -40,12 +40,15 @@ class BreakTypeService
             ];
         }
 
+        $isPaid                    = filter_var($breakType['is_paid'                          ], FILTER_VALIDATE_BOOLEAN);
+        $requireBreakInAndBreakOut = filter_var($breakType['is_require_break_in_and_break_out'], FILTER_VALIDATE_BOOLEAN);
+
         $newBreakType = new BreakType(
-            id                       :        null                                           ,
-            name                     :        $breakType['name'                             ],
-            durationInMinutes        : (int ) $breakType['duration_in_minutes'              ],
-            isPaid                   : (bool) $breakType['is_paid'                          ],
-            requireBreakInAndBreakOut: (bool) $breakType['is_require_break_in_and_break_out']
+            id                       :       null                             ,
+            name                     :       $breakType['name'               ],
+            durationInMinutes        : (int) $breakType['duration_in_minutes'],
+            isPaid                   :       $isPaid                          ,
+            requireBreakInAndBreakOut:       $requireBreakInAndBreakOut
         );
 
         $createBreakTypeResult = $this->breakTypeRepository->createBreakType($newBreakType);
@@ -117,12 +120,15 @@ class BreakTypeService
             $breakTypeId = (int) $breakTypeId;
         }
 
+        $isPaid                    = filter_var($breakType['is_paid'                          ], FILTER_VALIDATE_BOOLEAN);
+        $requireBreakInAndBreakOut = filter_var($breakType['is_require_break_in_and_break_out'], FILTER_VALIDATE_BOOLEAN);
+
         $newBreakType = new BreakType(
-            id                       :        $breakTypeId                                   ,
-            name                     :        $breakType['name'                             ],
-            durationInMinutes        : (int ) $breakType['duration_in_minutes'              ],
-            isPaid                   : (bool) $breakType['is_paid'                          ],
-            requireBreakInAndBreakOut: (bool) $breakType['is_require_break_in_and_break_out']
+            id                       :       $breakTypeId                     ,
+            name                     :       $breakType['name'               ],
+            durationInMinutes        : (int) $breakType['duration_in_minutes'],
+            isPaid                   :       $isPaid                          ,
+            requireBreakInAndBreakOut:       $requireBreakInAndBreakOut
         );
 
         $updateBreakTypeResult = $this->breakTypeRepository->updateBreakType($newBreakType);

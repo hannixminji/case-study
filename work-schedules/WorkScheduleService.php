@@ -2,13 +2,19 @@
 
 require_once __DIR__ . '/WorkScheduleRepository.php';
 
+require_once __DIR__ . '/WorkScheduleValidator.php' ;
+
 class WorkScheduleService
 {
     private readonly WorkScheduleRepository $workScheduleRepository;
 
+    private readonly WorkScheduleValidator $workScheduleValidator;
+
     public function __construct(WorkScheduleRepository $workScheduleRepository)
     {
         $this->workScheduleRepository = $workScheduleRepository;
+
+        $this->workScheduleValidator = new WorkScheduleValidator($workScheduleRepository);
     }
 
     public function createWorkSchedule(WorkSchedule $workSchedule): ActionResult
