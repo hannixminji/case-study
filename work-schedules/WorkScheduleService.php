@@ -46,7 +46,7 @@ class WorkScheduleService
 
         $employeeId        = filter_var($workSchedule['employee_id'         ], FILTER_VALIDATE_INT    );
         $isFlextime        = filter_var($workSchedule['is_flextime'         ], FILTER_VALIDATE_BOOLEAN);
-        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_INT    );
+        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_FLOAT  );
         $totalWorkHours    = filter_var($workSchedule['total_work_hours'    ], FILTER_VALIDATE_FLOAT  );
 
         if ($totalHoursPerWeek === false) {
@@ -140,7 +140,7 @@ class WorkScheduleService
         $workScheduleId    = filter_var($workSchedule['id'                  ], FILTER_VALIDATE_INT    );
         $employeeId        = filter_var($workSchedule['employee_id'         ], FILTER_VALIDATE_INT    );
         $isFlextime        = filter_var($workSchedule['is_flextime'         ], FILTER_VALIDATE_BOOLEAN);
-        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_INT    );
+        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_FLOAT  );
         $totalWorkHours    = filter_var($workSchedule['total_work_hours'    ], FILTER_VALIDATE_FLOAT  );
 
         if ($workScheduleId === false) {

@@ -180,7 +180,7 @@ class WorkScheduleValidator extends BaseValidator
             return false;
         }
 
-        $totalHoursPerWeek = filter_var($totalHoursPerWeek, FILTER_VALIDATE_INT);
+        $totalHoursPerWeek = filter_var($totalHoursPerWeek,  FILTER_VALIDATE_FLOAT);
 
         if ($totalHoursPerWeek === false) {
             $this->errors['total_hours_per_week'] = 'The total hours per day is invalid.';
@@ -207,7 +207,7 @@ class WorkScheduleValidator extends BaseValidator
             return false;
         }
 
-        $totalWorkHours = filter_var($totalWorkHours, FILTER_VALIDATE_INT);
+        $totalWorkHours = filter_var($totalWorkHours, FILTER_VALIDATE_FLOAT);
 
         if ($totalWorkHours === false) {
             $this->errors['total_work_hours'] = 'The total work hours is invalid.';
