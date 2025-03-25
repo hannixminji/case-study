@@ -509,6 +509,11 @@ class WorkScheduleDao
             }
 
             $parsedRecurrenceRule = $this->parseRecurrenceRule($recurrenceRule);
+
+            if ($parsedRecurrenceRule === ActionResult::FAILURE) {
+                return ActionResult::FAILURE;
+            }
+
             $recurrenceSet->addRRule($parsedRecurrenceRule);
 
             if ( ! empty($datesToExclude)) {
@@ -562,9 +567,14 @@ class WorkScheduleDao
             $parsedRule = [];
 
             foreach ($parts as $part) {
-                [$key, $value] = explode('=', $part, 2);
+                if (strpos($part, '=') !== false) {
+                    [$key, $value] = explode('=', $part, 2);
 
-                $parsedRule[$key] = $value;
+                    $parsedRule[$key] = $value;
+
+                } else {
+                    return ActionResult::FAILURE;
+                }
             }
 
             return $parsedRule;

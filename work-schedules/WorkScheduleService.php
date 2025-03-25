@@ -17,9 +17,67 @@ class WorkScheduleService
         $this->workScheduleValidator = new WorkScheduleValidator($workScheduleRepository);
     }
 
-    public function createWorkSchedule(WorkSchedule $workSchedule): ActionResult
+    public function createWorkSchedule(array $workSchedule): array
     {
-        return $this->workScheduleRepository->createWorkSchedule($workSchedule);
+        $this->workScheduleValidator->setGroup('create');
+
+        $this->workScheduleValidator->setData($workSchedule);
+
+        $this->workScheduleValidator->validate([
+            'employee_id'         ,
+            'start_time'          ,
+            'end_time'            ,
+            'is_flextime'         ,
+            'total_hours_per_week',
+            'total_work_hours'    ,
+            'start_date'          ,
+            'recurrence_rule'
+        ]);
+
+        $validationErrors = $this->workScheduleValidator->getErrors();
+
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
+        }
+
+        $employeeId        = filter_var($workSchedule['employee_id'         ], FILTER_VALIDATE_INT    );
+        $isFlextime        = filter_var($workSchedule['is_flextime'         ], FILTER_VALIDATE_BOOLEAN);
+        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_INT    );
+        $totalWorkHours    = filter_var($workSchedule['total_work_hours'    ], FILTER_VALIDATE_FLOAT  );
+
+        if ($totalHoursPerWeek === false) {
+            $totalHoursPerWeek = null;
+        }
+
+        $newWorkSchedule = new WorkSchedule(
+            id                : null                            ,
+            employeeId        : $employeeId                     ,
+            startTime         : $workSchedule['start_time'     ],
+            endTime           : $workSchedule['end_time'       ],
+            isFlextime        : $isFlextime                     ,
+            totalHoursPerWeek : $totalHoursPerWeek              ,
+            totalWorkHours    : $totalWorkHours                 ,
+            startDate         : $workSchedule['start_date'     ],
+            recurrenceRule    : $workSchedule['recurrence_rule']
+        );
+
+        $createWorkScheduleResult = $this->workScheduleRepository->createWorkSchedule($newWorkSchedule);
+
+        if ($createWorkScheduleResult === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred while creating the work schedule. Please try again later.'
+            ];
+        }
+
+        return [
+            'status'  => 'success',
+            'message' => 'Work schedule created successfully.'
+        ];
     }
 
     public function createWorkScheduleSnapshot(WorkScheduleSnapshot $workScheduleSnapshot): int|ActionResult
@@ -51,9 +109,73 @@ class WorkScheduleService
         return $this->workScheduleRepository->fetchLatestWorkScheduleSnapshotById($workScheduleId);
     }
 
-    public function updateWorkSchedule(WorkSchedule $workSchedule): ActionResult
+    public function updateWorkSchedule(array $workSchedule): array
     {
-        return $this->workScheduleRepository->updateWorkSchedule($workSchedule);
+        $this->workScheduleValidator->setGroup('update');
+
+        $this->workScheduleValidator->setData($workSchedule);
+
+        $this->workScheduleValidator->validate([
+            'id'                  ,
+            'employee_id'         ,
+            'start_time'          ,
+            'end_time'            ,
+            'is_flextime'         ,
+            'total_hours_per_week',
+            'total_work_hours'    ,
+            'start_date'          ,
+            'recurrence_rule'
+        ]);
+
+        $validationErrors = $this->workScheduleValidator->getErrors();
+
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
+        }
+
+        $workScheduleId    = filter_var($workSchedule['id'                  ], FILTER_VALIDATE_INT    );
+        $employeeId        = filter_var($workSchedule['employee_id'         ], FILTER_VALIDATE_INT    );
+        $isFlextime        = filter_var($workSchedule['is_flextime'         ], FILTER_VALIDATE_BOOLEAN);
+        $totalHoursPerWeek = filter_var($workSchedule['total_hours_per_week'], FILTER_VALIDATE_INT    );
+        $totalWorkHours    = filter_var($workSchedule['total_work_hours'    ], FILTER_VALIDATE_FLOAT  );
+
+        if ($workScheduleId === false) {
+            $workScheduleId = $workSchedule['id'];
+        }
+
+        if ($totalHoursPerWeek === false) {
+            $totalHoursPerWeek = null;
+        }
+
+        $newWorkSchedule = new WorkSchedule(
+            id                : $workScheduleId                 ,
+            employeeId        : $employeeId                     ,
+            startTime         : $workSchedule['start_time'     ],
+            endTime           : $workSchedule['end_time'       ],
+            isFlextime        : $isFlextime                     ,
+            totalHoursPerWeek : $totalHoursPerWeek              ,
+            totalWorkHours    : $totalWorkHours                 ,
+            startDate         : $workSchedule['start_date'     ],
+            recurrenceRule    : $workSchedule['recurrence_rule']
+        );
+
+        $updateWorkScheduleResult = $this->workScheduleRepository->updateWorkSchedule($newWorkSchedule);
+
+        if ($updateWorkScheduleResult === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred while updating the work schedule. Please try again later.'
+            ];
+        }
+
+        return [
+            'status'  => 'success',
+            'message' => 'Work schedule updated successfully.'
+        ];
     }
 
     public function getRecurrenceDates(
@@ -69,8 +191,44 @@ class WorkScheduleService
         );
     }
 
-    public function deleteWorkSchedule(int|string $workScheduleId): ActionResult
+    public function deleteWorkSchedule(mixed $workScheduleId): array
     {
-        return $this->workScheduleRepository->deleteWorkSchedule($workScheduleId);
+        $this->workScheduleValidator->setGroup('delete');
+
+        $this->workScheduleValidator->setData([
+            'id' => $workScheduleId
+        ]);
+
+        $this->workScheduleValidator->validate([
+            'id'
+        ]);
+
+        $validationErrors = $this->workScheduleValidator->getErrors();
+
+        if ( ! empty($validationErrors)) {
+            return [
+                'status'  => 'invalid_input',
+                'message' => 'There are validation errors. Please check the input values.',
+                'errors'  => $validationErrors
+            ];
+        }
+
+        if (filter_var($workScheduleId, FILTER_VALIDATE_INT) !== false) {
+            $workScheduleId = (int) $workScheduleId;
+        }
+
+        $deleteWorkScheduleResult = $this->workScheduleRepository->deleteWorkSchedule($workScheduleId);
+
+        if ($deleteWorkScheduleResult === ActionResult::FAILURE) {
+            return [
+                'status'  => 'error',
+                'message' => 'An unexpected error occurred while deleting the work schedule. Please try again later.'
+            ];
+        }
+
+        return [
+            'status'  => 'success',
+            'message' => 'Work schedule deleted successfully.'
+        ];
     }
 }
