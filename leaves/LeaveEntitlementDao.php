@@ -162,7 +162,8 @@ class LeaveEntitlementDao
 
             "leave_type_name"          => "leave_type.name                           AS leave_type_name"         ,
             "leave_type_is_paid"       => "leave_type.is_paid                        AS leave_type_is_paid"      ,
-            "leave_type_is_encashable" => "leave_type.is_encashable                  AS leave_type_is_encashable"
+            "leave_type_is_encashable" => "leave_type.is_encashable                  AS leave_type_is_encashable",
+            "leave_type_status"        => "leave_type.status                         AS leave_type_status"
         ];
 
         $selectedColumns =
