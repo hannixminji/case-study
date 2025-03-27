@@ -554,7 +554,7 @@ class AttendanceService
 
                     if (empty($workScheduleDates)) {
                         return [
-                            'status'  => 'information',
+                            'status'  => 'info',
                             'message' => 'You do not have a work schedule today.'
                         ];
                     }
@@ -594,13 +594,13 @@ class AttendanceService
                         ! empty($currentWorkSchedules[$formattedCurrentDate])) {
 
                         return [
-                            'status'  => 'information',
+                            'status'  => 'info',
                             'message' => 'Your work schedule for today has ended.'
                         ];
 
                     } else {
                         return [
-                            'status'  => 'information',
+                            'status'  => 'info',
                             'message' => 'You do not have a work schedule today.'
                         ];
                     }

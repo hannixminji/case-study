@@ -150,7 +150,7 @@ class EmployeeBreakService
                      $lastAttendanceRecord['work_schedule_snapshot_is_flextime']) {
 
             return [
-                'status'  => 'information',
+                'status'  => 'info',
                 'message' => 'You are on a flexible schedule. Breaks may ' .
                              'be taken at your convenience.'
             ];
@@ -331,7 +331,7 @@ class EmployeeBreakService
 
                 if (empty($breakSchedules)) {
                     return [
-                        'status'  => 'information',
+                        'status'  => 'info',
                         'message' => 'There is no break schedule assigned for this shift.'
                     ];
                 }
@@ -395,7 +395,7 @@ class EmployeeBreakService
 
                 if (empty($currentBreakSchedule)) {
                     return [
-                        'status'  => 'information',
+                        'status'  => 'info',
                         'message' => 'The break time has already ended.'
                     ];
                 }
@@ -408,7 +408,7 @@ class EmployeeBreakService
                     $formattedBreakEndTime   = $breakScheduleEndDateTime  ->format('g:i A');
 
                     return [
-                        'status'  => 'information',
+                        'status'  => 'info',
                         'message' => "Your next break is scheduled to start at $formattedBreakStartTime and end at $formattedBreakEndTime."
                     ];
                 }
