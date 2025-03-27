@@ -158,6 +158,7 @@ class LeaveEntitlementDao
             "employee_first_name"      => "employee.first_name                       AS employee_first_name"     ,
             "employee_middle_name"     => "employee.middle_name                      AS employee_middle_name"    ,
             "employee_last_name"       => "employee.last_name                        AS employee_last_name"      ,
+            "employee_employment_type" => "employee.employment_type                  AS employee_employment_type",
 
             "leave_type_name"          => "leave_type.name                           AS leave_type_name"         ,
             "leave_type_is_paid"       => "leave_type.is_paid                        AS leave_type_is_paid"      ,

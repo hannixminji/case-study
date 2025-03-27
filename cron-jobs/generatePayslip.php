@@ -194,10 +194,11 @@ try {
     foreach ($employeesWorkSchedules as $employeeId => $workSchedules) {
         $query = '
             SELECT
-                attendance_record.date                  AS date            ,
-                work_schedule_snapshot.work_schedule_id AS work_schedule_id,
-                work_schedule_snapshot.start_time       AS start_time      ,
-                work_schedule_snapshot.end_time         AS end_time
+                attendance_record.date                                   AS date                 ,
+                work_schedule_snapshot.work_schedule_id                  AS work_schedule_id     ,
+                work_schedule_snapshot.start_time                        AS start_time           ,
+                work_schedule_snapshot.end_time                          AS end_time             ,
+                work_schedule_snapshot.minutes_can_check_in_before_shift AS early_check_in_window
             FROM
                 attendance AS attendance_record
             JOIN
@@ -310,12 +311,18 @@ try {
                     }
                 }
 
-                if ( ! isset($workSchedule['is_recorded'])) {
-                    $recordedWorkSchedules[$date][$index]['start_time'] = $currentWorkScheduleStartDateTime->format('Y-m-d H:i:s');
-                    $recordedWorkSchedules[$date][$index]['end_time'  ] = $currentWorkScheduleEndDateTime  ->format('Y-m-d H:i:s');
+                $recordedWorkSchedules[$date][$index]['start_time'] = $currentWorkScheduleStartDateTime->format('Y-m-d H:i:s');
+                $recordedWorkSchedules[$date][$index]['end_time'  ] = $currentWorkScheduleEndDateTime  ->format('Y-m-d H:i:s');
 
+                if ( ! isset($workSchedule['is_recorded'])) {
                     $recordedWorkSchedules[$date][$index]['early_check_in_window'] = $adjustedEarlyCheckInWindow;
                 }
+
+                $adjustedCurrentWorkScheduleStartDateTime =
+                    (clone $currentWorkScheduleStartDateTime)
+                        ->modify('-' . $recordedWorkSchedules[$date][$index]['early_check_in_window'] . ' minutes');
+
+                $recordedWorkSchedules[$date][$index]['adjusted_start_time'] = $adjustedCurrentWorkScheduleStartDateTime->format('Y-m-d H:i:s');
 
                 $previousWorkScheduleEndDateTime = clone $currentWorkScheduleEndDateTime;
             }
