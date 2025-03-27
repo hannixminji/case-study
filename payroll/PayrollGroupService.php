@@ -45,17 +45,29 @@ class PayrollGroupService
             ];
         }
 
+        $dayOfWeeklyCutoff       = $payrollGroup['day_of_weekly_cutoff'      ];
+        $dayOfBiweeklyCutoff     = $payrollGroup['day_of_biweekly_cutoff'    ];
+        $semiMonthlyFirstCutoff  = $payrollGroup['semi_monthly_first_cutoff' ];
+        $semiMonthlySecondCutoff = $payrollGroup['semi_monthly_second_cutoff'];
+        $paydayOffset            = $payrollGroup['payday_offset'             ];
+
+        $dayOfWeeklyCutoff       = $dayOfWeeklyCutoff       === '' ? null : filter_var($dayOfWeeklyCutoff      , FILTER_VALIDATE_INT);
+        $dayOfBiweeklyCutoff     = $dayOfBiweeklyCutoff     === '' ? null : filter_var($dayOfBiweeklyCutoff    , FILTER_VALIDATE_INT);
+        $semiMonthlyFirstCutoff  = $semiMonthlyFirstCutoff  === '' ? null : filter_var($semiMonthlyFirstCutoff , FILTER_VALIDATE_INT);
+        $semiMonthlySecondCutoff = $semiMonthlySecondCutoff === '' ? null : filter_var($semiMonthlySecondCutoff, FILTER_VALIDATE_INT);
+        $paydayOffset            = $paydayOffset            === '' ? null : filter_var($paydayOffset           , FILTER_VALIDATE_INT);
+
         $newPayrollGroup = new PayrollGroup(
-            id                     :       null                                       ,
-            name                   :       $payrollGroup['name'                      ],
-            payrollFrequency       :       $payrollGroup['payroll_frequency'         ],
-            dayOfWeeklyCutoff      : (int) $payrollGroup['day_of_weekly_cutoff'      ],
-            dayOfBiweeklyCutoff    : (int) $payrollGroup['day_of_biweekly_cutoff'    ],
-            semiMonthlyFirstCutoff : (int) $payrollGroup['semi_monthly_first_cutoff' ],
-            semiMonthlySecondCutoff: (int) $payrollGroup['semi_monthly_second_cutoff'],
-            paydayOffset           : (int) $payrollGroup['payday_offset'             ],
-            paydayAdjustment       :       $payrollGroup['payday_adjustment'         ],
-            status                 :       $payrollGroup['status'                    ]
+            id                     : null                              ,
+            name                   : $payrollGroup['name'             ],
+            payrollFrequency       : $payrollGroup['payroll_frequency'],
+            dayOfWeeklyCutoff      : $dayOfWeeklyCutoff                ,
+            dayOfBiweeklyCutoff    : $dayOfBiweeklyCutoff              ,
+            semiMonthlyFirstCutoff : $semiMonthlyFirstCutoff           ,
+            semiMonthlySecondCutoff: $semiMonthlySecondCutoff          ,
+            paydayOffset           : $paydayOffset                     ,
+            paydayAdjustment       : $payrollGroup['payday_adjustment' ],
+            status                 : $payrollGroup['status'            ]
         );
 
         $createPayrollGroupResult = $this->payrollGroupRepository->createPayrollGroup($newPayrollGroup);
@@ -127,20 +139,32 @@ class PayrollGroupService
             $payrollGroupId = (int) $payrollGroupId;
         }
 
-        $newPayrollGroup = new PayrollGroup(
-            id                     :       $payrollGroupId                            ,
-            name                   :       $payrollGroup['name'                      ],
-            payrollFrequency       :       $payrollGroup['payroll_frequency'         ],
-            dayOfWeeklyCutoff      : (int) $payrollGroup['day_of_weekly_cutoff'      ],
-            dayOfBiweeklyCutoff    : (int) $payrollGroup['day_of_biweekly_cutoff'    ],
-            semiMonthlyFirstCutoff : (int) $payrollGroup['semi_monthly_first_cutoff' ],
-            semiMonthlySecondCutoff: (int) $payrollGroup['semi_monthly_second_cutoff'],
-            paydayOffset           : (int) $payrollGroup['payday_offset'             ],
-            paydayAdjustment       :       $payrollGroup['payday_adjustment'         ],
-            status                 :       $payrollGroup['status'                    ]
+        $dayOfWeeklyCutoff       = $payrollGroup['day_of_weekly_cutoff'      ];
+        $dayOfBiweeklyCutoff     = $payrollGroup['day_of_biweekly_cutoff'    ];
+        $semiMonthlyFirstCutoff  = $payrollGroup['semi_monthly_first_cutoff' ];
+        $semiMonthlySecondCutoff = $payrollGroup['semi_monthly_second_cutoff'];
+        $paydayOffset            = $payrollGroup['payday_offset'             ];
+
+        $dayOfWeeklyCutoff       = $dayOfWeeklyCutoff       === '' ? null : filter_var($dayOfWeeklyCutoff      , FILTER_VALIDATE_INT);
+        $dayOfBiweeklyCutoff     = $dayOfBiweeklyCutoff     === '' ? null : filter_var($dayOfBiweeklyCutoff    , FILTER_VALIDATE_INT);
+        $semiMonthlyFirstCutoff  = $semiMonthlyFirstCutoff  === '' ? null : filter_var($semiMonthlyFirstCutoff , FILTER_VALIDATE_INT);
+        $semiMonthlySecondCutoff = $semiMonthlySecondCutoff === '' ? null : filter_var($semiMonthlySecondCutoff, FILTER_VALIDATE_INT);
+        $paydayOffset            = $paydayOffset            === '' ? null : filter_var($paydayOffset           , FILTER_VALIDATE_INT);
+
+        $updatedPayrollGroup = new PayrollGroup(
+            id                     : $payrollGroupId                   ,
+            name                   : $payrollGroup['name'             ],
+            payrollFrequency       : $payrollGroup['payroll_frequency'],
+            dayOfWeeklyCutoff      : $dayOfWeeklyCutoff                ,
+            dayOfBiweeklyCutoff    : $dayOfBiweeklyCutoff              ,
+            semiMonthlyFirstCutoff : $semiMonthlyFirstCutoff           ,
+            semiMonthlySecondCutoff: $semiMonthlySecondCutoff          ,
+            paydayOffset           : $paydayOffset                     ,
+            paydayAdjustment       : $payrollGroup['payday_adjustment' ],
+            status                 : $payrollGroup['status'            ]
         );
 
-        $updatePayrollGroupResult = $this->payrollGroupRepository->updatePayrollGroup($newPayrollGroup);
+        $updatePayrollGroupResult = $this->payrollGroupRepository->updatePayrollGroup($updatedPayrollGroup);
 
         if ($updatePayrollGroupResult === ActionResult::FAILURE) {
             return [
