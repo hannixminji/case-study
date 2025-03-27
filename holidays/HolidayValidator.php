@@ -31,6 +31,20 @@ class HolidayValidator extends BaseValidator
                 }
             }
         }
+
+        if (   array_key_exists('start_date', $this->data) &&
+               array_key_exists('end_date'  , $this->data) &&
+
+             ! isset($this->errors['start_date']) &&
+             ! isset($this->errors['end_date'  ])) {
+
+            $startDate = new DateTime($this->data['start_date']);
+            $endDate   = new DateTime($this->data['end_date'  ]);
+
+            if ($endDate < $startDate) {
+                $this->errors['end_date'] = 'End date cannot be earlier than start date.';
+            }
+        }
     }
 
     public function isValidName(mixed $name): bool
