@@ -164,9 +164,8 @@ class DeductionValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'deduction.status',
-                    'operator' => '='               ,
-                    'value'    => 'Active'
+                    'column'   => 'deduction.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'deduction.' . $field,

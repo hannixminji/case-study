@@ -157,9 +157,8 @@ class LeaveTypeValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'leave_type.status',
-                    'operator' => '='                ,
-                    'value'    => 'Active'
+                    'column'   => 'leave_type.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'leave_type.' . $field,

@@ -131,9 +131,8 @@ class DepartmentValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'department.status',
-                    'operator' => '='                ,
-                    'value'    => 'Active'
+                    'column'   => 'department.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'department.' . $field,

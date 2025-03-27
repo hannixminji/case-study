@@ -131,9 +131,8 @@ class JobTitleValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'job_title.status',
-                    'operator' => '='               ,
-                    'value'    => 'Active'
+                    'column'   => 'job_title.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'job_title.' . $field,

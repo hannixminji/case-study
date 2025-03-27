@@ -164,9 +164,8 @@ class AllowanceValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'allowance.status',
-                    'operator' => '='               ,
-                    'value'    => 'Active'
+                    'column'   => 'allowance.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'allowance.' . $field,

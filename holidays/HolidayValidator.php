@@ -211,9 +211,8 @@ class HolidayValidator extends BaseValidator
 
             $filterCriteria = [
                 [
-                    'column'   => 'holiday.status',
-                    'operator' => '='             ,
-                    'value'    => 'Active'
+                    'column'   => 'holiday.deleted_at',
+                    'operator' => 'IS NULL'
                 ],
                 [
                     'column'   => 'holiday.' . $field,
