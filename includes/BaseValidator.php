@@ -140,4 +140,72 @@ abstract class BaseValidator
 
         return false;
     }
+
+    protected function isUniques(
+        object $repository,
+        string $tableName ,
+        string $columnName,
+        mixed  $value
+    ): ?bool {
+
+        $fetchAllMethod = 'fetchAll' . ucfirst($tableName) . 's';
+
+        if ( ! isset($this->errors['id']) && method_exists($repository, $fetchAllMethod)) {
+            $id = null;
+
+            if (array_key_exists('id', $this->data)) {
+                $id = filter_var($this->data['id'], FILTER_VALIDATE_INT);
+
+                if ($id === false) {
+                    $id = $this->data['id'];
+                }
+            }
+
+            $columns = [
+                'id'
+            ];
+
+            $filterCriteria = [
+                [
+                    'column'   => $tableName . '.deleted_at',
+                    'operator' => 'IS NULL'
+                ],
+                [
+                    'column'   => $tableName . '.' . $columnName,
+                    'operator' => '='                           ,
+                    'value'    => $value
+                ]
+            ];
+
+            if (is_int($id)) {
+                $filterCriteria[] = [
+                    'column'   => $tableName . '.id',
+                    'operator' => '!='              ,
+                    'value'    => $id
+                ];
+
+            } else {
+                $filterCriteria[] = [
+                    'column'   => 'SHA2(' . $tableName . '.id, 256)',
+                    'operator' => '!='                              ,
+                    'value'    => $id
+                ];
+            }
+
+            $isUnique = $repository->{$fetchAllMethod}(
+                columns             : $columns       ,
+                filterCriteria      : $filterCriteria,
+                limit               : 1              ,
+                includeTotalRowCount: false
+            );
+
+            if ($isUnique === ActionResult::FAILURE) {
+                return null;
+            }
+
+            return empty($isUnique['result_set']);
+        }
+
+        return null;
+    }
 }

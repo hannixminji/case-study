@@ -247,21 +247,21 @@ try {
         $currentWorkSchedules = [];
 
         foreach ($workSchedules as $workSchedule) {
-            $workScheduleDates = $workScheduleService->getRecurrenceDates(
-                $workSchedule['recurrence_rule'],
-                $previousTwoDaysDate            ,
-                $currentDate
+            $scheduledWorkDates = $workScheduleService->getRecurrenceDates(
+                recurrenceRule: $workSchedule['recurrence_rule'],
+                startDate     : $previousTwoDaysDate            ,
+                endDate       : $currentDate
             );
 
-            if ($workScheduleDates === ActionResult::FAILURE) {
+            if ($scheduledWorkDates === ActionResult::FAILURE) {
                 return [
                     'status'  => 'error',
                     'message' => 'An unexpected error occurred. Please try again later.'
                 ];
             }
 
-            foreach ($workScheduleDates as $workScheduleDate) {
-                $currentWorkSchedules[$workScheduleDate][] = $workSchedule;
+            foreach ($scheduledWorkDates as $scheduledWorkDate) {
+                $currentWorkSchedules[$scheduledWorkDate][] = $workSchedule;
             }
         }
 
@@ -339,6 +339,29 @@ try {
                 unset($recordedWorkSchedules[$previousDate]);
             }
         }
+
+        /*
+        foreach ($recordedWorkSchedules as $date => $workSchedules) {
+            $actualWorkSchedules   = [];
+            $recordedWorkSchedules = [];
+
+            foreach ($workSchedules as $key => $workSchedule) {
+                if (isset($workSchedule['is_recorded']) && $workSchedule['is_recorded']) {
+                    $recordedWorkSchedules[] = $workSchedule;
+                } else {
+                    $actualWorkSchedules[] = $workSchedule;
+                }
+            }
+
+            foreach ($actualWorkSchedules as $key => $actualWorkSchedule) {
+                $actualWorkScheduleStartDateTime = new DateTime($actualWorkSchedule['adjusted_start_time']);
+                $actualWorkScheduleEndDateTime   = new DateTime($actualWorkSchedule['end_time'           ]);
+
+                foreach ($recordedWorkSchedules as $recordedWorkSchedule) {
+                }
+            }
+        }
+        */
 
         $lastWorkSchedule = end($recordedWorkSchedules[$currentDate]);
 

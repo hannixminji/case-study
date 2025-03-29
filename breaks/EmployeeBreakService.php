@@ -7,15 +7,21 @@ require_once __DIR__ . '/../attendance/AttendanceRepository.php';
 
 class EmployeeBreakService
 {
+    private readonly PDO                     $pdo                    ;
+
     private readonly EmployeeBreakRepository $employeeBreakRepository;
     private readonly EmployeeRepository      $employeeRepository     ;
     private readonly AttendanceRepository    $attendanceRepository   ;
 
     public function __construct(
+        PDO                     $pdo                    ,
+
         EmployeeBreakRepository $employeeBreakRepository,
         EmployeeRepository      $employeeRepository     ,
         AttendanceRepository    $attendanceRepository
     ) {
+        $this->pdo                     = $pdo                    ;
+
         $this->employeeBreakRepository = $employeeBreakRepository;
         $this->employeeRepository      = $employeeRepository     ;
         $this->attendanceRepository    = $attendanceRepository   ;
@@ -108,6 +114,10 @@ class EmployeeBreakService
                 'column'   => 'work_schedule_snapshot.employee_id',
                 'operator' => '='                                 ,
                 'value'    => $employeeId
+            ],
+            [
+                'column'   => 'attendance.check_in_time',
+                'operator' => 'IS NOT NULL'
             ]
         ];
 
@@ -265,8 +275,6 @@ class EmployeeBreakService
                ($lastBreakRecord['start_time'] !== null  &&
                 $lastBreakRecord['end_time'  ] !== null)) {
 
-                $isBreakIn = true;
-
                 if ($currentDateTime >= $workScheduleEndDateTime) {
                     return [
                         'status'  => 'warning',
@@ -351,12 +359,15 @@ class EmployeeBreakService
 
                 $breakSchedules = array_map(function ($item) use ($mapKeys) {
                     $newItem = [];
+
                     foreach ($mapKeys as $oldKey => $newKey) {
                         if (array_key_exists($oldKey, $item)) {
                             $newItem[$newKey] = $item[$oldKey];
                         }
                     }
+
                     return $newItem;
+
                 }, $breakSchedules);
 
                 usort($breakSchedules, function ($breakScheduleA, $breakScheduleB) use ($workScheduleDate, $workScheduleStartDateTime) {
@@ -437,8 +448,9 @@ class EmployeeBreakService
                     }
 
                     return [
-                        'status'  => 'success',
-                        'message' => 'Break-in recorded successfully.'
+                        'status'            => 'success'                        ,
+                        'message'           => 'Break-in recorded successfully.',
+                        'employee_break_id' => $employeeBreak->getId()
                     ];
                 }
 
@@ -460,10 +472,14 @@ class EmployeeBreakService
                     ];
                 }
 
+                return [
+                    'status'            => 'success'                        ,
+                    'message'           => 'Break-in recorded successfully.',
+                    'employee_break_id' => $this->pdo->lastInsertId()
+                ];
+
             } elseif ($lastBreakRecord['start_time'] !== null &&
                       $lastBreakRecord['end_time'  ] === null) {
-
-                $isBreakIn = false;
 
                 $breakStartDateTime = new DateTime($lastBreakRecord['start_time']);
                 $breakEndDateTime   = clone $currentDateTime                      ;
@@ -490,29 +506,19 @@ class EmployeeBreakService
                         'message' => 'An unexpected error occurred. Please try again later.'
                     ];
                 }
+
+                return [
+                    'status'            => 'success'                         ,
+                    'message'           => 'Break-out recorded successfully.',
+                    'employee_break_id' => $employeeBreak->getId()
+                ];
             }
         }
 
-        if (isset($isBreakIn)) {
-            if ($isBreakIn) {
-                return [
-                    'status'  => 'success',
-                    'message' => 'Break-in recorded successfully.'
-                ];
-
-            } else {
-                return [
-                    'status'  => 'success',
-                    'message' => 'Break-out recorded successfully.'
-                ];
-            }
-
-        } else {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.'
-            ];
-        }
+        return [
+            'status'  => 'error',
+            'message' => 'An unexpected error occurred. Please try again later.'
+        ];
     }
 
     private function getCurrentBreakSchedule(

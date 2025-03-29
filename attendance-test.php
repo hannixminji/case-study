@@ -53,7 +53,7 @@ $employeeRfidUid = '123456789';
     Dito mo babaguhin yung time, kailangan yung date na nasa database di dapat pababa,
     kunware 2025-01-01 nasa database kailangan 2025-01-01 onwards hindi 2024-12-31.
 */
-$currentDateTime = '2025-03-15 17:00:00';
+$currentDateTime = '2025-03-30 08:00:00';
 
 /*
     Kada tawag ng `handleRfidTap` dedetermine kung check in or check out, tingnan mo nalang

@@ -17,10 +17,16 @@ class AllowanceValidator extends BaseValidator
 
         foreach ($fieldsToValidate as $field) {
             if ( ! array_key_exists($field, $this->data)) {
-                $this->errors[$field] = 'The ' . $field . ' field is missing.';
+                $this->errors[$field] = 'The ' . str_replace('_', ' ', $field) . ' field is missing.';
             } else {
                 switch ($field) {
-                    case 'id'         : $this->isValidId         ($this->data['id'         ]); break;
+                    case 'id':
+                        if ($this->group !== 'create') {
+                            $this->isValidId($this->data['id']);
+                        }
+
+                        break;
+
                     case 'name'       : $this->isValidName       ($this->data['name'       ]); break;
                     case 'amount'     : $this->isValidAmount     ($this->data['amount'     ]); break;
                     case 'frequency'  : $this->isValidFrequency  ($this->data['frequency'  ]); break;
@@ -34,18 +40,20 @@ class AllowanceValidator extends BaseValidator
     public function isValidName(mixed $name): bool
     {
         if ($name === null) {
-            $this->errors['name'] = 'The name cannot be null.';
+            $this->errors['name'] = 'Please enter a name.';
 
             return false;
         }
 
         if ( ! is_string($name)) {
-            $this->errors['name'] = 'The name must be a string.';
+            $this->errors['name'] = 'The name must be text.';
 
             return false;
         }
 
-        if (trim($name) === '') {
+        $name = preg_replace('/[^\p{L}\p{N}\p{P}\p{S}\p{Z}]/u', '', preg_replace('/\s+/', ' ', trim($name)));
+
+        if ($name === '') {
             $this->errors['name'] = 'The name cannot be empty.';
 
             return false;
@@ -57,14 +65,14 @@ class AllowanceValidator extends BaseValidator
             return false;
         }
 
-        if ( ! preg_match('/^[A-Za-z0-9._\- ]+$/', $name)) {
-            $this->errors['name'] = 'The name contains invalid characters. Only letters, numbers, spaces, and the following characters are allowed: - . _';
+        if ( ! preg_match('/^[\p{L}\p{N}._\-\s]+$/u', $name)) {
+            $this->errors['name'] = 'Only letters, numbers, spaces, hyphens, underscores, and dots are allowed.';
 
             return false;
         }
 
         if ($name !== htmlspecialchars(strip_tags($name), ENT_QUOTES, 'UTF-8')) {
-            $this->errors['name'] = 'The name contains HTML tags or special characters that are not allowed.';
+            $this->errors['name'] = 'The name contains invalid characters.';
 
             return false;
         }
@@ -72,13 +80,13 @@ class AllowanceValidator extends BaseValidator
         $isUnique = $this->isUnique('name', $name);
 
         if ($isUnique === null) {
-            $this->errors['name'] = 'Unable to verify the uniqueness of the name. The provided allowance ID may be missing or invalid. Please try again later.';
+            $this->errors['name'] = 'Something went wrong. Please try again later.';
 
             return false;
         }
 
         if ($isUnique === false) {
-            $this->errors['name'] = 'This name already exists. Please provide a different one.';
+            $this->errors['name'] = 'This name is already taken. Please choose another one.';
 
             return false;
         }
@@ -89,25 +97,25 @@ class AllowanceValidator extends BaseValidator
     public function isValidAmount(mixed $amount): bool
     {
         if ($amount === null) {
-            $this->errors['amount'] = 'The amount cannot be null.';
+            $this->errors['amount'] = 'Please enter an amount.';
 
             return false;
         }
 
         if ( ! is_numeric($amount)) {
-            $this->errors['amount'] = 'The amount must be a number.';
+            $this->errors['amount'] = 'The amount must be a valid number.';
 
             return false;
         }
 
         if ($amount < 0) {
-            $this->errors['amount'] = 'The amount cannot be less than 0.';
+            $this->errors['amount'] = 'The amount cannot be negative.';
 
             return false;
         }
 
         if ($amount > 50_000) {
-            $this->errors['amount'] = 'The amount cannot exceed ₱50,000.';
+            $this->errors['amount'] = 'The amount cannot be more than ₱50,000.';
 
             return false;
         }
@@ -118,13 +126,13 @@ class AllowanceValidator extends BaseValidator
     public function isValidFrequency(mixed $frequency): bool
     {
         if ($frequency === null) {
-            $this->errors['frequency'] = 'The frequency cannot be null.';
+            $this->errors['frequency'] = 'Please enter a frequency.';
 
             return false;
         }
 
         if ( ! is_string($frequency)) {
-            $this->errors['frequency'] = 'The frequency must be a string.';
+            $this->errors['frequency'] = 'The frequency must be text.';
 
             return false;
         }
@@ -143,7 +151,7 @@ class AllowanceValidator extends BaseValidator
         ];
 
         if ( ! in_array(strtolower($frequency), $validFrequencies)) {
-            $this->errors['frequency'] = 'The frequency must be one of the following: Weekly, Bi-weekly, Semi-monthly, or Monthly.';
+            $this->errors['frequency'] = 'Please choose one of these options: Weekly, Bi-weekly, Semi-monthly, or Monthly.';
 
             return false;
         }

@@ -15,7 +15,7 @@ class PayrollGroupValidator extends BaseValidator
     {
         foreach ($fieldsToValidate as $field) {
             if ( ! array_key_exists($field, $this->data)) {
-                $this->errors[$field] = 'The ' . $field . ' field is missing.';
+                $this->errors[$field] = 'The ' . str_replace('_', ' ', $field) . ' field is missing.';
             } else {
                 switch ($field) {
                     case 'id'               : $this->isValidId              ($this->data['id'               ]); break;

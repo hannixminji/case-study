@@ -16,6 +16,7 @@ require_once __DIR__ . '/AttendanceValidator.php'                     ;
 class AttendanceService
 {
     private readonly PDO                     $pdo                    ;
+
     private readonly AttendanceRepository    $attendanceRepository   ;
     private readonly EmployeeRepository      $employeeRepository     ;
     private readonly HolidayRepository       $holidayRepository      ;
@@ -26,10 +27,11 @@ class AttendanceService
     private readonly EmployeeBreakRepository $employeeBreakRepository;
     private readonly BreakTypeRepository     $breakTypeRepository    ;
 
-    private readonly AttendanceValidator $attendanceValidator;
+    private readonly AttendanceValidator     $attendanceValidator    ;
 
     public function __construct(
         PDO                     $pdo                    ,
+
         AttendanceRepository    $attendanceRepository   ,
         EmployeeRepository      $employeeRepository     ,
         HolidayRepository       $holidayRepository      ,
@@ -41,6 +43,7 @@ class AttendanceService
         BreakTypeRepository     $breakTypeRepository
     ) {
         $this->pdo                     = $pdo                    ;
+
         $this->attendanceRepository    = $attendanceRepository   ;
         $this->employeeRepository      = $employeeRepository     ;
         $this->holidayRepository       = $holidayRepository      ;
@@ -87,14 +90,14 @@ class AttendanceService
 
         if ( ! empty($validationErrors)) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'There are validation errors. Please check the input values.',
+                'status'  => 'warning',
+                'message' => 'Invalid input detected. Please ensure all inputs are valid.',
                 'errors'  => $validationErrors
             ];
         }
 
         if (filter_var($attendanceId, FILTER_VALIDATE_INT) !== false) {
-            $attendanceId = (int) $attendanceId;
+            $attendanceId = filter_var($attendanceId, FILTER_VALIDATE_INT);
         }
 
         $approveOvertimeResult = $this->attendanceRepository->approveOvertime($attendanceId);
@@ -128,8 +131,8 @@ class AttendanceService
 
         if ( ! empty($validationErrors)) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'There are validation errors. Please check the input values.',
+                'status'  => 'warning',
+                'message' => 'Invalid input detected. Please ensure all inputs are valid.',
                 'errors'  => $validationErrors
             ];
         }
@@ -384,8 +387,6 @@ class AttendanceService
            ($lastAttendanceRecord['check_in_time' ] !== null  &&
             $lastAttendanceRecord['check_out_time'] !== null)) {
 
-            $isCheckIn = true;
-
             $isUsingLastAttendanceWorkSchedule = false;
 
             if ( ! empty($lastAttendanceRecord)) {
@@ -590,15 +591,15 @@ class AttendanceService
                 );
 
                 if (empty($currentWorkSchedule)) {
-                    if (  isset($currentWorkSchedules[$formattedCurrentDate]) &&
-                        ! empty($currentWorkSchedules[$formattedCurrentDate])) {
+                    if (   isset($currentWorkSchedules[$formattedCurrentDate]) &&
+                         ! empty($currentWorkSchedules[$formattedCurrentDate])) {
 
                         return [
                             'status'  => 'info',
                             'message' => 'Your work schedule for today has ended.'
                         ];
 
-                    } else {
+                    } elseif ( ! isset($currentWorkSchedules[$formattedCurrentDate])) {
                         return [
                             'status'  => 'info',
                             'message' => 'You do not have a work schedule today.'
@@ -1099,8 +1100,9 @@ class AttendanceService
                 }
 
                 return [
-                    'status'  => 'success',
-                    'message' => 'Checked-in recorded successfully.'
+                    'status'        => 'success'                          ,
+                    'message'       => 'Checked-in recorded successfully.',
+                    'attendance_id' => $this->pdo->lastInsertId()
                 ];
             }
 
@@ -1327,6 +1329,12 @@ class AttendanceService
 
                 $this->pdo->commit();
 
+                return [
+                    'status'        => 'success'                          ,
+                    'message'       => 'Checked-in recorded successfully.',
+                    'attendance_id' => $currentAttendanceRecord->getId()
+                ];
+
             } catch (PDOException $exception) {
                 $this->pdo->rollback();
 
@@ -1346,8 +1354,6 @@ class AttendanceService
 
         } elseif ($lastAttendanceRecord['check_in_time' ] !== null &&
                   $lastAttendanceRecord['check_out_time'] === null) {
-
-            $isCheckIn = false;
 
             $workScheduleDate      = $lastAttendanceRecord['date'                             ];
             $workScheduleStartTime = $lastAttendanceRecord['work_schedule_snapshot_start_time'];
@@ -1695,7 +1701,7 @@ class AttendanceService
 
                 if ( ! empty($currentAttendanceRecords)) {
                     foreach ($currentAttendanceRecords as $attendanceRecord) {
-                        $currentAttendanceRecord = new Attendance(
+                        $updatedAttendanceRecord = new Attendance(
                             id                         : $attendanceRecord['id'                             ],
                             workScheduleSnapshotId     : $attendanceRecord['work_schedule_snapshot_id'      ],
                             date                       : $attendanceRecord['date'                           ],
@@ -1711,7 +1717,7 @@ class AttendanceService
                             remarks                    : $attendanceRecord['remarks'                        ]
                         );
 
-                        $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($currentAttendanceRecord);
+                        $attendanceUpdateResult = $this->attendanceRepository->updateAttendance($updatedAttendanceRecord);
 
                         if ($attendanceUpdateResult === ActionResult::FAILURE) {
                             $this->pdo->rollback();
@@ -1725,6 +1731,12 @@ class AttendanceService
                 }
 
                 $this->pdo->commit();
+
+                return [
+                    'status'        => 'success'                           ,
+                    'message'       => 'Checked-out recorded successfully.',
+                    'attendance_id' => $currentAttendanceRecord->getId()
+                ];
 
             } catch (PDOException $exception) {
                 $this->pdo->rollback();
@@ -1744,26 +1756,10 @@ class AttendanceService
             }
         }
 
-        if (isset($isCheckIn)) {
-            if ($isCheckIn) {
-                return [
-                    'status'  => 'success',
-                    'message' => 'Checked-in recorded successfully.'
-                ];
-
-            } else {
-                return [
-                    'status'  => 'success',
-                    'message' => 'Checked-out recorded successfully.'
-                ];
-            }
-
-        } else {
-            return [
-                'status'  => 'error',
-                'message' => 'An unexpected error occurred. Please try again later.'
-            ];
-        }
+        return [
+            'status'  => 'error',
+            'message' => 'An unexpected error occurred. Please try again later.'
+        ];
     }
 
     /*

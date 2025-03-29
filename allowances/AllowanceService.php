@@ -8,7 +8,7 @@ class AllowanceService
 {
     private readonly AllowanceRepository $allowanceRepository;
 
-    private readonly AllowanceValidator $allowanceValidator;
+    private readonly AllowanceValidator  $allowanceValidator ;
 
     public function __construct(AllowanceRepository $allowanceRepository)
     {
@@ -35,13 +35,13 @@ class AllowanceService
 
         if ( ! empty($validationErrors)) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'There are validation errors. Please check the input values.',
+                'status'  => 'warning',
+                'message' => 'Invalid input detected. Please ensure all fields are valid.',
                 'errors'  => $validationErrors
             ];
         }
 
-        $newAllowance = new Allowance(
+        $newAllowanceType = new Allowance(
             id         :         null                     ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
@@ -50,7 +50,7 @@ class AllowanceService
             status     :         $allowance['status'     ]
         );
 
-        $createAllowanceTypeResult = $this->allowanceRepository->createAllowance($newAllowance);
+        $createAllowanceTypeResult = $this->allowanceRepository->createAllowance($newAllowanceType);
 
         if ($createAllowanceTypeResult === ActionResult::FAILURE) {
             return [
@@ -103,8 +103,8 @@ class AllowanceService
 
         if ( ! empty($validationErrors)) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'There are validation errors. Please check the input values.',
+                'status'  => 'warning',
+                'message' => 'Invalid input detected. Please ensure all fields are valid.',
                 'errors'  => $validationErrors
             ];
         }
@@ -115,7 +115,7 @@ class AllowanceService
             $allowanceId = (int) $allowanceId;
         }
 
-        $newAllowance = new Allowance(
+        $allowanceTypeToUpdate = new Allowance(
             id         :         $allowanceId             ,
             name       :         $allowance['name'       ],
             amount     : (float) $allowance['amount'     ],
@@ -124,7 +124,7 @@ class AllowanceService
             status     :         $allowance['status'     ]
         );
 
-        $updateAllowanceTypeResult = $this->allowanceRepository->updateAllowance($newAllowance);
+        $updateAllowanceTypeResult = $this->allowanceRepository->updateAllowance($allowanceTypeToUpdate);
 
         if ($updateAllowanceTypeResult === ActionResult::FAILURE) {
             return [
@@ -155,8 +155,8 @@ class AllowanceService
 
         if ( ! empty($validationErrors)) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'There are validation errors. Please check the input values.',
+                'status'  => 'warning',
+                'message' => 'Invalid input detected. Please ensure all fields are valid.',
                 'errors'  => $validationErrors
             ];
         }
