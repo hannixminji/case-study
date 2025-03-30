@@ -426,7 +426,8 @@ class AttendanceService
                     'total_hours_per_week',
                     'total_work_hours'    ,
                     'start_date'          ,
-                    'recurrence_rule'
+                    'recurrence_rule'     ,
+                    'created_at'
                 ];
 
                 $workScheduleFilterCriteria = [
@@ -540,28 +541,25 @@ class AttendanceService
                 $currentWorkSchedules = [];
 
                 foreach ($workSchedules as $workSchedule) {
-                    $workScheduleDates = $this->workScheduleRepository->getRecurrenceDates(
-                        $workSchedule['recurrence_rule'],
-                        $formattedPreviousDate          ,
-                        $formattedCurrentDate
+                    $scheduledWorkDates = $this->workScheduleRepository->getRecurrenceDates(
+                        recurrenceRule: $workSchedule['recurrence_rule'],
+                        startDate     : $formattedPreviousTwoDaysDate   ,
+                        endDate       : $formattedCurrentDate
                     );
 
-                    if ($workScheduleDates === ActionResult::FAILURE) {
+                    if ($scheduledWorkDates === ActionResult::FAILURE) {
                         return [
                             'status'  => 'error',
                             'message' => 'An unexpected error occurred. Please try again later.'
                         ];
                     }
 
-                    if (empty($workScheduleDates)) {
-                        return [
-                            'status'  => 'info',
-                            'message' => 'You do not have a work schedule today.'
-                        ];
-                    }
+                    $dateCreated = (new DateTime($workSchedule['created_at']))->format('Y-m-d');
 
-                    foreach ($workScheduleDates as $workScheduleDate) {
-                        $currentWorkSchedules[$workScheduleDate][] = $workSchedule;
+                    foreach ($scheduledWorkDates as $scheduledWorkDate) {
+                        if ($scheduledWorkDate >= $dateCreated) {
+                            $currentWorkSchedules[$scheduledWorkDate][] = $workSchedule;
+                        }
                     }
                 }
 
@@ -582,6 +580,51 @@ class AttendanceService
 
                     $workSchedules = array_values($workSchedules);
                 }
+
+                foreach ($recordedWorkSchedules as $date => &$workSchedules) {
+                    $actualSchedules   = [];
+                    $recordedSchedules = [];
+
+                    foreach ($workSchedules as $key => $workSchedule) {
+                        if (isset($workSchedule['is_recorded']) && $workSchedule['is_recorded']) {
+                            $recordedSchedules[] = $workSchedule;
+                        } else {
+                            $actualSchedules[$key] = $workSchedule;
+                        }
+                    }
+
+                    foreach ($actualSchedules as $key => $actualSchedule) {
+                        $actualScheduleStartTime = $actualSchedule['start_time'];
+                        $actualScheduleEndTime   = $actualSchedule['end_time'  ];
+
+                        $actualScheduleStartDateTime = new DateTime($date . ' ' . $actualScheduleStartTime);
+                        $actualScheduleEndDateTime   = new DateTime($date . ' ' . $actualScheduleEndTime  );
+
+                        if ($actualScheduleEndDateTime <= $actualScheduleStartDateTime) {
+                            $actualScheduleEndDateTime->modify('+1 day');
+                        }
+
+                        foreach ($recordedSchedules as $recordedSchedule) {
+                            $recordedScheduleStartTime = $recordedSchedule['start_time'];
+                            $recordedScheduleEndTime   = $recordedSchedule['end_time'  ];
+
+                            $recordedScheduleStartDateTime = new DateTime($date . ' ' . $recordedScheduleStartTime);
+                            $recordedScheduleEndDateTime   = new DateTime($date . ' ' . $recordedScheduleEndTime  );
+
+                            if ($recordedScheduleEndDateTime <= $recordedScheduleStartDateTime) {
+                                $recordedScheduleEndDateTime->modify('+1 day');
+                            }
+
+                            if ($actualScheduleStartDateTime < $recordedScheduleEndDateTime   &&
+                                $actualScheduleEndDateTime   > $recordedScheduleStartDateTime) {
+
+                                unset($workSchedules[$key]);
+                            }
+                        }
+                    }
+                }
+
+                unset($workSchedules);
 
                 $currentWorkSchedules = $recordedWorkSchedules;
 

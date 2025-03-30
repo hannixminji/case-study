@@ -41,51 +41,16 @@ $attendanceService = new AttendanceService(
 );
 
 $employeeBreakService = new EmployeeBreakService(
+    pdo                    : $pdo                    ,
     employeeBreakRepository: $employeeBreakRepository,
     employeeRepository     : $employeeRepository     ,
     attendanceRepository   : $attendanceRepository
 );
 
-// Dito mo lagay yung rfid uid ng employee, simulate lang para matest.
 $employeeRfidUid = '123456789';
 
-/*
-    Dito mo babaguhin yung time, kailangan yung date na nasa database di dapat pababa,
-    kunware 2025-01-01 nasa database kailangan 2025-01-01 onwards hindi 2024-12-31.
-*/
-$currentDateTime = '2025-03-30 08:00:00';
+$currentDateTime = '2025-03-29 17:00:00';
 
-/*
-    Kada tawag ng `handleRfidTap` dedetermine kung check in or check out, tingnan mo nalang
-    sa database para malaman mo kung check in o check out.
-
-    Ibig sabihin nyan check in yan
-    check_in_time !== null && check_out_time !== null
-    or
-    check_in_time === null && check_out_time === null
-
-    Ibig sabihin check out
-    check_in_time !== null && check_out_time === null
-*/
 $attendanceResponse = $attendanceService->handleRfidTap($employeeRfidUid, $currentDateTime);
 
-/*
-$attendanceResponse = $attendanceService->updateAttendance(
-    attendanceId: 9                    ,
-    checkInTime : '2025-03-12 08:00:00',
-    checkOutTime: '2025-03-12 17:00:00'
-);
-*/
 print_r($attendanceResponse);
-
-//$breakResponse = $employeeBreakService->handleRfidTap($employeeRfidUid, $currentDateTime);
-//print_r($breakResponse);
-/*
-$employeeRfidUid = '123456789';
-$currentDateTime = '2025-01-01 08:00:00';
-
-$attendanceResponse = $attendanceService->handleRfidTap($employeeRfidUid, $currentDateTime);
-
-// Eto sa break in at break out
-$breakResponse = $employeeBreakService->handleRfidTap($employeeRfidUid, $currentDateTime);
-*/

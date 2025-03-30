@@ -1,5 +1,7 @@
 <?php
 
+echo '<pre>';
+
 require_once __DIR__ . '/../database/database.php'                 ;
 
 require_once __DIR__ . '/../payroll/PayslipService.php'            ;
@@ -260,8 +262,12 @@ try {
                 ];
             }
 
+            $dateCreated = (new DateTime($workSchedule['created_at']))->format('Y-m-d');
+
             foreach ($scheduledWorkDates as $scheduledWorkDate) {
-                $currentWorkSchedules[$scheduledWorkDate][] = $workSchedule;
+                if ($scheduledWorkDate >= $dateCreated) {
+                    $currentWorkSchedules[$scheduledWorkDate][] = $workSchedule;
+                }
             }
         }
 
@@ -328,6 +334,37 @@ try {
             }
         }
 
+        foreach ($recordedWorkSchedules as $date => &$workSchedules) {
+            $actualSchedules   = [];
+            $recordedSchedules = [];
+
+            foreach ($workSchedules as $key => $workSchedule) {
+                if (isset($workSchedule['is_recorded']) && $workSchedule['is_recorded']) {
+                    $recordedSchedules[] = $workSchedule;
+                } else {
+                    $actualSchedules[$key] = $workSchedule;
+                }
+            }
+
+            foreach ($actualSchedules as $key => $actualSchedule) {
+                $actualScheduleStartDateTime = new DateTime($actualSchedule['start_time']);
+                $actualScheduleEndDateTime   = new DateTime($actualSchedule['end_time'  ]);
+
+                foreach ($recordedSchedules as $recordedSchedule) {
+                    $recordedScheduleStartDateTime = new DateTime($recordedSchedule['start_time']);
+                    $recordedScheduleEndDateTime   = new DateTime($recordedSchedule['end_time'  ]);
+
+                    if ($actualScheduleStartDateTime < $recordedScheduleEndDateTime   &&
+                        $actualScheduleEndDateTime   > $recordedScheduleStartDateTime) {
+
+                        unset($workSchedules[$key]);
+                    }
+                }
+            }
+        }
+
+        unset($workSchedules);
+
         unset($recordedWorkSchedules[$previousTwoDaysDate]);
 
         $lastWorkSchedule = end($recordedWorkSchedules[$previousDate]);
@@ -339,29 +376,6 @@ try {
                 unset($recordedWorkSchedules[$previousDate]);
             }
         }
-
-        /*
-        foreach ($recordedWorkSchedules as $date => $workSchedules) {
-            $actualWorkSchedules   = [];
-            $recordedWorkSchedules = [];
-
-            foreach ($workSchedules as $key => $workSchedule) {
-                if (isset($workSchedule['is_recorded']) && $workSchedule['is_recorded']) {
-                    $recordedWorkSchedules[] = $workSchedule;
-                } else {
-                    $actualWorkSchedules[] = $workSchedule;
-                }
-            }
-
-            foreach ($actualWorkSchedules as $key => $actualWorkSchedule) {
-                $actualWorkScheduleStartDateTime = new DateTime($actualWorkSchedule['adjusted_start_time']);
-                $actualWorkScheduleEndDateTime   = new DateTime($actualWorkSchedule['end_time'           ]);
-
-                foreach ($recordedWorkSchedules as $recordedWorkSchedule) {
-                }
-            }
-        }
-        */
 
         $lastWorkSchedule = end($recordedWorkSchedules[$currentDate]);
 
