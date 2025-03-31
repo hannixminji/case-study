@@ -1,7 +1,5 @@
 <?php
 
-echo '<pre>';
-
 require_once __DIR__ . '/../database/database.php'                 ;
 
 require_once __DIR__ . '/../payroll/PayslipService.php'            ;
@@ -133,7 +131,7 @@ try {
         ];
     }
 
-    $gracePeriod = (int) $gracePeriod;
+    $gracePeriod = filter_var($gracePeriod, FILTER_VALIDATE_INT);
 
     $earlyCheckInWindow = $settingRepository->fetchSettingValue(
         settingKey: 'minutes_can_check_in_before_shift',
@@ -147,7 +145,7 @@ try {
         ];
     }
 
-    $earlyCheckInWindow = (int) $earlyCheckInWindow;
+    $earlyCheckInWindow = filter_var($earlyCheckInWindow, FILTER_VALIDATE_INT);
 
     $query = '
         SELECT

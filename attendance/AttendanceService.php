@@ -642,7 +642,7 @@ class AttendanceService
                             'message' => 'Your work schedule for today has ended.'
                         ];
 
-                    } elseif ( ! isset($currentWorkSchedules[$formattedCurrentDate]) || empty($currentWorkSchedules[$formattedCurrentDate])) {
+                    } else {
                         return [
                             'status'  => 'info',
                             'message' => 'You do not have a work schedule today.'
