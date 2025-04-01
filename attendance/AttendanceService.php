@@ -42,19 +42,19 @@ class AttendanceService
         EmployeeBreakRepository $employeeBreakRepository,
         BreakTypeRepository     $breakTypeRepository
     ) {
-        $this->pdo                     = $pdo                    ;
+        $this->pdo                     = $pdo                     ;
 
-        $this->attendanceRepository    = $attendanceRepository   ;
-        $this->employeeRepository      = $employeeRepository     ;
-        $this->holidayRepository       = $holidayRepository      ;
-        $this->leaveRequestRepository  = $leaveRequestRepository ;
-        $this->workScheduleRepository  = $workScheduleRepository ;
-        $this->settingRepository       = $settingRepository      ;
-        $this->breakScheduleRepository = $breakScheduleRepository;
-        $this->employeeBreakRepository = $employeeBreakRepository;
-        $this->breakTypeRepository     = $breakTypeRepository    ;
+        $this->attendanceRepository    = $attendanceRepository    ;
+        $this->employeeRepository      = $employeeRepository      ;
+        $this->holidayRepository       = $holidayRepository       ;
+        $this->leaveRequestRepository  = $leaveRequestRepository  ;
+        $this->workScheduleRepository  = $workScheduleRepository  ;
+        $this->settingRepository       = $settingRepository       ;
+        $this->breakScheduleRepository = $breakScheduleRepository ;
+        $this->employeeBreakRepository = $employeeBreakRepository ;
+        $this->breakTypeRepository     = $breakTypeRepository     ;
 
-        $this->attendanceValidator = new AttendanceValidator();
+        $this->attendanceValidator     = new AttendanceValidator();
     }
 
     public function fetchAllAttendance(
@@ -1807,73 +1807,25 @@ class AttendanceService
 
     /*
     public function updateAttendance(
-        int|string $attendanceId   ,
-        string     $checkInTime    ,
-        string     $checkOutTime
+        mixed $attendanceId,
+        mixed $checkInTime ,
+        mixed $checkOutTime
     ): array {
 
-        if (empty($checkInTime)) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in time must not be empty.'
-            ];
+        if (filter_var($attendanceId, FILTER_VALIDATE_INT) !== false) {
+            $attendanceId = filter_var($attendanceId, FILTER_VALIDATE_INT);
         }
 
-        $checkInTime = htmlspecialchars(strip_tags(trim($checkInTime)), ENT_QUOTES, 'UTF-8');
-
-        $checkInDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkInTime);
-
-        if ( ! $checkInDateTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in time is not a valid date.'
-            ];
+        if ( ! ($checkInTime instanceof DateTime)) {
+            $checkInDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkInTime);
         }
 
-        $formattedCheckInDateTime = $checkInDateTime->format('Y-m-d H:i:s');
-
-        if ($formattedCheckInDateTime !== $checkInTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in time is not a valid format. ' .
-                             'Expected format: YYYY-MM-DD HH:MM:SS.'
-            ];
+        if ( ! ($checkOutTime instanceof DateTime)) {
+            $checkOutDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkOutTime);
         }
 
-        if (empty($checkOutTime)) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-out time must not be empty.'
-            ];
-        }
-
-        $checkOutTime = htmlspecialchars(strip_tags(trim($checkOutTime)), ENT_QUOTES, 'UTF-8');
-
-        $checkOutDateTime = DateTime::createFromFormat('Y-m-d H:i:s', $checkOutTime);
-
-        if ( ! $checkOutDateTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-out time is not a valid date.'
-            ];
-        }
-
+        $formattedCheckInDateTime  = $checkInDateTime ->format('Y-m-d H:i:s');
         $formattedCheckOutDateTime = $checkOutDateTime->format('Y-m-d H:i:s');
-
-        if ($formattedCheckOutDateTime !== $checkOutTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-out time is not a valid format. ' .
-                             'Expected format: YYYY-MM-DD HH:MM:SS.'
-            ];
-        }
-
-        if ($checkOutDateTime < $checkInDateTime) {
-            return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-out time cannot be earlier than check-in time.'
-            ];
-        }
 
         $attendanceRecordColumns = [
             'work_schedule_snapshot_id'                               ,
@@ -1956,24 +1908,24 @@ class AttendanceService
         $adjustedWorkScheduleStartDateTime = (clone $workScheduleStartDateTime)
             ->modify('-' . $earlyCheckInWindow . ' minutes');
 
-        if ($checkInDateTime < $adjustedWorkScheduleStartDateTime) {
+        if ($checkInDateTime < $workScheduleStartDateTime) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in time is earlier than the allowed start time of the work schedule.'
+                'status'  => 'warning',
+                'message' => 'Check-in time is earlier than the start time of the work schedule.'
             ];
         }
 
         if ($checkInDateTime >= $workScheduleEndDateTime) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'Check-in time is later than or equal to the end of the work schedule.'
+                'status'  => 'warning',
+                'message' => ''
             ];
         }
 
         if ($checkOutDateTime > (clone $workScheduleEndDateTime)->modify('+1 day')) {
             return [
-                'status'  => 'invalid_input',
-                'message' => 'The check-out date cannot be more than one day after the work schedule end date.'
+                'status'  => 'warning',
+                'message' => ''
             ];
         }
 
